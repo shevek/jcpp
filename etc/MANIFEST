@@ -1,0 +1,2 @@
+Class-Path: log4j.jar dnsjava-2.0.0.jar
+Main-Class: org.anarres.iengine.Main
