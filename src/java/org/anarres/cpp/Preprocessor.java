@@ -106,14 +106,17 @@ public class Preprocessor {
 	 * If a PreprocessorListener is installed, it receives the
 	 * error. Otherwise, it is ignored.
 	 */
-	protected void error(Token tok, String msg)
+	protected void error(int line, int column, String msg)
 						throws LexerException {
 		if (listener != null)
-			listener.handleError(source,
-					tok.getLine(), tok.getColumn(),
-					msg);
+			listener.handleError(source, line, column, msg);
 		else
-			throw new LexerException("Error at " + tok.getLine() + ":" + tok.getColumn() + ": " + msg);
+			throw new LexerException("Error at " + line + ":" + column + ": " + msg);
+	}
+
+	protected void error(Token tok, String msg)
+						throws LexerException {
+		error(tok.getLine(), tok.getColumn(), msg);
 	}
 
 	/**
@@ -122,14 +125,17 @@ public class Preprocessor {
 	 * If a PreprocessorListener is installed, it receives the
 	 * warning. Otherwise, it is ignored.
 	 */
-	protected void warning(Token tok, String msg)
+	protected void warning(int line, int column, String msg)
 						throws LexerException {
 		if (listener != null)
-			listener.handleWarning(source,
-					tok.getLine(), tok.getColumn(),
-					msg);
+			listener.handleWarning(source, line, column, msg);
 		else
-			throw new LexerException("Warning at " + tok.getLine() + ":" + tok.getColumn() + ": " + msg);
+			throw new LexerException("Warning at " + line + ":" + column + ": " + msg);
+	}
+
+	protected void warning(Token tok, String msg)
+						throws LexerException {
+		warning(tok.getLine(), tok.getColumn(), msg);
 	}
 
 /*
@@ -210,9 +216,7 @@ public class Preprocessor {
 						throws LexerException {
 		State	s = states.pop();
 		if (states.isEmpty()) {
-			if (listener != null)
-				listener.handleError(getSource(), 0, 0,
-							"#" + "endif without #" + "if");
+			error(0, 0, "#" + "endif without #" + "if");
 			states.push(s);
 		}
 	}
@@ -485,12 +489,28 @@ public class Preprocessor {
 						), true);
 		}
 		else if (m == __FILE__) {
-			File	file = source.getFile();
+			StringBuilder	buf = new StringBuilder("\"");
+			String			name = source.getName();
+			for (int i = 0; i < name.length(); i++) {
+				char	c = name.charAt(i);
+				switch (c) {
+					case '\\':
+						buf.append("\\\\");
+						break;
+					case '"':
+						buf.append("\\\"");
+						break;
+					default:
+						buf.append(c);
+						break;
+				}
+			}
+			buf.append("\"");
+			String			text = buf.toString();
 			push_source(new FixedTokenSource(
 					new Token[] { new Token(STRING,
 							orig.getLine(), orig.getColumn(),
-							'"'+ String.valueOf(file) +'"',
-							file) }
+							text, text) }
 						), true);
 		}
 		else {
@@ -768,11 +788,7 @@ public class Preprocessor {
 			}
 		}
 
-		if (listener != null)
-			listener.handleError(getSource(),
-					line, 0,
-					"Header not found: " + name + " in " + path
-						);
+		error(line, 0, "File not found: " + name + " in " + path);
 	}
 
 	private Token include()
