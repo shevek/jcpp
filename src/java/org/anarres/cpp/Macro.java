@@ -118,6 +118,27 @@ public class Macro {
 		return tokens;
 	}
 
+	public String getText() {
+		StringBuilder	buf = new StringBuilder();
+		boolean			paste = false;
+		for (int i = 0; i < tokens.size(); i++) {
+			Token	tok = tokens.get(i);
+			if (tok.getType() == Token.M_PASTE) {
+				paste = true;
+				continue;
+			}
+			else {
+				buf.append(tok.getText());
+			}
+			if (paste) {
+				buf.append(" #" + "# ");
+				paste = false;
+			}
+			// buf.append(tokens.get(i));
+		}
+		return buf.toString();
+	}
+
 	public String toString() {
 		StringBuilder	buf = new StringBuilder(name);
 		if (args != null) {
@@ -133,23 +154,7 @@ public class Macro {
 			buf.append(')');
 		}
 		if (!tokens.isEmpty()) {
-			boolean	paste = false;
-			buf.append(" => ");
-			for (int i = 0; i < tokens.size(); i++) {
-				Token	tok = tokens.get(i);
-				if (tok.getType() == Token.M_PASTE) {
-					paste = true;
-					continue;
-				}
-				else {
-					buf.append(tok.getText());
-				}
-				if (paste) {
-					buf.append(" #" + "# ");
-					paste = false;
-				}
-				// buf.append(tokens.get(i));
-			}
+			buf.append(" => ").append(getText());
 		}
 		return buf.toString();
 	}

@@ -112,6 +112,8 @@ public class Preprocessor {
 			listener.handleError(source,
 					tok.getLine(), tok.getColumn(),
 					msg);
+		else
+			throw new LexerException("Error at " + tok.getLine() + ":" + tok.getColumn() + ": " + msg);
 	}
 
 	/**
@@ -123,9 +125,11 @@ public class Preprocessor {
 	protected void warning(Token tok, String msg)
 						throws LexerException {
 		if (listener != null)
-			listener.handleError(source,
+			listener.handleWarning(source,
 					tok.getLine(), tok.getColumn(),
 					msg);
+		else
+			throw new LexerException("Warning at " + tok.getLine() + ":" + tok.getColumn() + ": " + msg);
 	}
 
 /*
@@ -191,6 +195,9 @@ public class Preprocessor {
 		return macros;
 	}
 
+	public Macro getMacro(String name) {
+		return macros.get(name);
+	}
 
 /* States */
 
@@ -255,6 +262,13 @@ public class Preprocessor {
 			listener.handleSourceChange(this.source, "pop");
 	}
 
+	/**
+	 * Pushes a source into the input stack.
+	 */
+	public void addSource(Source source) {
+		push_source(source, true);
+	}
+
 
 /* Source tokens */
 
@@ -311,6 +325,7 @@ public class Preprocessor {
 								LexerException {
 		Token	tok;
 		do {
+			/* XXX This _should_ never be a NL token, I think. */
 			tok = source_token();
 		} while (isWhite(tok));
 		return tok;
@@ -828,6 +843,74 @@ public class Preprocessor {
 		finally {
 			lexer.setInclude(false);
 		}
+	}
+
+	protected void pragma(Token name, List<Token> value)
+						throws IOException,
+								LexerException {
+		warning(name, "Unknown #" + "pragma: " + name.getText());
+	}
+
+	private Token pragma()
+						throws IOException,
+								LexerException {
+		Token		name;
+
+		NAME: for (;;) {
+			Token	tok = token();
+			switch (tok.getType()) {
+				case EOF:
+					/* There ought to be a newline before EOF.
+					 * At least, in any skipline context. */
+					/* XXX Are we sure about this? */
+					warning(tok,
+						"End of file in #" + "pragma");
+					return tok;
+				case NL:
+					/* This may contain one or more newlines. */
+					warning(tok,
+						"Empty #" + "pragma");
+					return tok;
+				case COMMENT:
+				case WHITESPACE:
+					continue NAME;
+				case IDENTIFIER:
+					name = tok;
+					break NAME;
+				default:
+					return source_skipline(false);
+			}
+		}
+
+		Token		tok;
+		List<Token>	value = new ArrayList<Token>();
+		VALUE: for (;;) {
+			tok = token();
+			switch (tok.getType()) {
+				case EOF:
+					/* There ought to be a newline before EOF.
+					 * At least, in any skipline context. */
+					/* XXX Are we sure about this? */
+					warning(tok,
+						"End of file in #" + "pragma");
+					break VALUE;
+				case NL:
+					/* This may contain one or more newlines. */
+					break VALUE;
+				case COMMENT:
+					break;
+				case WHITESPACE:
+					value.add(tok);
+					break;
+				default:
+					value.add(tok);
+					break;
+			}
+		}
+
+		pragma(name, value);
+
+		return tok;	/* The NL. */
 	}
 
 	/* For #error and #warning. */
@@ -1420,7 +1503,10 @@ public class Preprocessor {
 							// break;
 
 						case PP_PRAGMA:
-							return source_skipline(false);
+							if (!isActive())
+								return source_skipline(false);
+							else
+								return pragma();
 							// break;
 
 						default:

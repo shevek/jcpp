@@ -212,7 +212,7 @@ public abstract class Source implements Iterable<Token> {
 		if (listener != null)
 			listener.handleError(this, line, column, msg);
 		else
-			throw new LexerException("No handler for error at " + line + ":" + column + ": " + msg);
+			throw new LexerException("Error at " + line + ":" + column + ": " + msg);
 	}
 
 	protected void warning(int line, int column, String msg)
@@ -220,7 +220,7 @@ public abstract class Source implements Iterable<Token> {
 		if (listener != null)
 			listener.handleWarning(this, line, column, msg);
 		else
-			throw new LexerException("No handler for warning at " + line + ":" + column + ": " + msg);
+			throw new LexerException("Warning at " + line + ":" + column + ": " + msg);
 	}
 
 }
