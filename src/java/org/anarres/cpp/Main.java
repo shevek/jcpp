@@ -75,7 +75,7 @@ public class Main {
 			"Adds the directory dir to the list of directories to be searched for header files."),
 		new Option("warning", LongOpt.REQUIRED_ARGUMENT, 'W', "type",
 			"Enables the named warning class ("  + getWarnings() + ")."),
-		new Option("nowarnings", LongOpt.NO_ARGUMENT, 'w', null,
+		new Option("no-warnings", LongOpt.NO_ARGUMENT, 'w', null,
 			"Disables ALL warnings."),
 		new Option("version", LongOpt.NO_ARGUMENT, 'V', null,
 			"Prints jcpp's version number (" + Version.getVersion() + ")"),

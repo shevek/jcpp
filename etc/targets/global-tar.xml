@@ -20,7 +20,7 @@
 
 		<copy todir="${global.dir.build.tar}">
 			<fileset dir="${global.dir.src.scripts}">
-				<include name="cpp.sh" />
+				<include name="jcpp" />
 			</fileset>
 			<fileset dir="${global.dir.root}">
 				<include name="LICENSE" />
