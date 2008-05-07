@@ -329,7 +329,6 @@ public class Preprocessor {
 								LexerException {
 		Token	tok;
 		do {
-			/* XXX This _should_ never be a NL token, I think. */
 			tok = source_token();
 		} while (isWhite(tok));
 		return tok;
@@ -769,7 +768,7 @@ public class Preprocessor {
 				dir = new File("/");
 			File	file = new File(dir, name);
 			// System.err.println("Include: " + file);
-			if (file.exists()) {
+			if (file.exists() && file.isFile()) {
 				push_source(new FileLexerSource(file), true);
 				return;
 			}
@@ -780,7 +779,7 @@ public class Preprocessor {
 				File	file = new File(
 							path.get(i) + File.separator + name
 								);
-				if (file.exists()) {
+				if (file.exists() && file.isFile()) {
 					// System.err.println("Include: " + file);
 					push_source(new FileLexerSource(file), true);
 					return;
@@ -807,11 +806,8 @@ public class Preprocessor {
 				 * Backslashes must not be treated as escapes here. */
 				StringBuilder	buf = new StringBuilder((String)tok.getValue());
 				HEADER: for (;;) {
-					tok = _token();	/* Do macros but nothing else. */
+					tok = token_nonwhite();
 					switch (tok.getType()) {
-						case WHITESPACE:
-						case COMMENT:
-							continue;
 						case STRING:
 							buf.append((String)tok.getValue());
 							break;

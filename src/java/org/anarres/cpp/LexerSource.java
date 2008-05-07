@@ -297,7 +297,7 @@ public class LexerSource extends Source {
 		if (e != '\'') {
 			unread(e);
 			error("Illegal character constant");
-			/* XXX We could do some patching up here? */
+			/* XXX We should consume the rest of the line here. */
 			return new Token(ERROR, text.toString(), null);
 		}
 		text.append('\'');
@@ -306,8 +306,6 @@ public class LexerSource extends Source {
 				text.toString(), Character.valueOf((char)d));
 	}
 
-	/* XXX This strips the enclosing quotes from the
-	 * returned value. */
 	private Token string(char open, char close)
 						throws IOException,
 								LexerException {
@@ -558,11 +556,24 @@ public class LexerSource extends Source {
 				break;
 
 			case '%':
-				tok = cond('=', MOD_EQ, '%');
+				d = read();
+				if (d == '=')
+					tok = new Token(MOD_EQ);
+				else if (d == '>')
+					tok = new Token('}');	// digraph
+				else if (d == ':')
+					tok = new Token('#');	// digraph
+				else	// XXX Deal with %:%: -> ##
+					unread(d);
 				break;
 
 			case ':':
 				/* :: */
+				d = read();
+				if (d == '>')
+					tok = new Token(']');	// digraph
+				else
+					unread(d);
 				break;
 
 			case '<':
@@ -575,6 +586,10 @@ public class LexerSource extends Source {
 						tok = new Token(LE);
 					else if (d == '<')
 						tok = cond('=', LSH_EQ, LSH);
+					else if (d == ':')
+						tok = new Token('[');	// digraph
+					else if (d == '%')
+						tok = new Token('{');	// digraph
 					else
 						unread(d);
 				}

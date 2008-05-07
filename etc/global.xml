@@ -9,11 +9,9 @@
 	<property file="${global.dir.etc}/log4j.properties" />
 
 	<path id="compile-classpath">
-		<!--
 		<fileset dir="${global.dir.lib}">
-			<include name="**/*.jar"/>
+			<include name="runtime/**/*.jar"/>
 		</fileset>
-		-->
 	</path>
 
 	<path id="runtime-classpath">
