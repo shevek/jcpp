@@ -12,7 +12,7 @@ import static org.anarres.cpp.Token.*;
 
 public class LexerSourceTestCase extends BaseTestCase implements Test {
 
-	private void testLexerSource(String in, int[] out)
+	private void testLexerSource(String in, int... out)
 						throws Exception {
 		System.out.println("Testing '" + in + "' => " +
 						Arrays.toString(out));
@@ -29,14 +29,36 @@ public class LexerSourceTestCase extends BaseTestCase implements Test {
 	public void testJoinReader()
 						throws Exception {
 
-		testLexerSource("int a = 5;", new int[] {
+		testLexerSource("int a = 5;",
 			IDENTIFIER, WHITESPACE, IDENTIFIER, WHITESPACE,
 			'=', WHITESPACE, INTEGER, ';', EOF
-		});
+		);
 
-		testLexerSource("# # foo", new int[] {
+		// \n is WHITESPACE because ppvalid = false
+		testLexerSource("# #   \r\n\n\r \rfoo",
 			HASH, WHITESPACE, '#', WHITESPACE, IDENTIFIER
-		});
+		);
+
+		testLexerSource("%:%:", PASTE);
+		testLexerSource("%:?", '#', '?');
+		testLexerSource("%:%=", '#', MOD_EQ);
+		testLexerSource("0x1234ffdUL 0765I",
+				INTEGER, WHITESPACE, INTEGER);
+
+		testLexerSource("+= -= *= /= %= <= >= >>= <<= &= |= ^= x",
+			PLUS_EQ, WHITESPACE,
+			SUB_EQ, WHITESPACE,
+			MULT_EQ, WHITESPACE,
+			DIV_EQ, WHITESPACE,
+			MOD_EQ, WHITESPACE,
+			LE, WHITESPACE,
+			GE, WHITESPACE,
+			RSH_EQ, WHITESPACE,
+			LSH_EQ, WHITESPACE,
+			AND_EQ, WHITESPACE,
+			OR_EQ, WHITESPACE,
+			XOR_EQ, WHITESPACE,
+			IDENTIFIER);
 
 	}
 

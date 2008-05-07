@@ -22,13 +22,16 @@ package org.anarres.cpp;
 import java.io.File;
 import java.io.IOException;
 
-import java.util.Arrays;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.Stack;
 
 import static org.anarres.cpp.Token.*;
@@ -44,8 +47,6 @@ import static org.anarres.cpp.Token.*;
 public class Preprocessor {
 	private static final boolean	DEBUG = false;
 
-	public static final int	FL_LINEMARKER = 1;
-
 	private static final Macro		__LINE__ = new Macro("__LINE__");
 	private static final Macro		__FILE__ = new Macro("__FILE__");
 
@@ -54,11 +55,11 @@ public class Preprocessor {
 	private Source					source;
 
 	private List<String>			path;
+	private Set<Feature>			features;
+	private Set<Warning>			warnings;
 	private PreprocessorListener	listener;
 
-	private int						flags;
-
-	public Preprocessor(Source initial, int flags) {
+	public Preprocessor() {
 		this.macros = new HashMap<String,Macro>();
 		macros.put(__LINE__.getName(), __LINE__);
 		macros.put(__FILE__.getName(), __FILE__);
@@ -66,17 +67,16 @@ public class Preprocessor {
 		states.push(new State());
 		this.source = null;
 		this.path = null;
+		this.features = EnumSet.noneOf(Feature.class);
+		features.add(Feature.DIGRAPHS);
+		features.add(Feature.TRIGRAPHS);
+		this.warnings = EnumSet.noneOf(Warning.class);
 		setListener(new PreprocessorListener());
-		setFlags(flags);
-
-		push_source(initial, false);
-		/* We need to get a \n onto the end of this somehow. */
-		if ((flags & FL_LINEMARKER) != 0)
-			source_untoken(line_token(1, source.getName(), "\n"));
 	}
 
 	public Preprocessor(Source initial) {
-		this(initial, 0);
+		this();
+		addInput(initial);
 	}
 
 	/** Equivalent to
@@ -84,7 +84,7 @@ public class Preprocessor {
 	 */
 	public Preprocessor(File file)
 						throws IOException {
-		this(new FileLexerSource(file), 0);
+		this(new FileLexerSource(file));
 	}
 
 	public void setListener(PreprocessorListener listener) {
@@ -96,9 +96,53 @@ public class Preprocessor {
 		}
 	}
 
-	public void setFlags(int flags) {
-		this.flags = flags;
+	public Set<Feature> getFeatures() {
+		return features;
 	}
+
+	public void addFeature(Feature f) {
+		features.add(f);
+	}
+
+	public void addFeatures(Collection<Feature> f) {
+		features.addAll(f);
+	}
+
+	public Set<Warning> getWarnings() {
+		return warnings;
+	}
+
+	public void addWarning(Warning w) {
+		warnings.add(w);
+	}
+
+	public void addWarnings(Collection<Warning> w) {
+		warnings.addAll(w);
+	}
+
+	public void addInput(Source source) {
+		if (this.source == null) {
+			this.source = source;
+			/* We need to get a \n onto the end of this somehow. */
+			if (features.contains(Feature.LINEMARKERS))
+				source_untoken(line_token(1, source.getName(), "\n"));
+		}
+		else {
+			Source	s = this.source;
+			Source	p = source.getParent();
+			while (p != null) {
+				s = p;
+				p = s.getParent();
+			}
+			s.setParent(source, true);
+		}
+	}
+
+	public void addInput(File file)
+						throws IOException {
+		addInput(new FileLexerSource(file));
+	}
+
 
 	/**
 	 * Handles an error.
@@ -249,6 +293,8 @@ public class Preprocessor {
 	protected void push_source(Source source, boolean autopop) {
 		source.setParent(this.source, autopop);
 		source.setListener(listener);
+		if (listener != null)
+			listener.handleSourceChange(this.source, "suspend");
 		this.source = source;
 		if (listener != null)
 			listener.handleSourceChange(this.source, "push");
@@ -261,9 +307,11 @@ public class Preprocessor {
 	 * @see #push_source(Source,boolean)
 	 */
 	protected void pop_source() {
-		this.source = this.source.getParent();
 		if (listener != null)
 			listener.handleSourceChange(this.source, "pop");
+		this.source = this.source.getParent();
+		if (listener != null && this.source != null)
+			listener.handleSourceChange(this.source, "resume");
 	}
 
 	/**
@@ -295,12 +343,15 @@ public class Preprocessor {
 		}
 
 		for (;;) {
+			if (source == null)
+				return new Token(EOF);
 			Token	tok = source.token();
 			if (tok.getType() == EOF && source.isAutopop()) {
 				// System.out.println("Autopop " + source);
 				Source	s = source;
 				pop_source();
-				if ((flags & FL_LINEMARKER) != 0 && s.isNumbered()) {
+				if (features.contains(Feature.LINEMARKERS)
+						&& s.isNumbered()) {
 					/* Not perfect, but ... */
 					source_untoken(new Token(NL, source.getLine(), 0, "\n"));
 					return line_token(source.getLine(), source.getName(), "");
@@ -490,6 +541,8 @@ public class Preprocessor {
 		else if (m == __FILE__) {
 			StringBuilder	buf = new StringBuilder("\"");
 			String			name = source.getName();
+			if (name == null)
+				name = "<no file>";
 			for (int i = 0; i < name.length(); i++) {
 				char	c = name.charAt(i);
 				switch (c) {
@@ -846,7 +899,7 @@ public class Preprocessor {
 
 			/* 'tok' is the 'nl' after the include. We use it after the
 			 * #line directive. */
-			if ((flags & FL_LINEMARKER) != 0) {
+			if (features.contains(Feature.LINEMARKERS)) {
 				source_untoken(tok);
 				return line_token(1, name, "");
 			}
@@ -1332,7 +1385,7 @@ public class Preprocessor {
 					return tok;
 
 				case P_LINE:
-					if ((flags & FL_LINEMARKER) != 0)
+					if (features.contains(Feature.LINEMARKERS))
 						return tok;
 					break;
 

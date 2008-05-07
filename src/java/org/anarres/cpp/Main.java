@@ -69,6 +69,8 @@ public class Main {
 			"Defines the given macro."),
 		new Option("undefine", LongOpt.REQUIRED_ARGUMENT, 'U', "name",
 			"Undefines the given macro, previously either builtin or defined using -D."),
+		new Option("include", LongOpt.REQUIRED_ARGUMENT, 'i', "file",
+			"Process file as if \"#" + "include \"file\"\" appeared as the first line of the primary source file."),
 		new Option("incdir", LongOpt.REQUIRED_ARGUMENT, 'I', "dir",
 			"Adds the directory dir to the list of directories to be searched for header files."),
 		new Option("warning", LongOpt.REQUIRED_ARGUMENT, 'W', "type",
@@ -101,7 +103,6 @@ public class Main {
 		i_quote = new ArrayList<String>();
 		d_default = new HashMap<String,String>();
 		d_user = new HashMap<String,String>();
-		warnings = EnumSet.noneOf(Warning.class);
 	}
 
 	public void run(Option[] opts, String[] args) throws Exception {
@@ -110,6 +111,9 @@ public class Main {
 		int		c;
 		String	arg;
 		int		idx;
+
+		Preprocessor	pp = new Preprocessor();
+		pp.addFeature(Feature.LINEMARKERS);
 
         GETOPT: while ((c = g.getopt()) != -1) {
             switch (c) {
@@ -133,38 +137,33 @@ public class Main {
 					arg = g.getOptarg().toUpperCase();
 					arg = arg.replace('-', '_');
 					if (arg.equals("all"))
-						warnings = EnumSet.allOf(Warning.class);
+						pp.addWarnings(EnumSet.allOf(Warning.class));
 					else
-						warnings.add(Enum.valueOf(Warning.class, arg));
+						pp.addWarning(Enum.valueOf(Warning.class, arg));
 					break;
                 case 'w':
-					warnings = EnumSet.noneOf(Warning.class);
+					pp.getWarnings().clear();
+					break;
+				case 'i':
+					// pp.addInput(new File(g.getOptarg()));
+					// Comply exactly with spec.
+					pp.addInput(new StringLexerSource(
+						"#" + "include \"" + g.getOptarg() + "\"\n"
+					));
 					break;
 				case 'V':
 					System.out.println("Anarres Java C Preprocessor version " + Version.getVersion());
-					System.exit(0);
-                    throw new Exception("Exited");
+					return;
                 case 'h':
                     usage(getClass().getName(), opts);
-                    System.exit(1);
-                    throw new Exception("Exited");
+					return;
                 default:
                 case '?':
                     throw new Exception("Illegal option " + c);
 			}
 		}
 
-		File			file = new File(args[g.getOptind()]);
-		Source			source = new FileLexerSource(file);
-		Preprocessor	pp = new Preprocessor(source);
-
-		/* XXX Warnings, include-path, include-files. */
-
-		for (int i = g.getOptind() + 1; i < args.length; i++) {
-			/* XXX Wrong, needs to concat them not push them. */
-			/* XXX Reverse this list. */
-			pp.addSource(new FileLexerSource(new File(args[i])));
-		}
+		/* XXX include-path, include-files. */
 
 		for (Map.Entry<String,String> e : d_default.entrySet())
 			pp.addMacro(e.getKey(), e.getValue());
@@ -172,6 +171,9 @@ public class Main {
 			pp.addMacro(e.getKey(), e.getValue());
 
 		/* XXX Include paths. */
+
+		for (int i = g.getOptind(); i < args.length; i++)
+			pp.addInput(new FileLexerSource(new File(args[i])));
 
 		try {
 			for (;;) {

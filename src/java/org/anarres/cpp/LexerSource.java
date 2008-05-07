@@ -479,7 +479,7 @@ public class LexerSource extends Source {
 		int		_c = column;
 
 		int		c = read();
-		int		d, e;
+		int		d;
 
 		switch (c) {
 			case '\n':
@@ -561,9 +561,23 @@ public class LexerSource extends Source {
 					tok = new Token(MOD_EQ);
 				else if (d == '>')
 					tok = new Token('}');	// digraph
-				else if (d == ':')
-					tok = new Token('#');	// digraph
-				else	// XXX Deal with %:%: -> ##
+				else if (d == ':') PASTE: {
+					d = read();
+					if (d != '%') {
+						unread(d);
+						tok = new Token('#');	// digraph
+						break PASTE;
+					}
+					d = read();
+					if (d != ':') {
+						unread(d);
+						unread('%');
+						tok = new Token('#');	// digraph
+						break PASTE;
+					}
+					tok = new Token(PASTE);	// digraph
+				}
+				else
 					unread(d);
 				break;
 

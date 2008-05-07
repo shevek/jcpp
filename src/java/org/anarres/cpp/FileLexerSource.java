@@ -58,6 +58,11 @@ public class FileLexerSource extends LexerSource {
 		this.file = file;
 	}
 
+	public FileLexerSource(String path)
+						throws IOException {
+		this(new File(path));
+	}
+
 	@Override
 	/* pp */ File getFile() {
 		return file;
