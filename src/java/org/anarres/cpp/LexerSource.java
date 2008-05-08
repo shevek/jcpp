@@ -23,7 +23,8 @@ import java.io.File;
 import java.io.IOException;
 import java.io.PushbackReader;
 import java.io.Reader;
-import java.util.Stack;
+
+import java.util.Set;
 
 import static org.anarres.cpp.Token.*;
 
@@ -31,10 +32,13 @@ import static org.anarres.cpp.Token.*;
 public class LexerSource extends Source {
 	private static final boolean	DEBUG = false;
 
+	private JoinReader		_reader;
 	private PushbackReader	reader;
 	private boolean			ppvalid;
 	private boolean			bol;
 	private boolean			include;
+
+	private boolean			digraphs;
 
 	private int				line;
 	private int				column;
@@ -45,15 +49,25 @@ public class LexerSource extends Source {
 	 * false in StringLexerSource,
 	 * true in FileLexerSource */
 	public LexerSource(Reader r, boolean ppvalid) {
-		this.reader = new PushbackReader(new JoinReader(r), 5);
+		this._reader = new JoinReader(r);
+		this.reader = new PushbackReader(_reader, 5);
 		this.ppvalid = ppvalid;
 		this.bol = true;
 		this.include = false;
+
+		this.digraphs = true;
 
 		this.line = 1;
 		this.column = 0;
 		this.lastcolumn = -1;
 		this.cr = false;
+	}
+
+	@Override
+	public void setFeatures(Set<Feature> features) {
+		super.setFeatures(features);
+		this.digraphs = features.contains(Feature.DIGRAPHS);
+		this._reader.setTrigraphs(features.contains(Feature.TRIGRAPHS));
 	}
 
 	@Override
@@ -295,13 +309,22 @@ public class LexerSource extends Source {
 
 		int		e = read();
 		if (e != '\'') {
-			unread(e);
 			error("Illegal character constant");
-			/* XXX We should consume the rest of the line here. */
+			/* We consume up to the next ' or the rest of the line. */
+			for (;;) {
+				if (e == '\'')
+					break;
+				if (isLineSeparator(e)) {
+					unread(e);
+					break;
+				}
+				text.append((char)e);
+				e = read();
+			}
 			return new Token(ERROR, text.toString(), null);
 		}
 		text.append('\'');
-		/* XXX Bad cast. */
+		/* XXX It this a bad cast? */
 		return new Token(CHARACTER,
 				text.toString(), Character.valueOf((char)d));
 	}
@@ -559,9 +582,9 @@ public class LexerSource extends Source {
 				d = read();
 				if (d == '=')
 					tok = new Token(MOD_EQ);
-				else if (d == '>')
+				else if (digraphs && d == '>')
 					tok = new Token('}');	// digraph
-				else if (d == ':') PASTE: {
+				else if (digraphs && d == ':') PASTE: {
 					d = read();
 					if (d != '%') {
 						unread(d);
@@ -584,7 +607,7 @@ public class LexerSource extends Source {
 			case ':':
 				/* :: */
 				d = read();
-				if (d == '>')
+				if (digraphs && d == '>')
 					tok = new Token(']');	// digraph
 				else
 					unread(d);
@@ -600,9 +623,9 @@ public class LexerSource extends Source {
 						tok = new Token(LE);
 					else if (d == '<')
 						tok = cond('=', LSH_EQ, LSH);
-					else if (d == ':')
+					else if (digraphs && d == ':')
 						tok = new Token('[');	// digraph
-					else if (d == '%')
+					else if (digraphs && d == '%')
 						tok = new Token('{');	// digraph
 					else
 						unread(d);

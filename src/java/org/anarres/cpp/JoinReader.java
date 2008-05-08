@@ -46,6 +46,10 @@ import java.io.IOException;
 		this(in, false);
 	}
 
+	public void setTrigraphs(boolean enable) {
+		this.trigraphs = enable;
+	}
+
 	private int __read() throws IOException {
 		if (uptr > 0)
 			return unget[--uptr];

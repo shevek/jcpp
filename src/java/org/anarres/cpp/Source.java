@@ -27,8 +27,9 @@ import java.io.PushbackReader;
 import java.io.Reader;
 import java.io.StringReader;
 
-import java.util.List;
 import java.util.Iterator;
+import java.util.List;
+import java.util.Set;
 
 import static org.anarres.cpp.Token.*;
 
@@ -97,8 +98,11 @@ public abstract class Source implements Iterable<Token> {
 		return parent;
 	}
 
-	/* pp */ void setListener(PreprocessorListener listener) {
+	public void setListener(PreprocessorListener listener) {
 		this.listener = listener;
+	}
+
+	public void setFeatures(Set<Feature> features) {
 	}
 
 	/**
