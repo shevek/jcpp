@@ -153,6 +153,9 @@ public class Main {
 					break;
 				case 'V':
 					System.out.println("Anarres Java C Preprocessor version " + Version.getVersion());
+					System.out.println("Copyright (C) 2008 Shevek (http://www.anarres.org/).");
+					System.out.println("This is free software; see the source for copying conditions.  There is NO");
+					System.out.println("warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.");
 					return;
                 case 'h':
                     usage(getClass().getName(), opts);
