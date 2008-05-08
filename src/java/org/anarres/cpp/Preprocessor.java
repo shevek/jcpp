@@ -825,6 +825,7 @@ public class Preprocessor {
 	protected boolean include(File file)
 						throws IOException,
 								LexerException {
+		// System.out.println("Try to include " + file);
 		if (!file.exists())
 			return false;
 		if (!file.isFile())
@@ -856,7 +857,7 @@ public class Preprocessor {
 						throws IOException,
 								LexerException {
 		if (quoted) {
-			File	dir = parent.getParentFile();
+			File	dir = parent.getAbsoluteFile().getParentFile();
 			if (dir == null)
 				dir = new File("/");
 			File	file = new File(dir, name);
@@ -870,12 +871,14 @@ public class Preprocessor {
 			return;
 
 		StringBuilder	buf = new StringBuilder();
-		if (quoted)
+		if (quoted) {
+			buf.append(" .");
 			for (String dir : quoteincludepath)
 				buf.append(" ").append(dir);
+		}
 		for (String dir : sysincludepath)
 			buf.append(" ").append(dir);
-		error(line, 0, "File not found: " + name + " in " + buf);
+		error(line, 0, "File not found: " + name + " in" + buf);
 	}
 
 	private Token include()
