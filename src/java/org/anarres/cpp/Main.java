@@ -165,7 +165,9 @@ public class Main {
 		try {
 			for (;;) {
 				Token	tok = pp.token();
-				if (tok != null && tok.getType() == Token.EOF)
+				if (tok == null)
+					break;
+				if (tok.getType() == Token.EOF)
 					break;
 				System.out.print(tok.getText());
 			}
@@ -302,6 +304,7 @@ public class Main {
 
 
 
+#if (false)
 	public static void oldmain(String[] args) throws Exception {
 		List<String>	path = new ArrayList<String>();
 		path.add("/usr/include");
@@ -372,5 +375,6 @@ public class Main {
 		}
 
 	}
+#end
 
 }

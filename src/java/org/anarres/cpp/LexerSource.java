@@ -509,7 +509,7 @@ public class LexerSource extends Source {
 				if (ppvalid) {
 					bol = true;
 					if (include) {
-						tok = new Token(NL, _l, _c, new String("\n"));
+						tok = new Token(NL, _l, _c, "\n");
 					}
 					else {
 						int	nls = 0;
