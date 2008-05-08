@@ -1,4 +1,4 @@
-package de.tu_darmstadt.informatik.rbg.mhartle.cpp;
+package org.anarres.cpp;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -34,8 +34,8 @@ public class CppTask extends Task {
 		}
 	}
 
-	private File			input = null;
-	private File			output = null;
+	private File			input;
+	private File			output;
 	private Preprocessor	cpp;
 
 	public CppTask() {
@@ -63,6 +63,11 @@ public class CppTask extends Task {
 	public void execute() {
 		FileWriter writer = null;
 		try {
+			if (input == null)
+				throw new BuildException("Input not specified");
+			if (output == null)
+				throw new BuildException("Output not specified");
+			cpp.addInput(this.input);
 			writer = new FileWriter(this.output);
 			for (;;) {
 				Token	tok = cpp.token();
