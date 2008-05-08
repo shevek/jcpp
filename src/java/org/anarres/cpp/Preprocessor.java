@@ -54,7 +54,8 @@ public class Preprocessor {
 	private Stack<State>			states;
 	private Source					source;
 
-	private List<String>			path;
+	private List<String>			quoteincludepath;	/* -iquote */
+	private List<String>			sysincludepath;		/* -I */
 	private Set<Feature>			features;
 	private Set<Warning>			warnings;
 	private PreprocessorListener	listener;
@@ -66,7 +67,8 @@ public class Preprocessor {
 		this.states = new Stack<State>();
 		states.push(new State());
 		this.source = null;
-		this.path = null;
+		this.quoteincludepath = new ArrayList<String>();
+		this.sysincludepath = new ArrayList<String>();
 		this.features = EnumSet.noneOf(Feature.class);
 		features.add(Feature.DIGRAPHS);
 		features.add(Feature.TRIGRAPHS);
@@ -230,11 +232,27 @@ public class Preprocessor {
 	}
 
 	/**
-	 * Sets the include path used by this Preprocessor.
+	 * Sets the user include path used by this Preprocessor.
 	 */
 	/* Note for future: Create an IncludeHandler? */
-	public void setIncludePath(List<String> path) {
-		this.path = path;
+	public void setQuoteIncludePath(List<String> path) {
+		this.quoteincludepath = path;
+	}
+
+	public List<String> getQuoteIncludePath() {
+		return quoteincludepath;
+	}
+
+	/**
+	 * Sets the system include path used by this Preprocessor.
+	 */
+	/* Note for future: Create an IncludeHandler? */
+	public void setSystemIncludePath(List<String> path) {
+		this.sysincludepath = path;
+	}
+
+	public List<String> getSystemIncludePath() {
+		return sysincludepath;
 	}
 
 	/**
@@ -804,6 +822,28 @@ public class Preprocessor {
 		return source_skipline(true);
 	}
 
+	protected boolean include(File file)
+						throws IOException,
+								LexerException {
+		if (!file.exists())
+			return false;
+		if (!file.isFile())
+			return false;
+		push_source(new FileLexerSource(file), true);
+		return true;
+	}
+
+	protected boolean include(Iterable<String> path, String name)
+						throws IOException,
+								LexerException {
+		for (String dir : path) {
+			File	file = new File(dir + File.separator + name);
+			if (include(file))
+				return true;
+		}
+		return false;
+	}
+
 	/**
 	 * Handles a include directive.
 	 *
@@ -820,27 +860,22 @@ public class Preprocessor {
 			if (dir == null)
 				dir = new File("/");
 			File	file = new File(dir, name);
-			// System.err.println("Include: " + file);
-			if (file.exists() && file.isFile()) {
-				push_source(new FileLexerSource(file), true);
+			if (include(file))
 				return;
-			}
+			if (include(quoteincludepath, name))
+				return;
 		}
 
-		if (path != null) {
-			for (int i = 0; i < path.size(); i++) {
-				File	file = new File(
-							path.get(i) + File.separator + name
-								);
-				if (file.exists() && file.isFile()) {
-					// System.err.println("Include: " + file);
-					push_source(new FileLexerSource(file), true);
-					return;
-				}
-			}
-		}
+		if (include(sysincludepath, name))
+			return;
 
-		error(line, 0, "File not found: " + name + " in " + path);
+		StringBuilder	buf = new StringBuilder();
+		if (quoted)
+			for (String dir : quoteincludepath)
+				buf.append(" ").append(dir);
+		for (String dir : sysincludepath)
+			buf.append(" ").append(dir);
+		error(line, 0, "File not found: " + name + " in " + buf);
 	}
 
 	private Token include()

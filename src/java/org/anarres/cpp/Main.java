@@ -53,15 +53,6 @@ public class Main {
         }
     }
 
-	private List<String>		i_default;
-	private List<String>		i_system;
-	private List<String>		i_user;
-	private List<String>		i_quote;
-	private Map<String,String>	d_default;
-	private Map<String,String>	d_user;
-	private Set<Warning>		warnings;
-	private List<String>		f_include;
-
 	private static final Option[]	OPTS = new Option[] {
 		new Option("help",   LongOpt.NO_ARGUMENT,       'h', null,
 			"Displays help and usage information."),
@@ -69,15 +60,17 @@ public class Main {
 			"Defines the given macro."),
 		new Option("undefine", LongOpt.REQUIRED_ARGUMENT, 'U', "name",
 			"Undefines the given macro, previously either builtin or defined using -D."),
-		new Option("include", LongOpt.REQUIRED_ARGUMENT, 'i', "file",
+		new Option("include", LongOpt.REQUIRED_ARGUMENT, 1, "file",
 			"Process file as if \"#" + "include \"file\"\" appeared as the first line of the primary source file."),
 		new Option("incdir", LongOpt.REQUIRED_ARGUMENT, 'I', "dir",
 			"Adds the directory dir to the list of directories to be searched for header files."),
+		new Option("iquote", LongOpt.REQUIRED_ARGUMENT, 0, "dir",
+			"Adds the directory dir to the list of directories to be searched for header files included using \"\"."),
 		new Option("warning", LongOpt.REQUIRED_ARGUMENT, 'W', "type",
 			"Enables the named warning class ("  + getWarnings() + ")."),
 		new Option("no-warnings", LongOpt.NO_ARGUMENT, 'w', null,
 			"Disables ALL warnings."),
-		new Option("version", LongOpt.NO_ARGUMENT, 'V', null,
+		new Option("version", LongOpt.NO_ARGUMENT, 2, null,
 			"Prints jcpp's version number (" + Version.getVersion() + ")"),
 	};
 
@@ -96,15 +89,6 @@ public class Main {
 		(new Main()).run(OPTS, args);
 	}
 
-	public Main() {
-		i_default = new ArrayList<String>();
-		i_system = new ArrayList<String>();
-		i_user = new ArrayList<String>();
-		i_quote = new ArrayList<String>();
-		d_default = new HashMap<String,String>();
-		d_user = new HashMap<String,String>();
-	}
-
 	public void run(Option[] opts, String[] args) throws Exception {
         String	sopts = getShortOpts(opts);
         Getopt	g = new Getopt("jcpp", args, sopts, opts);
@@ -115,23 +99,27 @@ public class Main {
 		Preprocessor	pp = new Preprocessor();
 		pp.addFeature(Feature.LINEMARKERS);
 
+		pp.addMacro("__JCPP__");
+
         GETOPT: while ((c = g.getopt()) != -1) {
             switch (c) {
 				case 'D':
 					arg = g.getOptarg();
 					idx = arg.indexOf('=');
 					if (idx == -1)
-						d_user.put(arg, "1");
+						pp.addMacro(arg);
 					else
-						d_user.put(arg.substring(0, idx),
+						pp.addMacro(arg.substring(0, idx),
 									arg.substring(idx + 1));
 					break;
 				case 'U':
-					d_default.remove(g.getOptarg());
-					d_user.remove(g.getOptarg());
+					pp.getMacros().remove(g.getOptarg());
 					break;
 				case 'I':
-					i_user.add(g.getOptarg());
+					pp.getSystemIncludePath().add(g.getOptarg());
+					break;
+				case 0:	// --iquote=
+					pp.getQuoteIncludePath().add(g.getOptarg());
 					break;
 				case 'W':
 					arg = g.getOptarg().toUpperCase();
@@ -144,14 +132,14 @@ public class Main {
                 case 'w':
 					pp.getWarnings().clear();
 					break;
-				case 'i':
+				case 1:	// --include=
 					// pp.addInput(new File(g.getOptarg()));
 					// Comply exactly with spec.
 					pp.addInput(new StringLexerSource(
 						"#" + "include \"" + g.getOptarg() + "\"\n"
 					));
 					break;
-				case 'V':
+				case 2:	// --version
 					System.out.println("Anarres Java C Preprocessor version " + Version.getVersion());
 					System.out.println("Copyright (C) 2008 Shevek (http://www.anarres.org/).");
 					System.out.println("This is free software; see the source for copying conditions.  There is NO");
@@ -166,14 +154,10 @@ public class Main {
 			}
 		}
 
-		/* XXX include-path, include-files. */
-
-		for (Map.Entry<String,String> e : d_default.entrySet())
-			pp.addMacro(e.getKey(), e.getValue());
-		for (Map.Entry<String,String> e : d_user.entrySet())
-			pp.addMacro(e.getKey(), e.getValue());
-
-		/* XXX Include paths. */
+		List<String>	path = pp.getSystemIncludePath();
+		path.add("/usr/local/include");
+		path.add("/usr/include");
+		path.add("/usr/lib/gcc/i686-pc-linux-gnu/4.1.2/include");
 
 		for (int i = g.getOptind(); i < args.length; i++)
 			pp.addInput(new FileLexerSource(new File(args[i])));
@@ -203,6 +187,8 @@ public class Main {
         StringBuilder   buf = new StringBuilder();
         for (int i = 0; i < opts.length; i++) {
             char    c = (char)opts[i].getVal();
+			if (!Character.isLetterOrDigit(c))
+				continue;
             for (int j = 0; j < buf.length(); j++)
                 if (buf.charAt(j) == c)
                     throw new Exception(
@@ -294,7 +280,8 @@ public class Main {
                     line.append('=').append(opt.eg);
                     break;
             }
-            line.append(" (-").append((char)opt.getVal()).append(")");
+			if (Character.isLetterOrDigit(opt.getVal()))
+				line.append(" (-").append((char)opt.getVal()).append(")");
             if (line.length() < 30) {
                 while (line.length() < 30)
                     line.append(' ');
@@ -323,7 +310,7 @@ public class Main {
 
 		Source			source = new FileLexerSource(new File(args[0]));
 		Preprocessor	pp = new Preprocessor(source);
-		pp.setIncludePath(path);
+		pp.setSystemIncludePath(path);
 
 		for (int i = 1; i < args.length; i++) {
 			pp.push_source(new FileLexerSource(new File(args[i])),true);
