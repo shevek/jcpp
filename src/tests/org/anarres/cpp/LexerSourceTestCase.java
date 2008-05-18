@@ -26,7 +26,7 @@ public class LexerSourceTestCase extends BaseTestCase implements Test {
 		assertEquals(EOF, s.token().getType());
 	}
 
-	public void testJoinReader()
+	public void testLexerSource()
 						throws Exception {
 
 		testLexerSource("int a = 5;",

@@ -26,7 +26,7 @@ public class CppReaderTestCase extends BaseTestCase implements Test {
 		}
 	}
 
-	public void testJoinReader()
+	public void testCppReader()
 						throws Exception {
 		testCppReader("#include <test0.h>\n", "ab");
 	}

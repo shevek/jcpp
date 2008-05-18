@@ -32,13 +32,16 @@ import static org.anarres.cpp.Token.*;
 public class LexerSource extends Source {
 	private static final boolean	DEBUG = false;
 
-	private JoinReader		_reader;
-	private PushbackReader	reader;
+	private JoinReader		reader;
 	private boolean			ppvalid;
 	private boolean			bol;
 	private boolean			include;
 
 	private boolean			digraphs;
+
+	/* Unread. */
+	private int				u0, u1;
+	private int				ucount;
 
 	private int				line;
 	private int				column;
@@ -49,13 +52,14 @@ public class LexerSource extends Source {
 	 * false in StringLexerSource,
 	 * true in FileLexerSource */
 	public LexerSource(Reader r, boolean ppvalid) {
-		this._reader = new JoinReader(r);
-		this.reader = new PushbackReader(_reader, 5);
+		this.reader = new JoinReader(r);
 		this.ppvalid = ppvalid;
 		this.bol = true;
 		this.include = false;
 
 		this.digraphs = true;
+
+		this.ucount = 0;
 
 		this.line = 1;
 		this.column = 0;
@@ -64,10 +68,10 @@ public class LexerSource extends Source {
 	}
 
 	@Override
-	public void setFeatures(Set<Feature> features) {
-		super.setFeatures(features);
-		this.digraphs = features.contains(Feature.DIGRAPHS);
-		this._reader.setTrigraphs(features.contains(Feature.TRIGRAPHS));
+	/* pp */ void init(Preprocessor pp) {
+		super.init(pp);
+		this.digraphs = pp.getFeature(Feature.DIGRAPHS);
+		this.reader.init(pp, this);
 	}
 
 	@Override
@@ -75,6 +79,7 @@ public class LexerSource extends Source {
 		return line;
 	}
 
+	@Override
 	public int getColumn() {
 		return column;
 	}
@@ -102,12 +107,14 @@ public class LexerSource extends Source {
 			super.warning(_l, _c, msg);
 	}
 
-	private final void error(String msg)
+	/* Allow JoinReader to call this. */
+	/* pp */ final void error(String msg)
 						throws LexerException {
 		_error(msg, true);
 	}
 
-	private final void warning(String msg)
+	/* Allow JoinReader to call this. */
+	/* pp */ final void warning(String msg)
 						throws LexerException {
 		_error(msg, false);
 	}
@@ -142,7 +149,19 @@ public class LexerSource extends Source {
 	}
 
 
-	private int read() throws IOException {
+	private int read()
+						throws IOException,
+								LexerException {
+		assert ucount <= 2 : "Illegal ucount: " + ucount;
+		switch (ucount) {
+			case 2:
+				ucount = 1;
+				return u1;
+			case 1:
+				ucount = 0;
+				return u0;
+		}
+
 		int	c = reader.read();
 		switch (c) {
 			case '\r':
@@ -199,12 +218,27 @@ public class LexerSource extends Source {
 			else {
 				column--;
 			}
-			reader.unread(c);
+			switch (ucount) {
+				case 0:
+					u0 = c;
+					ucount = 1;
+					break;
+				case 1:
+					u1 = c;
+					ucount = 2;
+					break;
+				default:
+					throw new IllegalStateException(
+							"Cannot unget another character!"
+								);
+			}
+			// reader.unread(c);
 		}
 	}
 
 	private Token ccomment()
-						throws IOException {
+						throws IOException,
+								LexerException {
 		StringBuilder	text = new StringBuilder("/*");
 		int				d;
 		do {
@@ -221,7 +255,8 @@ public class LexerSource extends Source {
 	}
 
 	private Token cppcomment()
-						throws IOException {
+						throws IOException,
+								LexerException {
 		StringBuilder	text = new StringBuilder("//");
 		int				d = read();
 		while (!isLineSeparator(d)) {
@@ -370,7 +405,8 @@ public class LexerSource extends Source {
 	}
 
 	private void number_suffix(StringBuilder text, int d)
-						throws IOException {
+						throws IOException,
+								LexerException {
 		if (d == 'U') {
 			text.append((char)d);
 			d = read();
@@ -485,7 +521,8 @@ public class LexerSource extends Source {
 
 	/* No token processed by cond() contains a newline. */
 	private Token cond(char c, int yes, int no)
-						throws IOException {
+						throws IOException,
+								LexerException {
 		int	d = read();
 		if (c == d)
 			return new Token(yes);
@@ -593,7 +630,7 @@ public class LexerSource extends Source {
 					}
 					d = read();
 					if (d != ':') {
-						unread(d);
+						unread(d);	// Unread 2 chars here.
 						unread('%');
 						tok = new Token('#');	// digraph
 						break PASTE;

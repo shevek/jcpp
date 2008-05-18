@@ -14,7 +14,7 @@ public class JoinReaderTestCase extends BaseTestCase implements Test {
 
 		for (int i = 0; i < out.length(); i++) {
 			int	c = j.read();
-			// System.out.println("At offset " + i + ": " + (char)c);
+			System.out.println("At offset " + i + ": " + (char)c);
 			assertEquals((char)out.charAt(i), c);
 		}
 		assertEquals(-1, j.read());

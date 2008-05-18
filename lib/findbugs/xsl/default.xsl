@@ -49,11 +49,11 @@
 
 <xsl:output
 	method="xml"
+	indent="yes"
 	omit-xml-declaration="yes"
 	standalone="yes"
+    doctype-system="http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"
 	doctype-public="-//W3C//DTD XHTML 1.0 Transitional//EN"
-	doctype-system="http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"
-	indent="yes"
 	encoding="UTF-8"/>
 
 <xsl:variable name="literalNbsp">&amp;nbsp;</xsl:variable>
@@ -62,7 +62,7 @@
 
 <xsl:variable name="bugTableHeader">
 	<tr class="tableheader">
-		<th align="left">Code<xsl:value-of select="$literalNbsp" disable-output-escaping="yes"/></th>
+		<th align="left">Code</th>
 		<th align="left">Warning</th>
 	</tr>
 </xsl:variable>
@@ -137,10 +137,13 @@
 
 	<body>
 
-	<h1>FindBugs Report</h1>
+		<h1><a href="http://findbugs.sourceforge.net">FindBugs</a> Report</h1>
 
 	<h2>Project Information</h2>	
 	<xsl:apply-templates select="/BugCollection/Project"/>
+
+	<h2>Metrics</h2>
+	<xsl:apply-templates select="/BugCollection/FindBugsSummary"/>
 
 	<h2>Contents</h2>
 	<ul>
@@ -174,7 +177,7 @@
 			
 		<tr class="{$styleclass}">
 			<td><a href="#Warnings_{$catkey}"><xsl:value-of select="$catdesc"/> Warnings</a></td>
-			<td align="right"><xsl:value-of select="count(/BugCollection/BugInstance[@category=$catkey])"/></td>
+			<td align="right"><xsl:value-of select="count(/BugCollection/BugInstance[(@category=$catkey) and not(@last)])"/></td>
 		</tr>
 		</xsl:for-each>
 
@@ -185,7 +188,7 @@
 		</xsl:variable>
 		<tr class="{$styleclass}">
 		    <td><b>Total</b></td>
-		    <td align="right"><b><xsl:value-of select="count(/BugCollection/BugInstance)"/></b></td>
+		    <td align="right"><b><xsl:value-of select="count(/BugCollection/BugInstance[not(@last)])"/></b></td>
 		</tr>
 	</table>
 
@@ -199,7 +202,7 @@
 		<xsl:variable name="catdesc" select="/BugCollection/BugCategory[@category=$catkey]/Description"/>
 			
 		<xsl:call-template name="generateWarningTable">
-			<xsl:with-param name="warningSet" select="/BugCollection/BugInstance[@category=$catkey]"/>
+			<xsl:with-param name="warningSet" select="/BugCollection/BugInstance[(@category=$catkey) and not(@last)]"/>
 			<xsl:with-param name="sectionTitle"><xsl:value-of select="$catdesc"/> Warnings</xsl:with-param>
 			<xsl:with-param name="sectionId">Warnings_<xsl:value-of select="$catkey"/></xsl:with-param>
 		</xsl:call-template>
@@ -217,7 +220,12 @@
 </xsl:template>
 
 <xsl:template match="Project">
-	<p>Project: <xsl:value-of select="@filename"/></p>
+	<p>Project: 
+		<xsl:choose>
+			<xsl:when test='string-length(/BugCollection/Project/@projectName)>0'><xsl:value-of select="/BugCollection/Project/@projectName" /></xsl:when>
+			<xsl:otherwise><xsl:value-of select="/BugCollection/Project/@filename" /></xsl:otherwise>
+		</xsl:choose>
+	</p>
 	<p>FindBugs version: <xsl:value-of select="/BugCollection/@version"/></p>
 	
 	<p>Code analyzed:</p>
@@ -226,9 +234,10 @@
 			<li><xsl:value-of select="text()"/></li>
 		</xsl:for-each>
 	</ul>
+	<p><br/><br/></p>
 </xsl:template>
 
-<xsl:template match="BugInstance">
+<xsl:template match="BugInstance[not(@last)]">
 	<xsl:variable name="warningId"><xsl:value-of select="generate-id()"/></xsl:variable>
 
 	<tr class="tablerow{position() mod 2}" onclick="toggleRow('{$warningId}');">
@@ -252,7 +261,7 @@
 			<p id="{$warningId}" style="display: none;">
 				<a href="#{@type}">Bug type <xsl:value-of select="@type"/> (click for details)</a>
 				<xsl:for-each select="./*/Message">
-					<br/><xsl:value-of select="text()"/>
+					<br/><xsl:value-of select="text()" disable-output-escaping="no"/>
 				</xsl:for-each>
 			</p>
 		</td>
@@ -277,6 +286,89 @@
 			<xsl:sort select="Class/@classname"/>
 		</xsl:apply-templates>
 	</table>
+</xsl:template>
+
+<xsl:template match="FindBugsSummary">
+    <xsl:variable name="kloc" select="@total_size div 1000.0"/>
+    <xsl:variable name="format" select="'#######0.00'"/>
+
+	<p><xsl:value-of select="@total_size"/> lines of code analyzed,
+	in <xsl:value-of select="@total_classes"/> classes, 
+	in <xsl:value-of select="@num_packages"/> packages.</p>
+	<table width="500" cellpadding="5" cellspacing="2">
+	    <tr class="tableheader">
+			<th align="left">Metric</th>
+			<th align="right">Total</th>
+			<th align="right">Density*</th>
+		</tr>
+		<tr class="tablerow0">
+			<td>High Priority Warnings</td>
+			<td align="right"><xsl:value-of select="@priority_1"/></td>
+			<td align="right">
+			    <xsl:choose>
+                    <xsl:when test= "number($kloc) &gt; 0.0 and number(@priority_1) &gt; 0.0">
+        			    <xsl:value-of select="format-number(@priority_1 div $kloc, $format)"/>
+                    </xsl:when>
+                    <xsl:otherwise>
+        			    <xsl:value-of select="format-number(0.0, $format)"/>
+                    </xsl:otherwise>
+			    </xsl:choose>
+			</td>
+		</tr>
+		<tr class="tablerow1">
+			<td>Medium Priority Warnings</td>
+			<td align="right"><xsl:value-of select="@priority_2"/></td>
+			<td align="right">
+			    <xsl:choose>
+                    <xsl:when test= "number($kloc) &gt; 0.0 and number(@priority_2) &gt; 0.0">
+        			    <xsl:value-of select="format-number(@priority_2 div $kloc, $format)"/>
+                    </xsl:when>
+                    <xsl:otherwise>
+        			    <xsl:value-of select="format-number(0.0, $format)"/>
+                    </xsl:otherwise>
+			    </xsl:choose>
+			</td>
+		</tr>
+
+    <xsl:choose>
+		<xsl:when test="@priority_3">
+			<tr class="tablerow1">
+				<td>Low Priority Warnings</td>
+				<td align="right"><xsl:value-of select="@priority_3"/></td>
+				<td align="right">
+                    <xsl:choose>
+                        <xsl:when test= "number($kloc) &gt; 0.0 and number(@priority_3) &gt; 0.0">
+        			        <xsl:value-of select="format-number(@priority_3 div $kloc, $format)"/>
+                        </xsl:when>
+                        <xsl:otherwise>
+        		            <xsl:value-of select="format-number(0.0, $format)"/>
+                        </xsl:otherwise>
+			        </xsl:choose>
+				</td>
+			</tr>
+			<xsl:variable name="totalClass" select="tablerow0"/>
+		</xsl:when>
+		<xsl:otherwise>
+		    <xsl:variable name="totalClass" select="tablerow1"/>
+		</xsl:otherwise>
+	</xsl:choose>
+
+		<tr class="$totalClass">
+			<td><b>Total Warnings</b></td>
+			<td align="right"><b><xsl:value-of select="@total_bugs"/></b></td>
+            <xsl:choose>
+                <xsl:when test="number($kloc) &gt; 0.0">
+  					<td align="right"><b><xsl:value-of select="format-number(@total_bugs div $kloc, $format)"/></b></td>
+                </xsl:when>
+                <xsl:otherwise>
+					<td align="right"><b><xsl:value-of select="format-number(0.0, $format)"/></b></td>
+                </xsl:otherwise>
+	        </xsl:choose>
+		</tr>
+	</table>
+	<p><i>(* Defects per Thousand lines of non-commenting source statements)</i></p>
+	<p><br/><br/></p>
+
 </xsl:template>
 
 </xsl:stylesheet>

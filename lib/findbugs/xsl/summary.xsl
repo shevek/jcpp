@@ -1,7 +1,11 @@
 <?xml version="1.0"?>
 <xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform" version="1.0" >
 
-<xsl:output method="html"/>
+<xsl:output
+         method="xml" indent="yes"
+         doctype-system="http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"
+         doctype-public="-//W3C//DTD XHTML 1.0 Transitional//EN"
+ 		encoding="UTF-8"/>
 
 <xsl:param name="PAGE.TITLE" select="'Findbugs Summary Statistics'" />
 <xsl:param name="PAGE.FONT" select="'Arial'" />
@@ -35,18 +39,27 @@
 <!-- This template drives the rest of the output -->
 <xsl:template match="/" >
   <html>
-   <!-- JEditorPane gets really angry if it sees this -->
-   <!--<head><title><xsl:value-of select="$PAGE.TITLE" /></title></head> -->
+   <!-- JEditorPane gets really angry if it sees this
+	WWP: Sorry, this needs to be explained better. Not a valid HTML document without a head.
+	 -->
+   <head><title><xsl:value-of select="$PAGE.TITLE" /></title></head>
   <body>
-  <h1><center><xsl:value-of select="$SUMMARY.HEADER" /></center></h1>
-  <h2><center><xsl:value-of select="$SUMMARY.LABEL" /> 
-      <i><xsl:value-of select="//FindBugsSummary/@timestamp" /></i></center></h2>
+    <h1 align="center"><a href="http://findbugs.sourceforge.net"><xsl:value-of select="$SUMMARY.HEADER" /></a></h1>
+    <h2 align="center"> Analysis for 
+    <xsl:choose>
+      <xsl:when test='string-length(/BugCollection/Project/@projectName)>0'>
+          <xsl:value-of select="/BugCollection/Project/@projectName" /></xsl:when>
+      <xsl:otherwise><xsl:value-of select="/BugCollection/Project/@filename" /></xsl:otherwise>
+    </xsl:choose>
+      </h2>
+  <h2 align="center"><xsl:value-of select="$SUMMARY.LABEL" /> 
+      <i><xsl:value-of select="//FindBugsSummary/@timestamp" /></i></h2>
   <xsl:apply-templates select="//FindBugsSummary" />
   <br/>
-  <center>
+  <p align="center">
   <font face="{$PAGE.FONT}" size="6"><xsl:value-of select="$PACKAGE.HEADER" /></font>
     <br/><font face="{$PAGE.FONT}" size="4"><i>(<xsl:value-of select="$PACKAGE.SORT.LABEL"/>)</i></font>
-  </center>
+  </p>
   <xsl:for-each select="//FindBugsSummary/PackageStats">
   <xsl:sort select="@total_bugs" data-type="number" order="descending" />
   <xsl:apply-templates select="." />
@@ -88,7 +101,7 @@
 </xsl:template>
 
 <xsl:template match="FindBugsSummary" >
-  <center><table width="{$TABLE.WIDTH}" border="1">
+  <table width="{$TABLE.WIDTH}" border="1" align="center">
    <xsl:call-template name="table_header" />
 
    <xsl:call-template name="status_table_row">
@@ -125,7 +138,7 @@
      </xsl:call-template>
      </font></td>
    </tr>
-  </table></center>
+  </table>
 </xsl:template>
 
 
@@ -168,8 +181,8 @@
       </xsl:otherwise>
     </xsl:choose>
   </xsl:variable>
-  <center><h2><xsl:value-of select="$PACKAGE.LABEL"/><i><font color='green'><xsl:value-of select="$package-name" /></font></i></h2></center>
-  <center><table width="{$TABLE.WIDTH}" border="1">
+  <h2 align="center"><xsl:value-of select="$PACKAGE.LABEL"/><i><font color='green'><xsl:value-of select="$package-name" /></font></i></h2>
+   <table width="{$TABLE.WIDTH}" border="1" align="center">
    <xsl:call-template name="table_header" />
 
    <xsl:call-template name="status_table_row">
@@ -199,7 +212,7 @@
 
   </table>
   <xsl:if test="@total_bugs &gt; 0">
-  <table width="{$TABLE.WIDTH}" border="0">
+  <table width="{$TABLE.WIDTH}" border="0" align="center">
      <xsl:variable name="max_bugs">
        <xsl:for-each select="ClassStats">
          <xsl:sort select="@bugs" data-type="number" order="descending"/>
@@ -233,7 +246,6 @@
 
    </table>
   </xsl:if>
-  </center>
   <br/>
 </xsl:template>
 

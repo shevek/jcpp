@@ -98,11 +98,14 @@ public abstract class Source implements Iterable<Token> {
 		return parent;
 	}
 
-	public void setListener(PreprocessorListener listener) {
-		this.listener = listener;
+	// @OverrideMustInvoke
+	/* pp */ void init(Preprocessor pp) {
+		setListener(pp.getListener());
 	}
 
-	public void setFeatures(Set<Feature> features) {
+	/* Actually just used for testing. */
+	public void setListener(PreprocessorListener pl) {
+		this.listener = pl;
 	}
 
 	/**
@@ -139,6 +142,13 @@ public abstract class Source implements Iterable<Token> {
 		if (parent == null)
 			return 0;
 		return parent.getLine();
+	}
+
+	public int getColumn() {
+		Source	parent = getParent();
+		if (parent == null)
+			return 0;
+		return parent.getColumn();
 	}
 
 	/* pp */ boolean isExpanding(Macro m) {

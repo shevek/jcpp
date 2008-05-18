@@ -93,9 +93,14 @@ public class Preprocessor {
 		this.listener = listener;
 		Source	s = source;
 		while (s != null) {
-			s.setListener(listener);
+			// s.setListener(listener);
+			s.init(this);
 			s = s.getParent();
 		}
+	}
+
+	public PreprocessorListener getListener() {
+		return listener;
 	}
 
 	public Set<Feature> getFeatures() {
@@ -110,6 +115,10 @@ public class Preprocessor {
 		features.addAll(f);
 	}
 
+	public boolean getFeature(Feature f) {
+		return features.contains(f);
+	}
+
 	public Set<Warning> getWarnings() {
 		return warnings;
 	}
@@ -122,7 +131,12 @@ public class Preprocessor {
 		warnings.addAll(w);
 	}
 
+	public boolean getWarning(Warning w) {
+		return warnings.contains(w);
+	}
+
 	public void addInput(Source source) {
+		source.init(this);
 		if (this.source == null) {
 			this.source = source;
 			/* We need to get a \n onto the end of this somehow. */
@@ -309,8 +323,9 @@ public class Preprocessor {
 	 * @see #pop_source()
 	 */
 	protected void push_source(Source source, boolean autopop) {
+		source.init(this);
 		source.setParent(this.source, autopop);
-		source.setListener(listener);
+		// source.setListener(listener);
 		if (listener != null)
 			listener.handleSourceChange(this.source, "suspend");
 		this.source = source;

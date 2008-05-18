@@ -23,10 +23,13 @@ import java.io.Reader;
 import java.io.PushbackReader;
 import java.io.IOException;
 
-/* pp */ class JoinReader extends Reader {
+/* pp */ class JoinReader /* extends Reader */ {
 	private Reader	in;
 
+	private PreprocessorListener	listener;
+	private LexerSource				source;
 	private boolean	trigraphs;
+	private boolean	warnings;
 
 	private int		newlines;
 	private boolean	flushnl;
@@ -46,8 +49,16 @@ import java.io.IOException;
 		this(in, false);
 	}
 
-	public void setTrigraphs(boolean enable) {
+	public void setTrigraphs(boolean enable, boolean warnings) {
 		this.trigraphs = enable;
+		this.warnings = warnings;
+	}
+
+	/* pp */ void init(Preprocessor pp, LexerSource s) {
+		this.listener = pp.getListener();
+		this.source = s;
+		setTrigraphs(pp.getFeature(Feature.TRIGRAPHS),
+						pp.getWarning(Warning.TRIGRAPHS));
 	}
 
 	private int __read() throws IOException {
@@ -61,22 +72,47 @@ import java.io.IOException;
 			unget[uptr++] = c;
 	}
 
-	private int _read() throws IOException {
+	protected void warning(String msg)
+						throws LexerException {
+		if (source != null)
+			source.warning(msg);
+		else
+			throw new LexerException(msg);
+	}
+
+	private char trigraph(char raw, char repl)
+						throws IOException, LexerException {
+		if (trigraphs) {
+			if (warnings)
+				warning("trigraph ??" + raw + " converted to " + repl);
+			return repl;
+		}
+		else {
+			if (warnings)
+				warning("trigraph ??" + raw + " ignored");
+			_unread(raw);
+			_unread('?');
+			return '?';
+		}
+	}
+
+	private int _read()
+						throws IOException, LexerException {
 		int	c = __read();
-		if (c == '?' && trigraphs) {
+		if (c == '?' && (trigraphs || warnings)) {
 			int d = __read();
 			if (d == '?') {
 				int	e = __read();
 				switch (e) {
-					case '(': return '[';
-					case ')': return ']';
-					case '<': return '{';
-					case '>': return '}';
-					case '=': return '#';
-					case '/': return '\\';
-					case '\'': return '^';
-					case '!': return '|';
-					case '-': return '~';
+					case '(': return trigraph('(', '[');
+					case ')': return trigraph(')', ']');
+					case '<': return trigraph('<', '{');
+					case '>': return trigraph('>', '}');
+					case '=': return trigraph('=', '#');
+					case '/': return trigraph('/', '\\');
+					case '\'': return trigraph('\'', '^');
+					case '!': return trigraph('!', '|');
+					case '-': return trigraph('-', '~');
 				}
 				_unread(e);
 			}
@@ -85,7 +121,8 @@ import java.io.IOException;
 		return c;
 	}
 
-	public int read() throws IOException {
+	public int read()
+						throws IOException, LexerException {
 		if (flushnl) {
 			if (newlines > 0) {
 				newlines--;
@@ -134,7 +171,7 @@ import java.io.IOException;
 	}
 
 	public int read(char cbuf[], int off, int len)
-						throws IOException {
+						throws IOException, LexerException {
 		for (int i = 0; i < len; i++) {
 			int	ch = read();
 			if (ch == -1)
