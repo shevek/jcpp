@@ -12,6 +12,9 @@
 		<fileset dir="${global.dir.lib}">
 			<include name="runtime/**/*.jar"/>
 		</fileset>
+		<fileset dir="/usr/share/ant/lib">
+			<include name="*.jar" />
+		</fileset>
 	</path>
 
 	<path id="runtime-classpath">
