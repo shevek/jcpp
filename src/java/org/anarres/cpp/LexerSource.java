@@ -84,6 +84,7 @@ public class LexerSource extends Source {
 		return column;
 	}
 
+	@Override
 	/* pp */ boolean isNumbered() {
 		return true;
 	}

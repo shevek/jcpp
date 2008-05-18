@@ -97,7 +97,10 @@ public class Main {
 		int		idx;
 
 		Preprocessor	pp = new Preprocessor();
+		pp.addFeature(Feature.DIGRAPHS);
+		pp.addFeature(Feature.TRIGRAPHS);
 		pp.addFeature(Feature.LINEMARKERS);
+		pp.setListener(new PreprocessorListener());
 
 		pp.addMacro("__JCPP__");
 
@@ -157,7 +160,7 @@ public class Main {
 		List<String>	path = pp.getSystemIncludePath();
 		path.add("/usr/local/include");
 		path.add("/usr/include");
-		path.add("/usr/lib/gcc/i686-pc-linux-gnu/4.1.2/include");
+		// path.add("/usr/lib/gcc/i686-pc-linux-gnu/4.1.2/include");
 
 		for (int i = g.getOptind(); i < args.length; i++)
 			pp.addInput(new FileLexerSource(new File(args[i])));

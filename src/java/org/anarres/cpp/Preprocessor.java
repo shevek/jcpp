@@ -70,10 +70,7 @@ public class Preprocessor {
 		this.quoteincludepath = new ArrayList<String>();
 		this.sysincludepath = new ArrayList<String>();
 		this.features = EnumSet.noneOf(Feature.class);
-		features.add(Feature.DIGRAPHS);
-		features.add(Feature.TRIGRAPHS);
 		this.warnings = EnumSet.noneOf(Warning.class);
-		setListener(new PreprocessorListener());
 	}
 
 	public Preprocessor(Source initial) {
