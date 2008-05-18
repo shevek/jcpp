@@ -86,6 +86,13 @@ public class Preprocessor {
 		this(new FileLexerSource(file));
 	}
 
+	/**
+	 * Sets the PreprocessorListener which handles events for
+	 * this Preprocessor.
+	 *
+	 * The listener is notified of warnings, errors and source
+	 * changes, amongst other things.
+	 */
 	public void setListener(PreprocessorListener listener) {
 		this.listener = listener;
 		Source	s = source;
@@ -96,42 +103,84 @@ public class Preprocessor {
 		}
 	}
 
+	/**
+	 * Returns the PreprocessorListener which handles events for
+	 * this Preprocessor.
+	 */
 	public PreprocessorListener getListener() {
 		return listener;
 	}
 
+	/**
+	 * Returns the feature-set for this Preprocessor.
+	 *
+	 * This set may be freely modified by user code.
+	 */
 	public Set<Feature> getFeatures() {
 		return features;
 	}
 
+	/**
+	 * Adds a feature to the feature-set of this Preprocessor.
+	 */
 	public void addFeature(Feature f) {
 		features.add(f);
 	}
 
+	/**
+	 * Adds features to the feature-set of this Preprocessor.
+	 */
 	public void addFeatures(Collection<Feature> f) {
 		features.addAll(f);
 	}
 
+	/**
+	 * Returns true if the given feature is in
+	 * the feature-set of this Preprocessor.
+	 */
 	public boolean getFeature(Feature f) {
 		return features.contains(f);
 	}
 
+	/**
+	 * Returns the warning-set for this Preprocessor.
+	 *
+	 * This set may be freely modified by user code.
+	 */
 	public Set<Warning> getWarnings() {
 		return warnings;
 	}
 
+	/**
+	 * Adds a warning to the warning-set of this Preprocessor.
+	 */
 	public void addWarning(Warning w) {
 		warnings.add(w);
 	}
 
+	/**
+	 * Adds warnings to the warning-set of this Preprocessor.
+	 */
 	public void addWarnings(Collection<Warning> w) {
 		warnings.addAll(w);
 	}
 
+	/**
+	 * Returns true if the given warning is in
+	 * the warning-set of this Preprocessor.
+	 */
 	public boolean getWarning(Warning w) {
 		return warnings.contains(w);
 	}
 
+	/**
+	 * Adds input for the Preprocessor.
+	 *
+	 * XXX Inputs should be maintained off the source stack.
+	 * <p>
+	 *
+	 * Inputs are processed in the order in which they are added.
+	 */
 	public void addInput(Source source) {
 		source.init(this);
 		if (this.source == null) {
@@ -151,6 +200,11 @@ public class Preprocessor {
 		}
 	}
 
+	/**
+	 * Adds input for the Preprocessor.
+	 *
+	 * @see #addInput(Source)
+	 */
 	public void addInput(File file)
 						throws IOException {
 		addInput(new FileLexerSource(file));
@@ -161,7 +215,7 @@ public class Preprocessor {
 	 * Handles an error.
 	 *
 	 * If a PreprocessorListener is installed, it receives the
-	 * error. Otherwise, it is ignored.
+	 * error. Otherwise, an exception is thrown.
 	 */
 	protected void error(int line, int column, String msg)
 						throws LexerException {
@@ -171,6 +225,14 @@ public class Preprocessor {
 			throw new LexerException("Error at " + line + ":" + column + ": " + msg);
 	}
 
+	/**
+	 * Handles an error.
+	 *
+	 * If a PreprocessorListener is installed, it receives the
+	 * error. Otherwise, an exception is thrown.
+	 *
+	 * @see #error(int, int, String)
+	 */
 	protected void error(Token tok, String msg)
 						throws LexerException {
 		error(tok.getLine(), tok.getColumn(), msg);
@@ -180,16 +242,26 @@ public class Preprocessor {
 	 * Handles a warning.
 	 *
 	 * If a PreprocessorListener is installed, it receives the
-	 * warning. Otherwise, it is ignored.
+	 * warning. Otherwise, an exception is thrown.
 	 */
 	protected void warning(int line, int column, String msg)
 						throws LexerException {
-		if (listener != null)
+		if (warnings.contains(Warning.ERROR))
+			error(line, column, msg);
+		else if (listener != null)
 			listener.handleWarning(source, line, column, msg);
 		else
 			throw new LexerException("Warning at " + line + ":" + column + ": " + msg);
 	}
 
+	/**
+	 * Handles a warning.
+	 *
+	 * If a PreprocessorListener is installed, it receives the
+	 * warning. Otherwise, an exception is thrown.
+	 *
+	 * @see #warning(int, int, String)
+	 */
 	protected void warning(Token tok, String msg)
 						throws LexerException {
 		warning(tok.getLine(), tok.getColumn(), msg);
@@ -201,6 +273,12 @@ public class Preprocessor {
 	}
 */
 
+	/**
+	 * Adds a Macro to this Preprocessor.
+	 *
+	 * The given {@link Macro} object encapsulates both the name
+	 * and the expansion.
+	 */
 	public void addMacro(Macro m) throws LexerException {
 		String	name = m.getName();
 		/* Already handled as a source error in macro(). */
@@ -212,7 +290,8 @@ public class Preprocessor {
 	/**
 	 * Defines the given name as a macro.
 	 *
-	 * This is a convnience method.
+	 * The String value is lexed into a token stream, which is
+	 * used as the macro expansion.
 	 */
 	public void addMacro(String name, String value)
 						throws LexerException {
@@ -233,9 +312,10 @@ public class Preprocessor {
 	}
 
 	/**
-	 * Defines the given name as a macro.
+	 * Defines the given name as a macro, with the value <code>1</code>.
 	 *
-	 * This is a convnience method.
+	 * This is a convnience method, and is equivalent to
+	 * <code>addMacro(name, "1")</code>.
 	 */
 	public void addMacro(String name)
 						throws LexerException {
@@ -250,6 +330,11 @@ public class Preprocessor {
 		this.quoteincludepath = path;
 	}
 
+	/**
+	 * Returns the user include-path of this Preprocessor.
+	 *
+	 * This list may be freely modified by user code.
+	 */
 	public List<String> getQuoteIncludePath() {
 		return quoteincludepath;
 	}
@@ -262,6 +347,11 @@ public class Preprocessor {
 		this.sysincludepath = path;
 	}
 
+	/**
+	 * Returns the system include-path of this Preprocessor.
+	 *
+	 * This list may be freely modified by user code.
+	 */
 	public List<String> getSystemIncludePath() {
 		return sysincludepath;
 	}
@@ -274,6 +364,12 @@ public class Preprocessor {
 		return macros;
 	}
 
+	/**
+	 * Returns the named macro.
+	 *
+	 * While you can modify the returned object, unexpected things
+	 * might happen if you do.
+	 */
 	public Macro getMacro(String name) {
 		return macros.get(name);
 	}
@@ -345,7 +441,15 @@ public class Preprocessor {
 	}
 
 	/**
-	 * Pushes a source into the input stack.
+	 * Pushes a source onto the input stack.
+	 *
+	 * The top source on the input stack is the one which is
+	 * currently being processed.
+	 *
+	 * It is unlikely that you will want to call this method. It is more
+	 * likely that you want {@link #addInput(Source)}.
+	 *
+	 * @see #addInput(Source)
 	 */
 	public void addSource(Source source) {
 		push_source(source, true);
@@ -834,6 +938,15 @@ public class Preprocessor {
 		return source_skipline(true);
 	}
 
+	/**
+	 * Includes the given file.
+	 *
+	 * User code may override this method to implement a virtual
+	 * file system.
+	 *
+	 * XXX This API subject to change, using File makes no sense
+	 * here.
+	 */
 	protected boolean include(File file)
 						throws IOException,
 								LexerException {
@@ -846,6 +959,12 @@ public class Preprocessor {
 		return true;
 	}
 
+	/**
+	 * Includes a file from an include path, by name.
+	 *
+	 * XXX This API subject to change, using File makes no sense
+	 * here.
+	 */
 	protected boolean include(Iterable<String> path, String name)
 						throws IOException,
 								LexerException {
@@ -871,7 +990,7 @@ public class Preprocessor {
 		if (quoted) {
 			File	dir = parent.getAbsoluteFile().getParentFile();
 			if (dir == null)
-				dir = new File("/");
+				dir = new File("/");	// XXX bleh.
 			File	file = new File(dir, name);
 			if (include(file))
 				return;
@@ -1223,7 +1342,9 @@ public class Preprocessor {
 				lhs = (long)((Character)tok.getValue()).charValue();
 				break;
 			case IDENTIFIER:
-				/* XXX warn */
+				if (warnings.contains(Warning.UNDEF))
+					warning(tok, "Undefined token '" + tok.getText() +
+							"' encountered in conditional.");
 				lhs = 0;
 				break;
 
@@ -1557,7 +1678,7 @@ public class Preprocessor {
 							else {
 								state.setSawElse();
 								state.setActive(! state.isActive());
-								return source_skipline(true);
+								return source_skipline(warnings.contains(Warning.ENDIF_LABELS));
 							}
 							// break;
 
@@ -1610,7 +1731,7 @@ public class Preprocessor {
 
 						case PP_ENDIF:
 							pop_state();
-							return source_skipline(true);
+							return source_skipline(warnings.contains(Warning.ENDIF_LABELS));
 							// break;
 
 						case PP_LINE:
@@ -1620,8 +1741,7 @@ public class Preprocessor {
 						case PP_PRAGMA:
 							if (!isActive())
 								return source_skipline(false);
-							else
-								return pragma();
+							return pragma();
 							// break;
 
 						default:

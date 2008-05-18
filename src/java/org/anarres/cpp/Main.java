@@ -86,10 +86,11 @@ public class Main {
 	}
 
 	public static void main(String[] args) throws Exception {
-		(new Main()).run(OPTS, args);
+		(new Main()).run(args);
 	}
 
-	public void run(Option[] opts, String[] args) throws Exception {
+	public void run(String[] args) throws Exception {
+		Option[]opts = OPTS;
         String	sopts = getShortOpts(opts);
         Getopt	g = new Getopt("jcpp", args, sopts, opts);
 		int		c;
@@ -100,6 +101,7 @@ public class Main {
 		pp.addFeature(Feature.DIGRAPHS);
 		pp.addFeature(Feature.TRIGRAPHS);
 		pp.addFeature(Feature.LINEMARKERS);
+		pp.addWarning(Warning.IMPORT);
 		pp.setListener(new PreprocessorListener());
 
 		pp.addMacro("__JCPP__");
@@ -127,7 +129,7 @@ public class Main {
 				case 'W':
 					arg = g.getOptarg().toUpperCase();
 					arg = arg.replace('-', '_');
-					if (arg.equals("all"))
+					if (arg.equals("ALL"))
 						pp.addWarnings(EnumSet.allOf(Warning.class));
 					else
 						pp.addWarning(Enum.valueOf(Warning.class, arg));

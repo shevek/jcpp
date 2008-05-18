@@ -48,6 +48,7 @@ public abstract class Source implements Iterable<Token> {
 	private Source					parent;
 	private boolean					autopop;
 	private PreprocessorListener	listener;
+	private boolean					werror;
 
 	/* LineNumberReader */
 
@@ -89,11 +90,21 @@ public abstract class Source implements Iterable<Token> {
 		this.autopop = false;
 	}
 
+	/**
+	 * Sets the parent source of this source.
+	 *
+	 * Sources form a singly linked list.
+	 */
 	/* pp */ void setParent(Source parent, boolean autopop) {
 		this.parent = parent;
 		this.autopop = autopop;
 	}
 
+	/**
+	 * Returns the parent source of this source.
+	 *
+	 * Sources form a singly linked list.
+	 */
 	/* pp */ final Source getParent() {
 		return parent;
 	}
@@ -101,9 +112,16 @@ public abstract class Source implements Iterable<Token> {
 	// @OverrideMustInvoke
 	/* pp */ void init(Preprocessor pp) {
 		setListener(pp.getListener());
+		this.werror = pp.getWarnings().contains(Warning.ERROR);
 	}
 
-	/* Actually just used for testing. */
+	/**
+	 * Sets the listener for this Source.
+	 *
+	 * Normally this is set by the Preprocessor when a Source is
+	 * used, but if you are using a Source as a standalone object,
+	 * you may wish to call this.
+	 */
 	public void setListener(PreprocessorListener pl) {
 		this.listener = pl;
 	}
@@ -137,6 +155,9 @@ public abstract class Source implements Iterable<Token> {
 		return null;
 	}
 
+	/**
+	 * Returns the current line number within this Source.
+	 */
 	public int getLine() {
 		Source	parent = getParent();
 		if (parent == null)
@@ -144,6 +165,9 @@ public abstract class Source implements Iterable<Token> {
 		return parent.getLine();
 	}
 
+	/**
+	 * Returns the current column number within this Source.
+	 */
 	public int getColumn() {
 		Source	parent = getParent();
 		if (parent == null)
@@ -151,6 +175,11 @@ public abstract class Source implements Iterable<Token> {
 		return parent.getColumn();
 	}
 
+	/**
+	 * Returns true if this Source is expanding the given macro.
+	 *
+	 * This is used to prevent macro recursion.
+	 */
 	/* pp */ boolean isExpanding(Macro m) {
 		Source	parent = getParent();
 		if (parent != null)
@@ -168,6 +197,9 @@ public abstract class Source implements Iterable<Token> {
 		return autopop;
 	}
 
+	/**
+	 * Returns true if this source has line numbers.
+	 */
 	/* pp */ boolean isNumbered() {
 		return false;
 	}
@@ -181,6 +213,9 @@ public abstract class Source implements Iterable<Token> {
 						throws IOException,
 								LexerException;
 
+	/**
+	 * Returns a token iterator for this Source.
+	 */
 	public Iterator<Token> iterator() {
 		return new SourceIterator(this);
 	}
@@ -231,7 +266,9 @@ public abstract class Source implements Iterable<Token> {
 
 	protected void warning(int line, int column, String msg)
 						throws LexerException {
-		if (listener != null)
+		if (werror)
+			error(line, column, msg);
+		else if (listener != null)
 			listener.handleWarning(this, line, column, msg);
 		else
 			throw new LexerException("Warning at " + line + ":" + column + ": " + msg);
