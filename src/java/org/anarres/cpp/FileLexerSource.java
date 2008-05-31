@@ -37,14 +37,15 @@ import static org.anarres.cpp.Token.*;
  * @see Source
  */
 public class FileLexerSource extends LexerSource {
-	private File	file;
+	// private File	file;
+	private String	path;
 
 	/**
 	 * Creates a new Source for lexing the given File.
 	 *
 	 * Preprocessor directives are honoured within the file.
 	 */
-	public FileLexerSource(File file)
+	public FileLexerSource(File file, String path)
 						throws IOException {
 		super(
 			new BufferedReader(
@@ -55,7 +56,13 @@ public class FileLexerSource extends LexerSource {
 			true
 		);
 
-		this.file = file;
+		// this.file = file;
+		this.path = path;
+	}
+
+	public FileLexerSource(File file)
+						throws IOException {
+		this(file, file.getPath());
 	}
 
 	public FileLexerSource(String path)
@@ -64,16 +71,16 @@ public class FileLexerSource extends LexerSource {
 	}
 
 	@Override
-	/* pp */ File getFile() {
-		return file;
+	/* pp */ String getPath() {
+		return path;
 	}
 
 	@Override
 	/* pp */ String getName() {
-		return String.valueOf(file);
+		return getPath();
 	}
 
 	public String toString() {
-		return "file " + file;
+		return "file " + path;
 	}
 }

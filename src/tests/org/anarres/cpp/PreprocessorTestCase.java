@@ -27,7 +27,7 @@ public class PreprocessorTestCase extends BaseTestCase {
 			}
 		) {
 			@Override
-			protected void include(File parent, int line,
+			protected void include(String parent, int line,
 							String name, boolean quoted) {
 				/* XXX Perform a useful assertion. */
 			}

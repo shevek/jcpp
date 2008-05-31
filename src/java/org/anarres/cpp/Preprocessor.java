@@ -939,38 +939,38 @@ public class Preprocessor {
 	}
 
 	/**
-	 * Includes the given file.
+	 * Attempts to include the given file.
 	 *
 	 * User code may override this method to implement a virtual
 	 * file system.
-	 *
-	 * XXX This API subject to change, using File makes no sense
-	 * here.
 	 */
-	protected boolean include(File file)
+	protected boolean include(String path)
 						throws IOException,
 								LexerException {
+		File	file = new File(path);
 		// System.out.println("Try to include " + file);
-		if (!file.exists())
-			return false;
 		if (!file.isFile())
 			return false;
 		push_source(new FileLexerSource(file), true);
 		return true;
 	}
 
+	protected String include_dirname(String path) {
+		return (new File(path)).getParentFile().getPath();
+	}
+
+	protected String include_filename(String dir, String name) {
+		return dir + File.separator + name;
+	}
+
 	/**
 	 * Includes a file from an include path, by name.
-	 *
-	 * XXX This API subject to change, using File makes no sense
-	 * here.
 	 */
-	protected boolean include(Iterable<String> path, String name)
+	private boolean include(Iterable<String> path, String name)
 						throws IOException,
 								LexerException {
 		for (String dir : path) {
-			File	file = new File(dir + File.separator + name);
-			if (include(file))
+			if (include(include_filename(dir, name)))
 				return true;
 		}
 		return false;
@@ -983,16 +983,18 @@ public class Preprocessor {
 	 * for the include directive, for example, creating a Source
 	 * based on a virtual file system.
 	 */
-	protected void include(File parent, int line,
+	protected void include(String parent, int line,
 					String name, boolean quoted)
 						throws IOException,
 								LexerException {
 		if (quoted) {
-			File	dir = parent.getAbsoluteFile().getParentFile();
+			String	dir = include_dirname(parent);
+			String	path;
 			if (dir == null)
-				dir = new File("/");	// XXX bleh.
-			File	file = new File(dir, name);
-			if (include(file))
+				path = name;
+			else
+				path = include_filename(dir, name);
+			if (include(path))
 				return;
 			if (include(quoteincludepath, name))
 				return;
@@ -1064,7 +1066,7 @@ public class Preprocessor {
 			}
 
 			/* Do the inclusion. */
-			include(source.getFile(), tok.getLine(), name, quoted);
+			include(source.getPath(), tok.getLine(), name, quoted);
 
 			/* 'tok' is the 'nl' after the include. We use it after the
 			 * #line directive. */
