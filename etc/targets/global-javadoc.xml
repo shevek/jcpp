@@ -30,9 +30,11 @@
 			<link
 					href="http://ws.apache.org/axis/java/apiDocs/"
 					offline="${system.javadoc.offline}" />
+			<!--
 			<link
 					href="http://www.jdom.org/docs/apidocs/"
 					offline="${system.javadoc.offline}" />
+			-->
 			<link
 					href="http://www.junit.org/junit/javadoc/3.8.1/"
 					offline="${system.javadoc.offline}" />
