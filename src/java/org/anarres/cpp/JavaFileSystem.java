@@ -24,11 +24,11 @@ import java.io.IOException;
  * A virtual filesystem implementation using java.io.
  */
 public class JavaFileSystem implements VirtualFileSystem {
-	public JavaFile getFile(String path) {
+	public VirtualFile getFile(String path) {
 		return new JavaFile(path);
 	}
 
-	public JavaFile getFile(String dir, String name) {
+	public VirtualFile getFile(String dir, String name) {
 		return new JavaFile(dir, name);
 	}
 

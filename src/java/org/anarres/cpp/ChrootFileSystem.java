@@ -31,11 +31,11 @@ public class ChrootFileSystem implements VirtualFileSystem {
 		this.root = root;
 	}
 
-	public ChrootFile getFile(String path) {
+	public VirtualFile getFile(String path) {
 		return new ChrootFile(path);
 	}
 
-	public ChrootFile getFile(String dir, String name) {
+	public VirtualFile getFile(String dir, String name) {
 		return new ChrootFile(dir, name);
 	}
 
