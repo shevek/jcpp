@@ -1,2 +1,2 @@
-Class-Path: log4j.jar dnsjava-2.0.0.jar
+Class-Path: log4j.jar gnu.getopt.jar
 Main-Class: org.anarres.cpp.Main

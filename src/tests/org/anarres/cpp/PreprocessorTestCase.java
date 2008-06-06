@@ -14,24 +14,15 @@ public class PreprocessorTestCase extends BaseTestCase {
 		final PipedOutputStream	po = new PipedOutputStream();
 		writer = new OutputStreamWriter(po);
 
-		p = new Preprocessor(
+		p = new Preprocessor();
+		p.addInput(
 			new LexerSource(
 				new InputStreamReader(
 					new PipedInputStream(po)
 				),
 				true
-			) {
-				public File getFile() {
-					return new File("test-input");
-				}
-			}
-		) {
-			@Override
-			protected void include(String parent, int line,
-							String name, boolean quoted) {
-				/* XXX Perform a useful assertion. */
-			}
-		};
+			)
+		);
 	}
 
 	private static class I {

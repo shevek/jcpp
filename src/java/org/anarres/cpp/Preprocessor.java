@@ -984,13 +984,9 @@ public class Preprocessor {
 	}
 
 	/**
-	 * Handles a include directive.
-	 *
-	 * The user may override this to provide alternate semantics
-	 * for the include directive, for example, creating a Source
-	 * based on a virtual file system.
+	 * Handles an include directive.
 	 */
-	protected void include(String parent, int line,
+	private void include(String parent, int line,
 					String name, boolean quoted)
 						throws IOException,
 								LexerException {
