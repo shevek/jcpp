@@ -56,6 +56,7 @@ public class Preprocessor {
 	private List<String>			sysincludepath;		/* -I */
 	private Set<Feature>			features;
 	private Set<Warning>			warnings;
+	private VirtualFileSystem		filesystem;
 	private PreprocessorListener	listener;
 
 	public Preprocessor() {
@@ -69,6 +70,8 @@ public class Preprocessor {
 		this.sysincludepath = new ArrayList<String>();
 		this.features = EnumSet.noneOf(Feature.class);
 		this.warnings = EnumSet.noneOf(Warning.class);
+		this.filesystem = new JavaFileSystem();
+		this.listener = null;
 	}
 
 	public Preprocessor(Source initial) {
@@ -82,6 +85,20 @@ public class Preprocessor {
 	public Preprocessor(File file)
 						throws IOException {
 		this(new FileLexerSource(file));
+	}
+
+	/**
+	 * Sets the VirtualFileSystem used by this Preprocessor.
+	 */
+	public void setFileSystem(VirtualFileSystem filesystem) {
+		this.filesystem = filesystem;
+	}
+
+	/**
+	 * Returns the VirtualFileSystem used by this Preprocessor.
+	 */
+	public VirtualFileSystem getFileSystem() {
+		return filesystem;
 	}
 
 	/**
@@ -942,23 +959,14 @@ public class Preprocessor {
 	 * User code may override this method to implement a virtual
 	 * file system.
 	 */
-	protected boolean include(String path)
+	private boolean include(VirtualFile file)
 						throws IOException,
 								LexerException {
-		File	file = new File(path);
 		// System.out.println("Try to include " + file);
 		if (!file.isFile())
 			return false;
-		push_source(new FileLexerSource(file), true);
+		push_source(file.getSource(), true);
 		return true;
-	}
-
-	protected String include_dirname(String path) {
-		return (new File(path)).getParentFile().getPath();
-	}
-
-	protected String include_filename(String dir, String name) {
-		return dir + File.separator + name;
 	}
 
 	/**
@@ -968,7 +976,8 @@ public class Preprocessor {
 						throws IOException,
 								LexerException {
 		for (String dir : path) {
-			if (include(include_filename(dir, name)))
+			VirtualFile	file = filesystem.getFile(dir, name);
+			if (include(file))
 				return true;
 		}
 		return false;
@@ -986,13 +995,10 @@ public class Preprocessor {
 						throws IOException,
 								LexerException {
 		if (quoted) {
-			String	dir = include_dirname(parent);
-			String	path;
-			if (dir == null)
-				path = name;
-			else
-				path = include_filename(dir, name);
-			if (include(path))
+			VirtualFile	pfile = filesystem.getFile(parent);
+			VirtualFile	dir = pfile.getParentFile();
+			VirtualFile	ifile = dir.getChildFile(name);
+			if (include(ifile))
 				return;
 			if (include(quoteincludepath, name))
 				return;

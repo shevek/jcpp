@@ -17,11 +17,17 @@
 
 package org.anarres.cpp;
 
+import java.io.IOException;
+
 /**
- * Features of the Preprocessor, which may be enabled or disabled.
+ * An extremely lightweight virtual file interface.
  */
-public enum Feature {
-	DIGRAPHS,
-	TRIGRAPHS,
-	LINEMARKERS,
+public interface VirtualFile {
+	// public String getParent();
+	public boolean isFile();
+	public String getPath();
+	public String getName();
+	public VirtualFile getParentFile();
+	public VirtualFile getChildFile(String name);
+	public Source getSource() throws IOException;
 }

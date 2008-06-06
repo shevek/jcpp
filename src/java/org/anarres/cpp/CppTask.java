@@ -28,9 +28,12 @@ import org.anarres.cpp.LexerException;
 import org.anarres.cpp.Preprocessor;
 import org.anarres.cpp.Token;
 
+/**
+ * An ant task for jcpp.
+ */
 public class CppTask extends Task {
 
-	public static class Macro {
+	private static class Macro {
 		private String name;
 		private String value;
 

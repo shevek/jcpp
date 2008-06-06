@@ -18,10 +18,9 @@
 package org.anarres.cpp;
 
 /**
- * Features of the Preprocessor, which may be enabled or disabled.
+ * An extremely lightweight virtual file system interface.
  */
-public enum Feature {
-	DIGRAPHS,
-	TRIGRAPHS,
-	LINEMARKERS,
+public interface VirtualFileSystem {
+	public VirtualFile getFile(String path);
+	public VirtualFile getFile(String dir, String name);
 }

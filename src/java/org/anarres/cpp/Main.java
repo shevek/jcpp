@@ -40,7 +40,7 @@ import static org.anarres.cpp.Token.*;
  */
 public class Main {
 
-    protected static class Option extends LongOpt {
+    private static class Option extends LongOpt {
         private String  eg;
         private String  help;
         public Option(String word, int arg, int ch,

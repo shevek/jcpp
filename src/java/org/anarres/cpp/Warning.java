@@ -17,6 +17,9 @@
 
 package org.anarres.cpp;
 
+/**
+ * Warning classes which may optionally be emitted by the Preprocessor.
+ */
 public enum Warning {
 	TRIGRAPHS,
 	// TRADITIONAL,

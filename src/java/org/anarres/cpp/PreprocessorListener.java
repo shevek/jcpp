@@ -19,6 +19,13 @@ package org.anarres.cpp;
 
 import java.io.File;
 
+/**
+ * A handler for preprocessor events, primarily errors and warnings.
+ *
+ * If no PreprocessorListener is installed in a Preprocessor, all
+ * error and warning events will throw an exception. Installing a
+ * listener allows more intelligent handling of these events.
+ */
 public class PreprocessorListener {
 
 	private int	errors;
