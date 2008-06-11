@@ -42,16 +42,50 @@ import static org.anarres.cpp.Token.*;
  * values of the returned {@link Token Tokens}. (See
  * {@link CppReader}, which does this.)
  */
+
+
+/*
+Source file name and line number information is conveyed by lines of the form
+
+     # linenum filename flags
+
+These are called linemarkers. They are inserted as needed into
+the output (but never within a string or character constant). They
+mean that the following line originated in file filename at line
+linenum. filename will never contain any non-printing characters;
+they are replaced with octal escape sequences.
+
+After the file name comes zero or more flags, which are `1', `2',
+`3', or `4'. If there are multiple flags, spaces separate them. Here
+is what the flags mean:
+
+`1'
+    This indicates the start of a new file.
+`2'
+    This indicates returning to a file (after having included another
+    file).
+`3'
+    This indicates that the following text comes from a system header
+    file, so certain warnings should be suppressed.
+`4'
+    This indicates that the following text should be treated as being
+    wrapped in an implicit extern "C" block.
+*/
+
 public class Preprocessor {
 	private static final boolean	DEBUG = false;
 
 	private static final Macro		__LINE__ = new Macro("__LINE__");
 	private static final Macro		__FILE__ = new Macro("__FILE__");
 
+	private List<Source>			inputs;
+
+	/* The fundamental engine. */
 	private Map<String,Macro>		macros;
 	private Stack<State>			states;
 	private Source					source;
 
+	/* Support junk to make it work like cpp */
 	private List<String>			quoteincludepath;	/* -iquote */
 	private List<String>			sysincludepath;		/* -I */
 	private Set<Feature>			features;
@@ -60,6 +94,7 @@ public class Preprocessor {
 	private PreprocessorListener	listener;
 
 	public Preprocessor() {
+		this.inputs = new ArrayList<Source>();
 		this.macros = new HashMap<String,Macro>();
 		macros.put(__LINE__.getName(), __LINE__);
 		macros.put(__FILE__.getName(), __FILE__);
@@ -198,21 +233,7 @@ public class Preprocessor {
 	 */
 	public void addInput(Source source) {
 		source.init(this);
-		if (this.source == null) {
-			this.source = source;
-			/* We need to get a \n onto the end of this somehow. */
-			if (features.contains(Feature.LINEMARKERS))
-				source_untoken(line_token(1, source.getName(), "\n"));
-		}
-		else {
-			Source	s = this.source;
-			Source	p = source.getParent();
-			while (p != null) {
-				s = p;
-				p = s.getParent();
-			}
-			s.setParent(source, true);
-		}
+		inputs.add(source);
 	}
 
 	/**
@@ -281,12 +302,6 @@ public class Preprocessor {
 						throws LexerException {
 		warning(tok.getLine(), tok.getColumn(), msg);
 	}
-
-/*
-	public void setSource(Source source) {
-		this.source = source;
-	}
-*/
 
 	/**
 	 * Adds a Macro to this Preprocessor.
@@ -455,29 +470,16 @@ public class Preprocessor {
 			listener.handleSourceChange(this.source, "resume");
 	}
 
-	/**
-	 * Pushes a source onto the input stack.
-	 *
-	 * The top source on the input stack is the one which is
-	 * currently being processed.
-	 *
-	 * It is unlikely that you will want to call this method. It is more
-	 * likely that you want {@link #addInput(Source)}.
-	 *
-	 * @see #addInput(Source)
-	 */
-	public void addSource(Source source) {
-		push_source(source, true);
-	}
-
 
 /* Source tokens */
 
 	private Token	source_token;
 
+	/* XXX Make this include the NL, and make all cpp directives eat
+	 * their own NL. */
 	private Token line_token(int line, String name, String extra) {
 		return new Token(P_LINE, line, 0,
-			"#line " + line + " \"" + name + "\"" + extra,
+			"#line " + line + " \"" + name + "\"" + extra + "\n",
 			null
 				);
 	}
@@ -492,22 +494,29 @@ public class Preprocessor {
 		}
 
 		for (;;) {
-			if (source == null)
-				return new Token(EOF);
-			Token	tok = source.token();
-			if (tok.getType() == EOF && source.isAutopop()) {
-				// System.out.println("Autopop " + source);
-				Source	s = source;
+			Source	s = getSource();
+			if (s == null) {
+				if (inputs.isEmpty())
+					return new Token(EOF);
+				Source	t = inputs.remove(0);
+				push_source(t, true);
+				if (features.contains(Feature.LINEMARKERS))
+					return line_token(t.getLine(), t.getName(), " 1");
+				continue;
+			}
+			Token	tok = s.token();
+			if (tok.getType() == EOF && s.isAutopop()) {
+				// System.out.println("Autopop " + s);
 				pop_source();
+				Source	t = getSource();
 				if (features.contains(Feature.LINEMARKERS)
-						&& s.isNumbered()) {
+						&& s.isNumbered()
+						&& t != null) {
+					/* XXX Don't we mean t.isNumbered() as well? */
 					/* Not perfect, but ... */
-					source_untoken(new Token(NL, source.getLine(), 0, "\n"));
-					return line_token(source.getLine(), source.getName(), "");
+					return line_token(t.getLine(), t.getName(), " 2");
 				}
-				else {
-					continue;
-				}
+				continue;
 			}
 			return tok;
 		}
@@ -787,55 +796,48 @@ public class Preprocessor {
 						case IDENTIFIER:
 							args.add(tok.getText());
 							break;
-						// case ELLIPSIS:
 						case NL:
 						case EOF:
 							error(tok,
 								"Unterminated macro parameter list");
-							break ARGS;
+							return tok;
 						default:
-							source_skipline(false);
 							error(tok,
 								"error in macro parameters: " +
 								tok.getText());
-							/* XXX return? */
-							break ARGS;
+							return source_skipline(false);
 					}
 					tok = source_token_nonwhite();
 					switch (tok.getType()) {
 						case ',':
 							break;
-						case ')':
-							tok = source_token_nonwhite();
-							break ARGS;
 						case ELLIPSIS:
 							tok = source_token_nonwhite();
 							if (tok.getType() != ')')
 								error(tok,
 									"ellipsis must be on last argument");
 							m.setVariadic(true);
-							tok = source_token_nonwhite();
+							break ARGS;
+						case ')':
 							break ARGS;
 
 						case NL:
 						case EOF:
 							/* Do not skip line. */
 							error(tok,
-								"Unterminated macro definition");
-							break ARGS;
+								"Unterminated macro parameters");
+							return tok;
 						default:
-							source_skipline(false);
 							error(tok,
-								"bad token in macro parameters: " +
+								"Bad token in macro parameters: " +
 								tok.getText());
-							/* XXX return? */
-							break ARGS;
+							return source_skipline(false);
 					}
 					tok = source_token_nonwhite();
 				}
 			}
 			else {
-				tok = source_token_nonwhite();	/* Lose the ')' */
+				assert tok.getType() == ')' : "Expected ')'";
 				args = Collections.emptyList();
 			}
 
@@ -844,21 +846,16 @@ public class Preprocessor {
 		else {
 			/* For searching. */
 			args = Collections.emptyList();
-			if (tok.getType() == COMMENT ||
-				tok.getType() == WHITESPACE) {
-				tok = source_token_nonwhite();
-			}
+			source_untoken(tok);
 		}
 
 		/* Get an expansion for the macro, using indexOf. */
 		boolean	space = false;
 		boolean	paste = false;
-		/* XXX UGLY: Ensure no space at start.
-		 * Careful not to break EOF/LF from above. */
-		if (isWhite(tok))	/* XXX Not sure this can ever happen now. */
-			tok = source_token_nonwhite();
 		int		idx;
 
+		/* Ensure no space at start. */
+		tok = source_token_nonwhite();
 		EXPANSION: for (;;) {
 			switch (tok.getType()) {
 				case EOF:
@@ -873,6 +870,7 @@ public class Preprocessor {
 						space = true;
 					break;
 
+				/* Paste. */
 				case PASTE:
 					space = false;
 					paste = true;
@@ -881,6 +879,7 @@ public class Preprocessor {
 							"#" + "#", null));
 					break;
 
+				/* Stringify. */
 				case '#':
 					if (space)
 						m.addToken(Token.space);
@@ -926,8 +925,10 @@ public class Preprocessor {
 			tok = source_token();
 		}
 
-		// if (DEBUG)
-			// System.out.println("Defined macro " + m);
+		/*
+		if (DEBUG)
+			System.out.println("Defined macro " + m);
+		*/
 		addMacro(m);
 
 		return tok;	/* NL or EOF. */
@@ -990,10 +991,11 @@ public class Preprocessor {
 					String name, boolean quoted)
 						throws IOException,
 								LexerException {
+		VirtualFile	pdir = null;
 		if (quoted) {
 			VirtualFile	pfile = filesystem.getFile(parent);
-			VirtualFile	dir = pfile.getParentFile();
-			VirtualFile	ifile = dir.getChildFile(name);
+			pdir = pfile.getParentFile();
+			VirtualFile	ifile = pdir.getChildFile(name);
 			if (include(ifile))
 				return;
 			if (include(quoteincludepath, name))
@@ -1004,8 +1006,10 @@ public class Preprocessor {
 			return;
 
 		StringBuilder	buf = new StringBuilder();
+		buf.append("File not found: ").append(name);
+		buf.append(" in");
 		if (quoted) {
-			buf.append(" .");
+			buf.append(" .").append('(').append(pdir).append(')');
 			for (String dir : quoteincludepath)
 				buf.append(" ").append(dir);
 		}
@@ -1070,10 +1074,8 @@ public class Preprocessor {
 
 			/* 'tok' is the 'nl' after the include. We use it after the
 			 * #line directive. */
-			if (features.contains(Feature.LINEMARKERS)) {
-				source_untoken(tok);
-				return line_token(1, name, "");
-			}
+			if (features.contains(Feature.LINEMARKERS))
+				return line_token(1, name, " 1");
 			return tok;
 		}
 		finally {
@@ -1467,12 +1469,18 @@ public class Preprocessor {
 						throws IOException,
 								LexerException {
 
-		Token	tok;
 		for (;;) {
+			Token	tok;
 			if (!isActive()) {
-				/* Tell lexer to ignore warnings. */
-				tok = source_token();
-				/* Tell lexer to stop ignoring warnings. */
+				try {
+					/* XXX Tell lexer to ignore warnings. */
+					source.setActive(false);
+					tok = source_token();
+				}
+				finally {
+					/* XXX Tell lexer to stop ignoring warnings. */
+					source.setActive(true);
+				}
 				switch (tok.getType()) {
 					case HASH:
 					case NL:
@@ -1563,6 +1571,13 @@ public class Preprocessor {
 					break;
 
 				case ERROR:
+					PreprocessorListener	l = getListener();
+					if (l != null) {
+						l.handleError(getSource(),
+								tok.getLine(), tok.getColumn(),
+								String.valueOf(tok.getValue()));
+						break;
+					}
 					return tok;
 
 				default:
@@ -1592,7 +1607,7 @@ public class Preprocessor {
 					}
 					int	ppcmd = _ppcmd.intValue();
 
-					switch (ppcmd) {
+					PP: switch (ppcmd) {
 
 						case PP_DEFINE:
 							if (!isActive())

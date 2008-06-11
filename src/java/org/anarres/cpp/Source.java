@@ -46,6 +46,7 @@ public abstract class Source implements Iterable<Token> {
 	private Source					parent;
 	private boolean					autopop;
 	private PreprocessorListener	listener;
+	private boolean					active;
 	private boolean					werror;
 
 	/* LineNumberReader */
@@ -86,6 +87,9 @@ public abstract class Source implements Iterable<Token> {
 	public Source() {
 		this.parent = null;
 		this.autopop = false;
+		this.listener = null;
+		this.active = true;
+		this.werror = false;
 	}
 
 	/**
@@ -200,6 +204,16 @@ public abstract class Source implements Iterable<Token> {
 	 */
 	/* pp */ boolean isNumbered() {
 		return false;
+	}
+
+	/* This is an incredibly lazy way of disabling warnings when
+	 * the source is not active. */
+	/* pp */ void setActive(boolean b) {
+		this.active = b;
+	}
+
+	/* pp */ boolean isActive() {
+		return active;
 	}
 
 	/**

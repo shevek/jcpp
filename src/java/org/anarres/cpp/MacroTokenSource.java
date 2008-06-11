@@ -32,6 +32,8 @@ import java.util.NoSuchElementException;
 
 import static org.anarres.cpp.Token.*;
 
+/* This source should always be active, since we don't expand macros
+ * in any inactive context. */
 /* pp */ class MacroTokenSource extends Source {
 	private Macro				macro;
 	private Iterator<Token>		tokens;	/* Pointer into the macro.  */
@@ -102,14 +104,18 @@ import static org.anarres.cpp.Token.*;
 						throws IOException,
 								LexerException {
 		StringBuilder	buf = new StringBuilder();
+		Token			err = null;
 		/* We know here that arg is null or expired,
 		 * since we cannot paste an expanded arg. */
 
 		int	count = 2;
 		for (int i = 0; i < count; i++) {
-			if (!tokens.hasNext())
-				error(ptok.getLine(), ptok.getColumn(),
-						"Paste at end of expansion");
+			if (!tokens.hasNext()) {
+				err = new Token(ERROR,
+						ptok.getLine(), ptok.getColumn(),
+						ptok.getText(), "Paste at end of expansion");
+				break;
+			}
 			Token	tok = tokens.next();
 			switch (tok.getType()) {
 				case M_PASTE:
@@ -131,13 +137,12 @@ import static org.anarres.cpp.Token.*;
 			}
 		}
 
-		/* XXX Somewhere here, need to check that concatenation
-		 * produces a valid token. */
-
 		/* Push and re-lex. */
 		StringBuilder		src = new StringBuilder();
 		escape(src, buf);
 		StringLexerSource	sl = new StringLexerSource(src.toString());
+
+		/* XXX Check that concatenation produces a valid token. */
 
 		arg = new SourceIterator(sl);
 	}
@@ -149,8 +154,14 @@ import static org.anarres.cpp.Token.*;
 			/* Deal with lexed tokens first. */
 
 			if (arg != null) {
-				if (arg.hasNext())
-					return arg.next();
+				if (arg.hasNext()) {
+					Token	tok = arg.next();
+					if (tok.getType() == M_PASTE)
+						tok = new Token(ERROR,
+								tok.getLine(), tok.getColumn(),
+								tok.getText(), "Unexpected paste token");
+					return tok;
+				}
 				arg = null;
 			}
 

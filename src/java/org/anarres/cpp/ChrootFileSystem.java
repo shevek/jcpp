@@ -63,6 +63,12 @@ public class ChrootFileSystem implements VirtualFileSystem {
 			return new ChrootFile(this, name);
 		}
 
+		@Override
+		public boolean isFile() {
+			File	real = new File(root, getPath());
+			return real.isFile();
+		}
+
 		public Source getSource() throws IOException {
 			return new FileLexerSource(new File(root, getPath()),
 							getPath());

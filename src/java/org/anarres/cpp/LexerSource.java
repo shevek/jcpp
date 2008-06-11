@@ -87,7 +87,7 @@ public class LexerSource extends Source {
 		return true;
 	}
 
-/* Error handling - this lot is barely worth it. */
+/* Error handling. */
 
 	private final void _error(String msg, boolean error)
 						throws LexerException {
@@ -325,13 +325,15 @@ public class LexerSource extends Source {
 		}
 		else if (isLineSeparator(d)) {
 			unread(d);
-			error("Unterminated character literal");
-			return new Token(ERROR, text.toString(), null);
+			// error("Unterminated character literal");
+			return new Token(ERROR, text.toString(),
+							"Unterminated character literal");
 		}
 		else if (d == '\'') {
 			text.append('\'');
-			error("Empty character literal");
-			return new Token(ERROR, text.toString(), null);
+			// error("Empty character literal");
+			return new Token(ERROR, text.toString(),
+							"Empty character literal");
 		}
 		else if (!Character.isDefined(d)) {
 			text.append('?');
@@ -343,7 +345,7 @@ public class LexerSource extends Source {
 
 		int		e = read();
 		if (e != '\'') {
-			error("Illegal character constant");
+			// error("Illegal character constant");
 			/* We consume up to the next ' or the rest of the line. */
 			for (;;) {
 				if (e == '\'')
@@ -355,7 +357,8 @@ public class LexerSource extends Source {
 				text.append((char)e);
 				e = read();
 			}
-			return new Token(ERROR, text.toString(), null);
+			return new Token(ERROR, text.toString(),
+							"Illegal character constant");
 		}
 		text.append('\'');
 		/* XXX It this a bad cast? */
@@ -385,13 +388,15 @@ public class LexerSource extends Source {
 			}
 			else if (c == -1) {
 				unread(c);
-				error("End of file in string literal after " + buf);
-				return new Token(ERROR, text.toString(), null);
+				// error("End of file in string literal after " + buf);
+				return new Token(ERROR, text.toString(),
+						"End of file in string literal after " + buf);
 			}
 			else if (isLineSeparator(c)) {
 				unread(c);
-				error("Unterminated string literal after " + buf);
-				return new Token(ERROR, text.toString(), null);
+				// error("Unterminated string literal after " + buf);
+				return new Token(ERROR, text.toString(),
+						"Unterminated string literal after " + buf);
 			}
 			else {
 				text.append((char)c);
@@ -403,21 +408,42 @@ public class LexerSource extends Source {
 						text.toString(), buf.toString());
 	}
 
-	private void number_suffix(StringBuilder text, int d)
+	private Token _number(StringBuilder text, long val, int d)
 						throws IOException,
 								LexerException {
-		if (d == 'U') {
-			text.append((char)d);
-			d = read();
-		}
-		if (d == 'L') {
-			text.append((char)d);
-		}
-		else if (d == 'I') {
-			text.append((char)d);
-		}
-		else {
-			unread(d);
+		int	bits = 0;
+		for (;;) {
+			/* XXX Error check duplicate bits. */
+			if (d == 'U' || d == 'u') {
+				bits |= 1;
+				text.append((char)d);
+				d = read();
+			}
+			else if (d == 'L' || d == 'l') {
+				if ((bits & 4) != 0)
+					/* XXX warn */ ;
+				bits |= 2;
+				text.append((char)d);
+				d = read();
+			}
+			else if (d == 'I' || d == 'i') {
+				if ((bits & 2) != 0)
+					/* XXX warn */ ;
+				bits |= 4;
+				text.append((char)d);
+				d = read();
+			}
+			else if (Character.isLetter(d)) {
+				unread(d);
+				return new Token(ERROR, text.toString(),
+						"Invalid suffix \"" + (char)d +
+						"\" on numeric constant");
+			}
+			else {
+				unread(d);
+				return new Token(INTEGER,
+					text.toString(), Long.valueOf(val));
+			}
 		}
 	}
 
@@ -433,9 +459,7 @@ public class LexerSource extends Source {
 			text.append((char)d);
 			d = read();
 		}
-		number_suffix(text, d);
-		return new Token(INTEGER,
-				text.toString(), Long.valueOf(val));
+		return _number(text, val, d);
 	}
 
 	/* We do not know whether know the first digit is valid. */
@@ -447,8 +471,10 @@ public class LexerSource extends Source {
 		int				d = read();
 		if (Character.digit(d, 16) == -1) {
 			unread(d);
-			error("Illegal hexadecimal constant " + (char)d);
-			return new Token(ERROR, text.toString(), null);
+			// error("Illegal hexadecimal constant " + (char)d);
+			return new Token(ERROR, text.toString(),
+					"Illegal hexadecimal digit " + (char)d +
+					" after "+ text);
 		}
 		long	val = 0;
 		do {
@@ -456,9 +482,7 @@ public class LexerSource extends Source {
 			text.append((char)d);
 			d = read();
 		} while (Character.digit(d, 16) != -1);
-		number_suffix(text, d);
-		return new Token(INTEGER,
-				text.toString(), Long.valueOf(val));
+		return _number(text, val, d);
 	}
 
 	/* We know we have at least one valid digit, but empty is not
@@ -475,9 +499,7 @@ public class LexerSource extends Source {
 			text.append((char)d);
 			d = read();
 		} while (Character.digit(d, 10) != -1);
-		number_suffix(text, d);
-		return new Token(INTEGER,
-				text.toString(), Long.valueOf(val));
+		return _number(text, val, d);
 	}
 
 	private Token identifier(int c)
