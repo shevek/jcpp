@@ -49,6 +49,12 @@ public class ErrorTestCase extends BaseTestCase {
 		assertNotNull("CPP has listener", p.getListener());
 		assertTrue(testError(p));
 		assertTrue("Listener has errors", pl.getErrors() > 0);
+
+		/* Without CSYNTAX, works happily. */
+		sl = new StringLexerSource(input, true);
+		p = new Preprocessor();
+		p.addInput(sl);
+		assertTrue(testError(p));
 	}
 
 	public void testErrors() throws Exception {
