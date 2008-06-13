@@ -81,20 +81,20 @@ public class PreprocessorTestCase extends BaseTestCase {
 
 /* Redefinitions, undefinitions. */
 testInput("#define two three\n", NL);
-testInput("one /* one */\n", NL, I("one"), WHITESPACE, COMMENT);
+testInput("one /* one */\n", NL, I("one"), WHITESPACE, CCOMMENT);
 testInput("#define one two\n", NL);
-testInput("one /* three */\n", NL, I("three"), WHITESPACE, COMMENT);
+testInput("one /* three */\n", NL, I("three"), WHITESPACE, CCOMMENT);
 testInput("#undef two\n", NL);
 testInput("#define two five\n", NL);
-testInput("one /* five */\n", NL, I("five"), WHITESPACE, COMMENT);
+testInput("one /* five */\n", NL, I("five"), WHITESPACE, CCOMMENT);
 testInput("#undef two\n", NL);
-testInput("one /* two */\n", NL, I("two"), WHITESPACE, COMMENT);
+testInput("one /* two */\n", NL, I("two"), WHITESPACE, CCOMMENT);
 testInput("#undef one\n", NL);
 testInput("#define one four\n", NL);
-testInput("one /* four */\n", NL, I("four"), WHITESPACE, COMMENT);
+testInput("one /* four */\n", NL, I("four"), WHITESPACE, CCOMMENT);
 testInput("#undef one\n", NL);
 testInput("#define one one\n", NL);
-testInput("one /* one */\n", NL, I("one"), WHITESPACE, COMMENT);
+testInput("one /* one */\n", NL, I("one"), WHITESPACE, CCOMMENT);
 
 		/* Variadic macros. */
 		testInput("#define var(x...) a x b\n", NL);

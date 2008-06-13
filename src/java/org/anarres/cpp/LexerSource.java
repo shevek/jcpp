@@ -235,6 +235,19 @@ public class LexerSource extends Source {
 		}
 	}
 
+	/* Consumes the rest of the current line into an invalid. */
+	private Token invalid(StringBuilder text, String reason)
+						throws IOException,
+								LexerException {
+		int	d = read();
+		while (!isLineSeparator(d)) {
+			text.append((char)d);
+			d = read();
+		}
+		unread(d);
+		return new Token(INVALID, text.toString(), reason);
+	}
+
 	private Token ccomment()
 						throws IOException,
 								LexerException {
@@ -325,19 +338,17 @@ public class LexerSource extends Source {
 		}
 		else if (isLineSeparator(d)) {
 			unread(d);
-			// error("Unterminated character literal");
 			return new Token(INVALID, text.toString(),
 							"Unterminated character literal");
 		}
 		else if (d == '\'') {
 			text.append('\'');
-			// error("Empty character literal");
 			return new Token(INVALID, text.toString(),
 							"Empty character literal");
 		}
 		else if (!Character.isDefined(d)) {
 			text.append('?');
-			error("Illegal unicode character literal");
+			return invalid(text, "Illegal unicode character literal");
 		}
 		else {
 			text.append((char)d);
@@ -348,17 +359,17 @@ public class LexerSource extends Source {
 			// error("Illegal character constant");
 			/* We consume up to the next ' or the rest of the line. */
 			for (;;) {
-				if (e == '\'')
-					break;
 				if (isLineSeparator(e)) {
 					unread(e);
 					break;
 				}
 				text.append((char)e);
+				if (e == '\'')
+					break;
 				e = read();
 			}
 			return new Token(INVALID, text.toString(),
-							"Illegal character constant");
+							"Illegal character constant " + text);
 		}
 		text.append('\'');
 		/* XXX It this a bad cast? */

@@ -68,6 +68,8 @@ import java.io.IOException;
 	private void _unread(int c) {
 		if (c != -1)
 			unget[uptr++] = c;
+		assert uptr <= unget.length :
+				"JoinReader ungets too many characters";
 	}
 
 	protected void warning(String msg)

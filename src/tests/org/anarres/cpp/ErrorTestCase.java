@@ -8,17 +8,17 @@ import static org.anarres.cpp.Token.*;
 
 public class ErrorTestCase extends BaseTestCase {
 
-	private void testError(Preprocessor p)
+	private boolean testError(Preprocessor p)
 						throws LexerException,
 								IOException {
 		for (;;) {
 			Token	tok = p.token();
 			if (tok.getType() == EOF)
 				break;
-			else if (tok.getType() == INVALID)
-				throw new LexerException("Error token: " + tok);
+			if (tok.getType() == INVALID)
+				return true;
 		}
-
+		return false;
 	}
 
 	private void testError(String input) throws Exception {
@@ -29,23 +29,25 @@ public class ErrorTestCase extends BaseTestCase {
 		/* Without a PreprocessorListener, throws an exception. */
 		sl = new StringLexerSource(input, true);
 		p = new Preprocessor();
+		p.addFeature(Feature.CSYNTAX);
 		p.addInput(sl);
 		try {
-			testError(p);
-			fail("Lexing succeeded unexpectedly on " + input);
+			assertTrue(testError(p));
+			fail("Lexing unexpectedly succeeded without listener.");
 		}
 		catch (LexerException e) {
-			/* ignored */
+			/* required */
 		}
 
 		/* With a PreprocessorListener, records the error. */
 		sl = new StringLexerSource(input, true);
 		p = new Preprocessor();
+		p.addFeature(Feature.CSYNTAX);
 		p.addInput(sl);
 		pl = new PreprocessorListener();
 		p.setListener(pl);
 		assertNotNull("CPP has listener", p.getListener());
-		testError(p);
+		assertTrue(testError(p));
 		assertTrue("Listener has errors", pl.getErrors() > 0);
 	}
 

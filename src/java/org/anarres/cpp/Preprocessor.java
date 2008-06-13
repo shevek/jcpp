@@ -497,7 +497,7 @@ public class Preprocessor {
 					return new Token(EOF);
 				Source	t = inputs.remove(0);
 				push_source(t, true);
-				if (features.contains(Feature.LINEMARKERS))
+				if (getFeature(Feature.LINEMARKERS))
 					return line_token(t.getLine(), t.getName(), " 1");
 				continue;
 			}
@@ -506,7 +506,7 @@ public class Preprocessor {
 				// System.out.println("Autopop " + s);
 				pop_source();
 				Source	t = getSource();
-				if (features.contains(Feature.LINEMARKERS)
+				if (getFeature(Feature.LINEMARKERS)
 						&& s.isNumbered()
 						&& t != null) {
 					/* XXX Don't we mean t.isNumbered() as well? */
@@ -1082,7 +1082,7 @@ public class Preprocessor {
 
 			/* 'tok' is the 'nl' after the include. We use it after the
 			 * #line directive. */
-			if (features.contains(Feature.LINEMARKERS))
+			if (getFeature(Feature.LINEMARKERS))
 				return line_token(1, name, " 1");
 			return tok;
 		}
@@ -1498,13 +1498,16 @@ public class Preprocessor {
 						/* The preprocessor has to take action here. */
 						break;
 					case WHITESPACE:
+						return tok;
 					case CCOMMENT:
 					case CPPCOMMENT:
 						// Patch up to preserve whitespace.
-						/* XXX We might want to return tok here in C */
+						if (getFeature(Feature.KEEPCOMMENTS))
+							return tok;
 						return toWhitespace(tok);
 					default:
 						// Return NL to preserve whitespace.
+						/* XXX This might lose a comment. */
 						return source_skipline(false);
 				}
 			}
@@ -1578,12 +1581,12 @@ public class Preprocessor {
 					return tok;
 
 				case P_LINE:
-					if (features.contains(Feature.LINEMARKERS))
+					if (getFeature(Feature.LINEMARKERS))
 						return tok;
 					break;
 
 				case INVALID:
-					if (features.contains(Feature.CSYNTAX))
+					if (getFeature(Feature.CSYNTAX))
 						error(tok, String.valueOf(tok.getValue()));
 					return tok;
 
