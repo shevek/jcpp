@@ -226,9 +226,6 @@ public class Preprocessor {
 	/**
 	 * Adds input for the Preprocessor.
 	 *
-	 * XXX Inputs should be maintained off the source stack.
-	 * <p>
-	 *
 	 * Inputs are processed in the order in which they are added.
 	 */
 	public void addInput(Source source) {
@@ -530,7 +527,9 @@ public class Preprocessor {
 
 	private boolean isWhite(Token tok) {
 		int	type = tok.getType();
-		return (type == WHITESPACE) || (type == COMMENT);
+		return (type == WHITESPACE)
+			|| (type == CCOMMENT)
+			|| (type == CPPCOMMENT);
 	}
 
 	private Token source_token_nonwhite()
@@ -571,7 +570,8 @@ public class Preprocessor {
 				// System.out.println("pp: open: token is " + tok);
 				switch (tok.getType()) {
 					case WHITESPACE:	/* XXX Really? */
-					case COMMENT:
+					case CCOMMENT:
+					case CPPCOMMENT:
 					case NL:
 						break;	/* continue */
 					case '(':
@@ -638,7 +638,8 @@ public class Preprocessor {
 							break;
 
 						case WHITESPACE:
-						case COMMENT:
+						case CCOMMENT:
+						case CPPCOMMENT:
 							/* Avoid duplicating spaces. */
 							space = true;
 							break;
@@ -670,6 +671,11 @@ public class Preprocessor {
 					 */
 					return false;
 				}
+
+				/*
+				for (Argument a : args)
+					a.expand(this);
+				*/
 
 				for (int i = 0; i < args.size(); i++) {
 					args.get(i).expand(this);
@@ -748,7 +754,8 @@ public class Preprocessor {
 					break EXPANSION;
 
 				case WHITESPACE:
-				case COMMENT:
+				case CCOMMENT:
+				case CPPCOMMENT:
 					space = true; 
 					break;
 
@@ -863,7 +870,8 @@ public class Preprocessor {
 				case NL:
 					break EXPANSION;
 
-				case COMMENT:
+				case CCOMMENT:
+				case CPPCOMMENT:
 					// break;
 				case WHITESPACE:
 					if (!paste)
@@ -1109,7 +1117,8 @@ public class Preprocessor {
 					warning(tok,
 						"Empty #" + "pragma");
 					return tok;
-				case COMMENT:
+				case CCOMMENT:
+				case CPPCOMMENT:
 				case WHITESPACE:
 					continue NAME;
 				case IDENTIFIER:
@@ -1135,7 +1144,8 @@ public class Preprocessor {
 				case NL:
 					/* This may contain one or more newlines. */
 					break VALUE;
-				case COMMENT:
+				case CCOMMENT:
+				case CPPCOMMENT:
 					break;
 				case WHITESPACE:
 					value.add(tok);
@@ -1488,7 +1498,8 @@ public class Preprocessor {
 						/* The preprocessor has to take action here. */
 						break;
 					case WHITESPACE:
-					case COMMENT:
+					case CCOMMENT:
+					case CPPCOMMENT:
 						// Patch up to preserve whitespace.
 						/* XXX We might want to return tok here in C */
 						return toWhitespace(tok);
@@ -1510,7 +1521,8 @@ public class Preprocessor {
 				case NL:
 					return tok;
 
-				case COMMENT:
+				case CCOMMENT:
+				case CPPCOMMENT:
 					return tok;
 
 				case '!': case '%': case '&':
@@ -1570,14 +1582,9 @@ public class Preprocessor {
 						return tok;
 					break;
 
-				case ERROR:
-					PreprocessorListener	l = getListener();
-					if (l != null) {
-						l.handleError(getSource(),
-								tok.getLine(), tok.getColumn(),
-								String.valueOf(tok.getValue()));
-						break;
-					}
+				case INVALID:
+					if (features.contains(Feature.CSYNTAX))
+						error(tok, String.valueOf(tok.getValue()));
 					return tok;
 
 				default:

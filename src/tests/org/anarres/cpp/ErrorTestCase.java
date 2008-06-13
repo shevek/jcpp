@@ -15,7 +15,7 @@ public class ErrorTestCase extends BaseTestCase {
 			Token	tok = p.token();
 			if (tok.getType() == EOF)
 				break;
-			else if (tok.getType() == ERROR)
+			else if (tok.getType() == INVALID)
 				throw new LexerException("Error token: " + tok);
 		}
 

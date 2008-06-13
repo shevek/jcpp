@@ -95,8 +95,9 @@ public class CppReader extends Reader {
 					case EOF:
 						token = null;
 						return false;
-					case COMMENT:
-						if (false) {
+					case CCOMMENT:
+					case CPPCOMMENT:
+						if (!cpp.getFeature(Feature.KEEPCOMMENTS)) {
 							token = " ";
 							break;
 						}

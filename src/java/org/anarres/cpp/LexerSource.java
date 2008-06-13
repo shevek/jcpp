@@ -250,7 +250,7 @@ public class LexerSource extends Source {
 				text.append((char)d);
 			} while (d == '*');
 		} while (d != '/');
-		return new Token(COMMENT, text.toString());
+		return new Token(CCOMMENT, text.toString());
 	}
 
 	private Token cppcomment()
@@ -263,7 +263,7 @@ public class LexerSource extends Source {
 			d = read();
 		}
 		unread(d);
-		return new Token(COMMENT, text.toString());
+		return new Token(CPPCOMMENT, text.toString());
 	}
 
 	private int escape(StringBuilder text)
@@ -326,13 +326,13 @@ public class LexerSource extends Source {
 		else if (isLineSeparator(d)) {
 			unread(d);
 			// error("Unterminated character literal");
-			return new Token(ERROR, text.toString(),
+			return new Token(INVALID, text.toString(),
 							"Unterminated character literal");
 		}
 		else if (d == '\'') {
 			text.append('\'');
 			// error("Empty character literal");
-			return new Token(ERROR, text.toString(),
+			return new Token(INVALID, text.toString(),
 							"Empty character literal");
 		}
 		else if (!Character.isDefined(d)) {
@@ -357,7 +357,7 @@ public class LexerSource extends Source {
 				text.append((char)e);
 				e = read();
 			}
-			return new Token(ERROR, text.toString(),
+			return new Token(INVALID, text.toString(),
 							"Illegal character constant");
 		}
 		text.append('\'');
@@ -389,13 +389,13 @@ public class LexerSource extends Source {
 			else if (c == -1) {
 				unread(c);
 				// error("End of file in string literal after " + buf);
-				return new Token(ERROR, text.toString(),
+				return new Token(INVALID, text.toString(),
 						"End of file in string literal after " + buf);
 			}
 			else if (isLineSeparator(c)) {
 				unread(c);
 				// error("Unterminated string literal after " + buf);
-				return new Token(ERROR, text.toString(),
+				return new Token(INVALID, text.toString(),
 						"Unterminated string literal after " + buf);
 			}
 			else {
@@ -435,7 +435,7 @@ public class LexerSource extends Source {
 			}
 			else if (Character.isLetter(d)) {
 				unread(d);
-				return new Token(ERROR, text.toString(),
+				return new Token(INVALID, text.toString(),
 						"Invalid suffix \"" + (char)d +
 						"\" on numeric constant");
 			}
@@ -472,7 +472,7 @@ public class LexerSource extends Source {
 		if (Character.digit(d, 16) == -1) {
 			unread(d);
 			// error("Illegal hexadecimal constant " + (char)d);
-			return new Token(ERROR, text.toString(),
+			return new Token(INVALID, text.toString(),
 					"Illegal hexadecimal digit " + (char)d +
 					" after "+ text);
 		}

@@ -111,9 +111,10 @@ import static org.anarres.cpp.Token.*;
 		int	count = 2;
 		for (int i = 0; i < count; i++) {
 			if (!tokens.hasNext()) {
-				err = new Token(ERROR,
-						ptok.getLine(), ptok.getColumn(),
-						ptok.getText(), "Paste at end of expansion");
+				/* XXX This one really should throw. */
+				error(ptok.getLine(), ptok.getColumn(),
+						"Paste at end of expansion");
+				buf.append(' ').append(ptok.getText());
 				break;
 			}
 			Token	tok = tokens.next();
@@ -129,7 +130,8 @@ import static org.anarres.cpp.Token.*;
 					concat(buf, args.get(idx));
 					break;
 				/* XXX Test this. */
-				case COMMENT:
+				case CCOMMENT:
+				case CPPCOMMENT:
 					break;
 				default:
 					buf.append(tok.getText());
@@ -156,10 +158,9 @@ import static org.anarres.cpp.Token.*;
 			if (arg != null) {
 				if (arg.hasNext()) {
 					Token	tok = arg.next();
-					if (tok.getType() == M_PASTE)
-						tok = new Token(ERROR,
-								tok.getLine(), tok.getColumn(),
-								tok.getText(), "Unexpected paste token");
+					/* XXX PASTE -> INVALID. */
+					assert tok.getType() != M_PASTE :
+								"Unexpected paste token";
 					return tok;
 				}
 				arg = null;

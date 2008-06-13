@@ -101,8 +101,9 @@ public class Main {
 		pp.addFeature(Feature.LINEMARKERS);
 		pp.addWarning(Warning.IMPORT);
 		pp.setListener(new PreprocessorListener());
-
 		pp.addMacro("__JCPP__");
+		pp.getSystemIncludePath().add("/usr/local/include");
+		pp.getSystemIncludePath().add("/usr/include");
 
         GETOPT: while ((c = g.getopt()) != -1) {
             switch (c) {
@@ -156,11 +157,6 @@ public class Main {
                     throw new Exception("Illegal option " + c);
 			}
 		}
-
-		List<String>	path = pp.getSystemIncludePath();
-		path.add("/usr/local/include");
-		path.add("/usr/include");
-		// path.add("/usr/lib/gcc/i686-pc-linux-gnu/4.1.2/include");
 
 		for (int i = g.getOptind(); i < args.length; i++)
 			pp.addInput(new FileLexerSource(new File(args[i])));

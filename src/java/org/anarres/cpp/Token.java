@@ -151,7 +151,7 @@ public final class Token {
 	}
 
 #set ($i = 257)
-#set ($tokens = [ "AND_EQ", "ARROW", "CHARACTER", "COMMENT", "DEC", "DIV_EQ", "ELLIPSIS", "EOF", "EQ", "GE", "HASH", "HEADER", "IDENTIFIER", "INC", "INTEGER", "LAND", "LAND_EQ", "LE", "LITERAL", "LOR", "LOR_EQ", "LSH", "LSH_EQ", "MOD_EQ", "MULT_EQ", "NE", "NL", "OR_EQ", "PASTE", "PLUS_EQ", "RANGE", "RSH", "RSH_EQ", "STRING", "SUB_EQ", "WHITESPACE", "XOR_EQ", "M_ARG", "M_PASTE", "M_STRING", "P_LINE", "ERROR" ])
+#set ($tokens = [ "AND_EQ", "ARROW", "CHARACTER", "CCOMMENT", "CPPCOMMENT", "DEC", "DIV_EQ", "ELLIPSIS", "EOF", "EQ", "GE", "HASH", "HEADER", "IDENTIFIER", "INC", "INTEGER", "LAND", "LAND_EQ", "LE", "LITERAL", "LOR", "LOR_EQ", "LSH", "LSH_EQ", "MOD_EQ", "MULT_EQ", "NE", "NL", "OR_EQ", "PASTE", "PLUS_EQ", "RANGE", "RSH", "RSH_EQ", "STRING", "SUB_EQ", "WHITESPACE", "XOR_EQ", "M_ARG", "M_PASTE", "M_STRING", "P_LINE", "INVALID" ])
 #foreach ($token in $tokens)
 	/** The token type $token. */
 	public static final int $token = $i;

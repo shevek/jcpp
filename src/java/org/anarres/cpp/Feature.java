@@ -24,4 +24,6 @@ public enum Feature {
 	DIGRAPHS,
 	TRIGRAPHS,
 	LINEMARKERS,
+	CSYNTAX,
+	KEEPCOMMENTS,
 }

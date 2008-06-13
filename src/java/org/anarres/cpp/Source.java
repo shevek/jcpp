@@ -255,7 +255,8 @@ public abstract class Source implements Iterable<Token> {
 				case NL:
 					/* This may contain one or more newlines. */
 					return tok;
-				case COMMENT:
+				case CCOMMENT:
+				case CPPCOMMENT:
 				case WHITESPACE:
 					break;
 				default:
