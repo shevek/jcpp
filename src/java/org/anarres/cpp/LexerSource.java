@@ -161,6 +161,9 @@ public class LexerSource extends Source {
 				return u0;
 		}
 
+		if (reader == null)
+			return -1;
+
 		int	c = reader.read();
 		switch (c) {
 			case '\r':
@@ -208,6 +211,7 @@ public class LexerSource extends Source {
 	/* You can unget AT MOST one newline. */
 	private void unread(int c)
 						throws IOException {
+		/* XXX Must unread newlines. */
 		if (c != -1) {
 			if (isLineSeparator(c)) {
 				line--;
@@ -583,8 +587,8 @@ public class LexerSource extends Source {
 					else {
 						int	nls = 0;
 						do {
-							d = read();
 							nls++;
+							d = read();
 						} while (d == '\n');
 						unread(d);
 						char[]	text = new char[nls];
@@ -767,6 +771,7 @@ public class LexerSource extends Source {
 				break;
 
 			case -1:
+				close();
 				tok = new Token(EOF, _l, _c, "<eof>");
 				break;
 		}
@@ -793,6 +798,15 @@ public class LexerSource extends Source {
 			System.out.println("lx: Returning " + tok);
 		// (new Exception("here")).printStackTrace(System.out);
 		return tok;
+	}
+
+	public void close()
+						throws IOException {
+		if (reader != null) {
+			reader.close();
+			reader = null;
+		}
+		super.close();
 	}
 
 }

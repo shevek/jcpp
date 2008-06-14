@@ -46,6 +46,14 @@ public class JavaFileSystem implements VirtualFileSystem {
 			super(dir, name);
 		}
 
+/*
+		@Override
+		public String getPath() {
+			return getCanonicalPath();
+		}
+*/
+
+		@Override
 		public JavaFile getParentFile() {
 			return new JavaFile(getParent());
 		}

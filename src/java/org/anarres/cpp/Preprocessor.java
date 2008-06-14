@@ -17,6 +17,7 @@
 
 package org.anarres.cpp;
 
+import java.io.Closeable;
 import java.io.File;
 import java.io.IOException;
 
@@ -72,9 +73,7 @@ is what the flags mean:
     wrapped in an implicit extern "C" block.
 */
 
-public class Preprocessor {
-	private static final boolean	DEBUG = false;
-
+public class Preprocessor implements Closeable {
 	private static final Macro		__LINE__ = new Macro("__LINE__");
 	private static final Macro		__FILE__ = new Macro("__FILE__");
 
@@ -459,10 +458,14 @@ public class Preprocessor {
 	 * @see #getSource()
 	 * @see #push_source(Source,boolean)
 	 */
-	protected void pop_source() {
+	protected void pop_source()
+						throws IOException {
 		if (listener != null)
 			listener.handleSourceChange(this.source, "pop");
-		this.source = this.source.getParent();
+		Source	s = this.source;
+		this.source = s.getParent();
+		/* Always a noop unless called externally. */
+		s.close();
 		if (listener != null && this.source != null)
 			listener.handleSourceChange(this.source, "resume");
 	}
@@ -487,6 +490,8 @@ public class Preprocessor {
 		if (source_token != null) {
 			Token	tok = source_token;
 			source_token = null;
+			if (getFeature(Feature.DEBUG))
+				System.err.println("Returning unget token " + tok);
 			return tok;
 		}
 
@@ -509,12 +514,15 @@ public class Preprocessor {
 				if (getFeature(Feature.LINEMARKERS)
 						&& s.isNumbered()
 						&& t != null) {
-					/* XXX Don't we mean t.isNumbered() as well? */
-					/* Not perfect, but ... */
-					return line_token(t.getLine(), t.getName(), " 2");
+					/* We actually want 'did the nested source
+					 * contain a newline token', which isNumbered()
+					 * approximates. This is not perfect, but works. */
+					return line_token(t.getLine() + 1, t.getName(), " 2");
 				}
 				continue;
 			}
+			if (getFeature(Feature.DEBUG))
+				System.err.println("Returning fresh token " + tok);
 			return tok;
 		}
 	}
@@ -739,7 +747,7 @@ public class Preprocessor {
 	/**
 	 * Expands an argument.
 	 */
-	/* I'd rather this were done lazily. */
+	/* I'd rather this were done lazily, but doing so breaks spec. */
 	/* pp */ List<Token> expand(List<Token> arg)
 						throws IOException,
 								LexerException {
@@ -747,6 +755,7 @@ public class Preprocessor {
 		boolean		space = false;
 
 		push_source(new FixedTokenSource(arg), false); 
+
 		EXPANSION: for (;;) {
 			Token	tok = expanded_token();
 			switch (tok.getType()) {
@@ -872,6 +881,7 @@ public class Preprocessor {
 
 				case CCOMMENT:
 				case CPPCOMMENT:
+					/* XXX This is where we implement GNU's cpp -CC. */
 					// break;
 				case WHITESPACE:
 					if (!paste)
@@ -933,10 +943,8 @@ public class Preprocessor {
 			tok = source_token();
 		}
 
-		/*
-		if (DEBUG)
-			System.out.println("Defined macro " + m);
-		*/
+		if (getFeature(Feature.DEBUG))
+			System.err.println("Defined macro " + m);
 		addMacro(m);
 
 		return tok;	/* NL or EOF. */
@@ -1023,7 +1031,7 @@ public class Preprocessor {
 		}
 		for (String dir : sysincludepath)
 			buf.append(" ").append(dir);
-		error(line, 0, "File not found: " + name + " in" + buf);
+		error(line, 0, buf.toString());
 	}
 
 	private Token include()
@@ -1810,8 +1818,8 @@ public class Preprocessor {
 						throws IOException,
 								LexerException {
 		Token	tok = _token();
-		if (DEBUG)
-			System.out.println("pp: Returning " + tok);
+		if (getFeature(Feature.DEBUG))
+			System.err.println("pp: Returning " + tok);
 		return tok;
 	}
 
@@ -1854,6 +1862,20 @@ public class Preprocessor {
 		}
 
 		return buf.toString();
+	}
+
+	public void close()
+						throws IOException {
+		{
+			Source	s = source;
+			while (s != null) {
+				s.close();
+				s = s.getParent();
+			}
+		}
+		for (Source s : inputs) {
+			s.close();
+		}
 	}
 
 }

@@ -19,6 +19,7 @@ package org.anarres.cpp;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.PrintStream;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -68,6 +69,10 @@ public class Main {
 			"Enables the named warning class ("  + getWarnings() + ")."),
 		new Option("no-warnings", LongOpt.NO_ARGUMENT, 'w', null,
 			"Disables ALL warnings."),
+		new Option("verbose", LongOpt.NO_ARGUMENT, 'v', null,
+			"Operates incredibly verbosely."),
+		new Option("debug", LongOpt.NO_ARGUMENT, 3, null,
+			"Operates incredibly verbosely."),
 		new Option("version", LongOpt.NO_ARGUMENT, 2, null,
 			"Prints jcpp's version number (" + Version.getVersion() + ")"),
 	};
@@ -144,22 +149,38 @@ public class Main {
 					));
 					break;
 				case 2:	// --version
-					System.out.println("Anarres Java C Preprocessor version " + Version.getVersion());
-					System.out.println("Copyright (C) 2008 Shevek (http://www.anarres.org/).");
-					System.out.println("This is free software; see the source for copying conditions.  There is NO");
-					System.out.println("warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.");
+					version(System.out);
 					return;
+				case 'v':
+					pp.addFeature(Feature.VERBOSE);
+					break;
+				case 3:
+					pp.addFeature(Feature.DEBUG);
+					break;
                 case 'h':
                     usage(getClass().getName(), opts);
 					return;
                 default:
+                    throw new Exception("Illegal option " + (char)c);
                 case '?':
-                    throw new Exception("Illegal option " + c);
+					continue;	/* Make failure-proof. */
 			}
 		}
 
 		for (int i = g.getOptind(); i < args.length; i++)
 			pp.addInput(new FileLexerSource(new File(args[i])));
+		if (g.getOptind() == args.length)
+			pp.addInput(new InputLexerSource(System.in));
+
+		if (pp.getFeature(Feature.VERBOSE)) {
+			System.err.println("#"+"include \"...\" search starts here:");
+			for (String dir : pp.getQuoteIncludePath())
+				System.err.println("  " + dir);
+			System.err.println("#"+"include <...> search starts here:");
+			for (String dir : pp.getSystemIncludePath())
+				System.err.println("  " + dir);
+			System.err.println("End of search list.");
+		}
 
 		try {
 			for (;;) {
@@ -172,14 +193,21 @@ public class Main {
 			}
 		}
 		catch (Exception e) {
-			e.printStackTrace();
+			e.printStackTrace(System.err);
 			Source	s = pp.getSource();
 			while (s != null) {
-				System.out.println(" -> " + s);
+				System.err.println(" -> " + s);
 				s = s.getParent();
 			}
 		}
 
+	}
+
+	private void version(PrintStream out) {
+		out.println("Anarres Java C Preprocessor version " + Version.getVersion());
+		out.println("Copyright (C) 2008 Shevek (http://www.anarres.org/).");
+		out.println("This is free software; see the source for copying conditions.  There is NO");
+		out.println("warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.");
 	}
 
 

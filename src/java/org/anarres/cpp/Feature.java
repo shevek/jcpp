@@ -31,4 +31,6 @@ public enum Feature {
 	CSYNTAX,
 	/** Preserves comments in the lexed output. */
 	KEEPCOMMENTS,
+	VERBOSE,
+	DEBUG
 }

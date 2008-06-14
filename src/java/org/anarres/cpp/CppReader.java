@@ -110,6 +110,10 @@ public class CppReader extends Reader {
 			return true;
 		}
 		catch (LexerException e) {
+			/* Never happens.
+			if (e.getCause() instanceof IOException)
+				throw (IOException)e.getCause();
+			*/
 			IOException	ie = new IOException(String.valueOf(e));
 			ie.initCause(e);
 			throw ie;
@@ -139,7 +143,10 @@ public class CppReader extends Reader {
 
 	public void close()
 						throws IOException {
-		cpp = null;
+		if (cpp != null) {
+			cpp.close();
+			cpp = null;
+		}
 		token = null;
 	}
 

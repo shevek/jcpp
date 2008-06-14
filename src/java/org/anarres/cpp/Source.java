@@ -18,6 +18,7 @@
 package org.anarres.cpp;
 
 import java.io.BufferedReader;
+import java.io.Closeable;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
@@ -42,7 +43,7 @@ import static org.anarres.cpp.Token.*;
  *
  * BUG: Error messages are not handled properly.
  */
-public abstract class Source implements Iterable<Token> {
+public abstract class Source implements Iterable<Token>, Closeable {
 	private Source					parent;
 	private boolean					autopop;
 	private PreprocessorListener	listener;
@@ -137,23 +138,15 @@ public abstract class Source implements Iterable<Token> {
 	 */
 	/* pp */ String getPath() {
 		Source	parent = getParent();
-		while (parent != null) {
-			String	path = parent.getPath();
-			if (path != null)
-				return path;
-			parent = parent.getParent();
-		}
+		if (parent != null)
+			return parent.getPath();
 		return null;
 	}
 
 	/* pp */ String getName() {
 		Source	parent = getParent();
-		while (parent != null) {
-			String	name = parent.getName();
-			if (name != null)
-				return name;
-			parent = parent.getParent();
-		}
+		if (parent != null)
+			return parent.getName();
 		return null;
 	}
 
@@ -285,6 +278,10 @@ public abstract class Source implements Iterable<Token> {
 			listener.handleWarning(this, line, column, msg);
 		else
 			throw new LexerException("Warning at " + line + ":" + column + ": " + msg);
+	}
+
+	public void close()
+						throws IOException {
 	}
 
 }
