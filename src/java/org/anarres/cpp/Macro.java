@@ -29,6 +29,7 @@ import java.util.List;
  * extra tokens {@link Token#M_ARG} and {@link Token#M_STRING}.
  */
 public class Macro {
+	private Source			source;
 	private String			name;
 	/* It's an explicit decision to keep these around here. We don't
 	 * need to; the argument token type is M_ARG and the value
@@ -38,11 +39,33 @@ public class Macro {
 	private boolean			variadic;
 	private List<Token>		tokens;
 
-	public Macro(String name) {
+	public Macro(Source source, String name) {
+		this.source = source;
 		this.name = name;
 		this.args = null;
 		this.variadic = false;
 		this.tokens = new ArrayList<Token>();
+	}
+
+	public Macro(String name) {
+		this(null, name);
+	}
+
+	/**
+	 * Sets the Source from which this macro was parsed.
+	 */
+	public void setSource(Source s) {
+		this.source = s;
+	}
+
+	/**
+	 * Returns the Source from which this macro was parsed.
+	 *
+	 * This method may return null if the macro was not parsed
+	 * from a regular file.
+	 */
+	public Source getSource() {
+		return source;
 	}
 
 	/**

@@ -15,9 +15,11 @@
 			<fileset dir="${global.dir.build.classes}">
 				<include name="**" />
 			</fileset>
+			<!--
 			<fileset dir="${global.dir.src.resources}">
 				<include name="log4j.properties" />
 			</fileset>
+			-->
 		</copy>
 
 		<jar

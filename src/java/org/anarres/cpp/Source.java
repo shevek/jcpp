@@ -143,6 +143,9 @@ public abstract class Source implements Iterable<Token>, Closeable {
 		return null;
 	}
 
+	/**
+	 * Returns the human-readable name of the current Source.
+	 */
 	/* pp */ String getName() {
 		Source	parent = getParent();
 		if (parent != null)

@@ -74,8 +74,24 @@ is what the flags mean:
 */
 
 public class Preprocessor implements Closeable {
-	private static final Macro		__LINE__ = new Macro("__LINE__");
-	private static final Macro		__FILE__ = new Macro("__FILE__");
+	private static final Source		INTERNAL = new Source() {
+		@Override
+		public Token token()
+							throws IOException,
+									LexerException {
+			throw new LexerException("Cannot read from " + getName());
+		}
+		@Override
+		public String getPath() {
+			return "<internal-data>";
+		}
+		@Override
+		public String getName() {
+			return "internal data";
+		}
+	};
+	private static final Macro		__LINE__ = new Macro(INTERNAL, "__LINE__");
+	private static final Macro		__FILE__ = new Macro(INTERNAL, "__FILE__");
 
 	private List<Source>			inputs;
 
@@ -87,6 +103,7 @@ public class Preprocessor implements Closeable {
 	/* Support junk to make it work like cpp */
 	private List<String>			quoteincludepath;	/* -iquote */
 	private List<String>			sysincludepath;		/* -I */
+	private List<String>			frameworkspath;
 	private Set<Feature>			features;
 	private Set<Warning>			warnings;
 	private VirtualFileSystem		filesystem;
@@ -383,10 +400,28 @@ public class Preprocessor implements Closeable {
 	}
 
 	/**
+	 * Sets the Objective-C frameworks path used by this Preprocessor.
+	 */
+	/* Note for future: Create an IncludeHandler? */
+	public void setFrameworksPath(List<String> path) {
+		this.frameworkspath = path;
+	}
+
+	/**
+	 * Returns the Objective-C frameworks path used by this
+	 * Preprocessor.
+	 *
+	 * This list may be freely modified by user code.
+	 */
+	public List<String> getFrameworksPath() {
+		return frameworkspath;
+	}
+
+	/**
 	 * Returns the Map of Macros parsed during the run of this
 	 * Preprocessor.
 	 */
-	protected Map<String,Macro> getMacros() {
+	public Map<String,Macro> getMacros() {
 		return macros;
 	}
 
@@ -712,7 +747,7 @@ public class Preprocessor implements Closeable {
 		}
 		else if (m == __FILE__) {
 			StringBuilder	buf = new StringBuilder("\"");
-			String			name = source.getName();
+			String			name = getSource().getName();
 			if (name == null)
 				name = "<no file>";
 			for (int i = 0; i < name.length(); i++) {
@@ -799,7 +834,7 @@ public class Preprocessor implements Closeable {
 			return source_skipline(false);
 		}
 
-		Macro			m = new Macro(name);
+		Macro			m = new Macro(getSource(), name);
 		List<String>	args;
 
 		tok = source_token();

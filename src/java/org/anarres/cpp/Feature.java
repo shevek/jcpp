@@ -32,5 +32,8 @@ public enum Feature {
 	/** Preserves comments in the lexed output. */
 	KEEPCOMMENTS,
 	VERBOSE,
-	DEBUG
+	DEBUG,
+
+	/** Supports lexing of objective-C. */
+	OBJCSYNTAX
 }

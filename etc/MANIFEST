@@ -1,2 +1,2 @@
-Class-Path: log4j.jar gnu.getopt.jar
+Class-Path: gnu.getopt.jar
 Main-Class: org.anarres.cpp.Main

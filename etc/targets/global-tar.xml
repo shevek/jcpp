@@ -9,9 +9,11 @@
 		<mkdir dir="${global.dir.build.javadoc}" />
 
 		<copy todir="${global.dir.build.tar}/lib">
+			<!--
 			<fileset dir="${global.dir.lib}/log4j">
 				<include name="**/*.jar" />
 			</fileset>
+			-->
 			<fileset dir="${global.dir.lib}/runtime">
 				<include name="**/*.jar" />
 			</fileset>
