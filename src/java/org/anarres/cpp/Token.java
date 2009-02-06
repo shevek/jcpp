@@ -54,7 +54,7 @@ public final class Token {
 	}
 
 	/* pp */ Token(int type) {
-		this(type, texts[type]);
+		this(type, type < _TOKENS ? texts[type] : "TOK" + type);
 	}
 
 	/**
