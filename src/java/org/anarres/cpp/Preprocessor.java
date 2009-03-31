@@ -1580,6 +1580,9 @@ public class Preprocessor implements Closeable {
 				case '^': case '{': case '|':
 				case '}': case '~': case '.':
 
+				/* From Olivier Chafik for Objective C? */
+				case '@':	
+
 				// case '#':
 
 				case AND_EQ:
