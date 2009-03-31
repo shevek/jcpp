@@ -55,7 +55,16 @@ public class JavaFileSystem implements VirtualFileSystem {
 
 		@Override
 		public JavaFile getParentFile() {
-			return new JavaFile(getParent());
+			String	parent = getParent();
+			if (parent != null)
+				return new JavaFile(parent);
+			File	absolute = getAbsoluteFile();
+			parent = absolute.getParent();
+			/*
+			if (parent == null)
+				return null;
+			*/
+			return new JavaFile(parent);
 		}
 
 		public JavaFile getChildFile(String name) {

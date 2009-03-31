@@ -288,7 +288,7 @@ public class LexerSource extends Source {
 								LexerException {
 		int		d = read();
 		switch (d) {
-			case 'a': text.append('a'); return 0x0a;
+			case 'a': text.append('a'); return 0x07;
 			case 'b': text.append('b'); return '\b';
 			case 'f': text.append('f'); return '\f';
 			case 'n': text.append('n'); return '\n';
@@ -791,7 +791,16 @@ public class LexerSource extends Source {
 			}
 		}
 
-		bol = false;
+		if (bol) {
+			switch (tok.getType()) {
+				case WHITESPACE:
+				case CCOMMENT:
+					break;
+				default:
+					bol = false;
+					break;
+			}
+		}
 
 		tok.setLocation(_l, _c);
 		if (DEBUG)
