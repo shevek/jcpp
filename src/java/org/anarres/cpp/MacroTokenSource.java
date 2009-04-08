@@ -89,9 +89,11 @@ import static org.anarres.cpp.Token.*;
 	private Token stringify(Token pos, Argument arg) {
 		StringBuilder	buf = new StringBuilder();
 		concat(buf, arg);
+		// System.out.println("Concat: " + arg + " -> " + buf);
 		StringBuilder	str = new StringBuilder("\"");
 		escape(str, buf);
-		str.append('\"');
+		str.append("\"");
+		// System.out.println("Escape: " + buf + " -> " + str);
 		return new Token(STRING,
 				pos.getLine(), pos.getColumn(),
 				str.toString(), buf.toString());
@@ -118,6 +120,7 @@ import static org.anarres.cpp.Token.*;
 				break;
 			}
 			Token	tok = tokens.next();
+			// System.out.println("Paste " + tok);
 			switch (tok.getType()) {
 				case M_PASTE:
 					/* One extra to paste, plus one because the
@@ -140,9 +143,12 @@ import static org.anarres.cpp.Token.*;
 		}
 
 		/* Push and re-lex. */
+		/*
 		StringBuilder		src = new StringBuilder();
 		escape(src, buf);
 		StringLexerSource	sl = new StringLexerSource(src.toString());
+		*/
+		StringLexerSource	sl = new StringLexerSource(buf.toString());
 
 		/* XXX Check that concatenation produces a valid token. */
 

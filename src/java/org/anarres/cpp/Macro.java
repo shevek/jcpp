@@ -139,12 +139,17 @@ public class Macro {
 		return tokens;
 	}
 
+	/* Paste tokens are inserted before the first of the two pasted
+	 * tokens, so it's a kind of bytecode notation. This method
+	 * swaps them around again. We know that there will never be two
+	 * sequential paste tokens, so a boolean is sufficient. */
 	public String getText() {
 		StringBuilder	buf = new StringBuilder();
 		boolean			paste = false;
 		for (int i = 0; i < tokens.size(); i++) {
 			Token	tok = tokens.get(i);
 			if (tok.getType() == Token.M_PASTE) {
+				assert paste == false : "Two sequential pastes.";
 				paste = true;
 				continue;
 			}

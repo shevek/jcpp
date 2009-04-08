@@ -33,11 +33,21 @@ public class PreprocessorTestCase extends BaseTestCase {
 		public String getText() {
 			return t;
 		}
+		public String toString() {
+			return getText();
+		}
 	}
 
 	private static I I(String t) {
 		return new I(t);
 	}
+
+/*
+ * When writing tests in this file, remember the preprocessor
+ * stashes NLs, so you won't see an immediate NL at the end of any
+ * input line. You will see it right before the next nonblank on
+ * the following input line.
+ */
 
 	public void testPreprocessor() throws Exception {
 		/* Magic macros */
@@ -98,13 +108,18 @@ testInput("one /* one */\n", NL, I("one"), WHITESPACE, CCOMMENT);
 
 		/* Variadic macros. */
 		testInput("#define var(x...) a x b\n", NL);
-		testInput("var(e, f, g)", NL,
+		testInput("var(e, f, g)\n", NL,
 			I("a"), WHITESPACE,
 			I("e"), ',', WHITESPACE,
 			I("f"), ',', WHITESPACE,
 			I("g"), WHITESPACE,
 			I("b")
 		);
+
+		testInput("#define _Widen(x) L ## x\n", NL);
+		testInput("#define Widen(x) _Widen(x)\n", NL);
+		testInput("#define LStr(x) _Widen(#x)\n", NL);
+		testInput("LStr(x);\n", NL, I("L"), "x");
 
 		writer.close();
 
@@ -131,7 +146,7 @@ testInput("one /* one */\n", NL, I("one"), WHITESPACE, CCOMMENT);
 			}
 			else if (v instanceof I) {
 				if (t.getType() != IDENTIFIER)
-					fail("Expected IDENTIFIER, but got " + t);
+					fail("Expected IDENTIFIER " + v + ", but got " + t);
 				assertEquals( ((I)v).getText(), (String)t.getText());
 			}
 			else if (v instanceof Character)
