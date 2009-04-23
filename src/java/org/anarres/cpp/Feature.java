@@ -31,9 +31,12 @@ public enum Feature {
 	CSYNTAX,
 	/** Preserves comments in the lexed output. */
 	KEEPCOMMENTS,
+	/** Preserves comments in the lexed output, even when inactive. */
+	KEEPALLCOMMENTS,
 	VERBOSE,
 	DEBUG,
 
 	/** Supports lexing of objective-C. */
-	OBJCSYNTAX
+	OBJCSYNTAX,
+	INCLUDENEXT
 }

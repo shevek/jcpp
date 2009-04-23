@@ -109,6 +109,9 @@ public class Main {
 		pp.addMacro("__JCPP__");
 		pp.getSystemIncludePath().add("/usr/local/include");
 		pp.getSystemIncludePath().add("/usr/include");
+		pp.getFrameworksPath().add("/System/Library/Frameworks");
+		pp.getFrameworksPath().add("/Library/Frameworks");
+		pp.getFrameworksPath().add("/Local/Library/Frameworks");
 
         GETOPT: while ((c = g.getopt()) != -1) {
             switch (c) {

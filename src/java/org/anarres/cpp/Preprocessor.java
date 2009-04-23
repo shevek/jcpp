@@ -92,6 +92,7 @@ public class Preprocessor implements Closeable {
 	};
 	private static final Macro		__LINE__ = new Macro(INTERNAL, "__LINE__");
 	private static final Macro		__FILE__ = new Macro(INTERNAL, "__FILE__");
+	private static final Macro		__COUNTER__ = new Macro(INTERNAL, "__COUNTER__");
 
 	private List<Source>			inputs;
 
@@ -99,6 +100,9 @@ public class Preprocessor implements Closeable {
 	private Map<String,Macro>		macros;
 	private Stack<State>			states;
 	private Source					source;
+
+	/* Miscellaneous support. */
+	private int						counter;
 
 	/* Support junk to make it work like cpp */
 	private List<String>			quoteincludepath;	/* -iquote */
@@ -111,14 +115,20 @@ public class Preprocessor implements Closeable {
 
 	public Preprocessor() {
 		this.inputs = new ArrayList<Source>();
+
 		this.macros = new HashMap<String,Macro>();
 		macros.put(__LINE__.getName(), __LINE__);
 		macros.put(__FILE__.getName(), __FILE__);
+		macros.put(__COUNTER__.getName(), __COUNTER__);
 		this.states = new Stack<State>();
 		states.push(new State());
 		this.source = null;
+
+		this.counter = 0;
+
 		this.quoteincludepath = new ArrayList<String>();
 		this.sysincludepath = new ArrayList<String>();
+		this.frameworkspath = new ArrayList<String>();
 		this.features = EnumSet.noneOf(Feature.class);
 		this.warnings = EnumSet.noneOf(Warning.class);
 		this.filesystem = new JavaFileSystem();
@@ -514,10 +524,13 @@ public class Preprocessor implements Closeable {
 	/* XXX Make this include the NL, and make all cpp directives eat
 	 * their own NL. */
 	private Token line_token(int line, String name, String extra) {
-		return new Token(P_LINE, line, 0,
-			"#line " + line + " \"" + name + "\"" + extra + "\n",
-			null
-				);
+		StringBuilder	buf = new StringBuilder();
+		buf.append("#line ").append(line)
+			.append(" \"");
+		/* XXX This call to escape(name) is correct but ugly. */
+		MacroTokenSource.escape(buf, name);
+		buf.append("\"").append(extra).append("\n");
+		return new Token(P_LINE, line, 0, buf.toString(), null);
 	}
 
 	private Token source_token()
@@ -543,6 +556,7 @@ public class Preprocessor implements Closeable {
 				continue;
 			}
 			Token	tok = s.token();
+			/* XXX Refactor with skipline() */
 			if (tok.getType() == EOF && s.isAutopop()) {
 				// System.out.println("Autopop " + s);
 				pop_source();
@@ -591,12 +605,30 @@ public class Preprocessor implements Closeable {
 	 *
 	 * The metadata on the token will be correct, which is better
 	 * than generating a new one.
+	 *
+	 * This method can, as of recent patches, return a P_LINE token.
 	 */
 	private Token source_skipline(boolean white)
 						throws IOException,
 								LexerException {
 		// (new Exception("skipping line")).printStackTrace(System.out);
-		return source.skipline(white);
+		Source	s = getSource();
+		Token	tok = s.skipline(white);
+		/* XXX Refactor with source_token() */
+		if (tok.getType() == EOF && s.isAutopop()) {
+			// System.out.println("Autopop " + s);
+			pop_source();
+			Source	t = getSource();
+			if (getFeature(Feature.LINEMARKERS)
+					&& s.isNumbered()
+					&& t != null) {
+				/* We actually want 'did the nested source
+				 * contain a newline token', which isNumbered()
+				 * approximates. This is not perfect, but works. */
+				return line_token(t.getLine() + 1, t.getName(), " 2");
+			}
+		}
+		return tok;
 	}
 
 	/* processes and expands a macro. */
@@ -771,6 +803,17 @@ public class Preprocessor implements Closeable {
 					new Token[] { new Token(STRING,
 							orig.getLine(), orig.getColumn(),
 							text, text) }
+						), true);
+		}
+		else if (m == __COUNTER__) {
+			/* This could equivalently have been done by adding
+			 * a special Macro subclass which overrides getTokens(). */
+			int	value = this.counter++;
+			push_source(new FixedTokenSource(
+					new Token[] { new Token(INTEGER,
+							orig.getLine(), orig.getColumn(),
+							String.valueOf(value),
+							Integer.valueOf(value)) }
 						), true);
 		}
 		else {
@@ -1018,6 +1061,8 @@ public class Preprocessor implements Closeable {
 		// System.out.println("Try to include " + file);
 		if (!file.isFile())
 			return false;
+		if (getFeature(Feature.DEBUG))
+			System.err.println("pp: including " + file);
 		push_source(file.getSource(), true);
 		return true;
 	}
@@ -1070,7 +1115,7 @@ public class Preprocessor implements Closeable {
 		error(line, 0, buf.toString());
 	}
 
-	private Token include()
+	private Token include(boolean next)
 						throws IOException,
 								LexerException {
 		LexerSource	lexer = (LexerSource)source;
@@ -1127,7 +1172,7 @@ public class Preprocessor implements Closeable {
 			/* 'tok' is the 'nl' after the include. We use it after the
 			 * #line directive. */
 			if (getFeature(Feature.LINEMARKERS))
-				return line_token(1, name, " 1");
+				return line_token(1, source.getName(), " 1");
 			return tok;
 		}
 		finally {
@@ -1546,6 +1591,10 @@ public class Preprocessor implements Closeable {
 					case CCOMMENT:
 					case CPPCOMMENT:
 						// Patch up to preserve whitespace.
+						if (getFeature(Feature.KEEPALLCOMMENTS))
+							return tok;
+						if (!isActive())
+							return toWhitespace(tok);
 						if (getFeature(Feature.KEEPCOMMENTS))
 							return tok;
 						return toWhitespace(tok);
@@ -1686,7 +1735,18 @@ public class Preprocessor implements Closeable {
 							if (!isActive())
 								return source_skipline(false);
 							else
-								return include();
+								return include(false);
+							// break;
+						case PP_INCLUDE_NEXT:
+							if (!isActive())
+								return source_skipline(false);
+							if (!getFeature(Feature.INCLUDENEXT)) {
+								error(tok,
+									"Directive include_next not enabled"
+									);
+								return source_skipline(false);
+							}
+							return include(true);
 							// break;
 
 						case PP_WARNING:
@@ -1865,7 +1925,7 @@ public class Preprocessor implements Closeable {
 	}
 
 #set ($i = 1)	/* First ppcmd is 1, not 0. */
-#set ($ppcmds = [ "define", "elif", "else", "endif", "error", "if", "ifdef", "ifndef", "include", "line", "pragma", "undef", "warning" ])
+#set ($ppcmds = [ "define", "elif", "else", "endif", "error", "if", "ifdef", "ifndef", "include", "line", "pragma", "undef", "warning", "include_next", "import" ])
 #foreach ($ppcmd in $ppcmds)
 	private static final int PP_$ppcmd.toUpperCase() = $i;
 #set ($i = $i + 1)

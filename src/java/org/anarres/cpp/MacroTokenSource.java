@@ -56,7 +56,8 @@ import static org.anarres.cpp.Token.*;
 		return super.isExpanding(m);
 	}
 
-	private static void escape(StringBuilder buf, CharSequence cs) {
+	/* XXX Called from Preprocessor [ugly]. */
+	/* pp */ static void escape(StringBuilder buf, CharSequence cs) {
 		for (int i = 0; i < cs.length(); i++) {
 			char	c = cs.charAt(i);
 			switch (c) {
