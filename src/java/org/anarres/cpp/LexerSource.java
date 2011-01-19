@@ -318,14 +318,18 @@ public class LexerSource extends Source {
 				return val;
 
 			case 'x':
+				text.append((char)d);
 				len = 0;
 				val = 0;
-				do {
+				while (len++ < 2) {
+					d = read();
+					if (Character.digit(d, 16) == -1) {
+						unread(d);
+						break;
+					}
 					val = (val << 4) + Character.digit(d, 16);
 					text.append((char)d);
-					d = read();
-				} while (++len < 2 && Character.digit(d, 16) != -1);
-				unread(d);
+				}
 				return val;
 
 			/* Exclude two cases from the warning. */
@@ -444,14 +448,14 @@ public class LexerSource extends Source {
 			}
 			else if (d == 'L' || d == 'l') {
 				if ((bits & 4) != 0)
-					/* XXX warn */ ;
+					warning("Conflicting numeric suffices: I and L.");
 				bits |= 2;
 				text.append((char)d);
 				d = read();
 			}
 			else if (d == 'I' || d == 'i') {
 				if ((bits & 2) != 0)
-					/* XXX warn */ ;
+					warning("Conflicting numeric suffices: L and I.");
 				bits |= 4;
 				text.append((char)d);
 				d = read();

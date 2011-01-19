@@ -60,6 +60,22 @@ public class LexerSourceTestCase extends BaseTestCase implements Test {
 			XOR_EQ, WHITESPACE,
 			IDENTIFIER);
 
+		testLexerSource("/**/", CCOMMENT);
+		testLexerSource("/** ** **/", CCOMMENT);
+		testLexerSource("//* ** **/", CPPCOMMENT);
+		testLexerSource("'\\r' '\\xf' '\\xff' 'x' 'aa' ''",
+			CHARACTER, WHITESPACE,
+			CHARACTER, WHITESPACE,
+			CHARACTER, WHITESPACE,
+			CHARACTER, WHITESPACE,
+			INVALID, WHITESPACE,
+			INVALID);
+
+		testLexerSource("1i1I1l1L1ui1ul", 
+			INTEGER, INTEGER,
+			INTEGER, INTEGER,
+			INTEGER, INTEGER);
+
 	}
 
 }
