@@ -61,6 +61,7 @@ public class LexerSourceTestCase extends BaseTestCase implements Test {
 			IDENTIFIER);
 
 		testLexerSource("/**/", CCOMMENT);
+		testLexerSource("/* /**/ */", CCOMMENT, WHITESPACE, '*', '/');
 		testLexerSource("/** ** **/", CCOMMENT);
 		testLexerSource("//* ** **/", CPPCOMMENT);
 		testLexerSource("'\\r' '\\xf' '\\xff' 'x' 'aa' ''",
