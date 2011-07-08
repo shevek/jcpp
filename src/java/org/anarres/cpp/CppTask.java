@@ -20,20 +20,37 @@ package org.anarres.cpp;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.ArrayList;
+import java.util.Enumeration;
+import java.util.List;
 
 import org.apache.tools.ant.BuildException;
 import org.apache.tools.ant.Task;
+import org.apache.tools.ant.taskdefs.Copy;
+import org.apache.tools.ant.types.FileSet;
+import org.apache.tools.ant.types.FilterChain;
+import org.apache.tools.ant.types.FilterSet;
+import org.apache.tools.ant.types.FilterSetCollection;
+import org.apache.tools.ant.types.Path;
 
 import org.anarres.cpp.LexerException;
 import org.anarres.cpp.Preprocessor;
+import org.anarres.cpp.PreprocessorListener;
 import org.anarres.cpp.Token;
 
 /**
  * An ant task for jcpp.
  */
-public class CppTask extends Task {
+public class CppTask extends Copy {
 
-	private static class Macro {
+	private class Listener extends PreprocessorListener {
+		protected void print(String msg) {
+			log(msg);
+		}
+	}
+
+	public static class Macro {
 		private String name;
 		private String value;
 
@@ -54,32 +71,28 @@ public class CppTask extends Task {
 		}
 	}
 
-	private File			input;
-	private File			output;
-	private Preprocessor	cpp;
-
-	public CppTask() {
-		super();
-		cpp = new Preprocessor();
-	}
-
-	public void setInput(File input) {
-		this.input = input;
-	}
-
-	public void setOutput(File output) {
-		this.output = output;
-	}
+	private final Listener listener = new Listener();
+	private final List<Macro> macros = new ArrayList<Macro>();
+	private Path systemincludepath;
+	private Path localincludepath;
 
 	public void addMacro(Macro macro) {
-		try {
-			cpp.addMacro(macro.getName(), macro.getValue());
-		}
-		catch (LexerException e) {
-			throw new BuildException(e);
-		}
+		macros.add(macro);
 	}
 
+	public void addSystemincludepath(Path path) {
+		if (systemincludepath == null)
+			systemincludepath = new Path(getProject());
+		systemincludepath.add(path);
+	}
+
+	public void addLocalincludepath(Path path) {
+		if (localincludepath == null)
+			localincludepath = new Path(getProject());
+		localincludepath.add(path);
+	}
+
+/*
 	public void execute() {
 		FileWriter writer = null;
 		try {
@@ -109,5 +122,105 @@ public class CppTask extends Task {
 			}
 		}
 	}
+*/
+
+	private void preprocess(File input, File output) throws Exception {
+		Preprocessor cpp = new Preprocessor();
+		cpp.setListener(listener);
+		for (Macro macro : macros)
+			cpp.addMacro(macro.getName(), macro.getValue());
+		if (systemincludepath != null)
+			cpp.setSystemIncludePath(Arrays.asList(systemincludepath.list()));
+		if (localincludepath != null)
+			cpp.setQuoteIncludePath(Arrays.asList(localincludepath.list()));
+
+		File dir = output.getParentFile();
+		if (!dir.exists()) {
+			if (!dir.mkdirs())
+				throw new BuildException("Failed to make parent directory " + dir);
+		} else if (!dir.isDirectory()) {
+			throw new BuildException("Parent directory of output file " + output + " exists, but is not a directory.");
+		}
+		FileWriter writer = null;
+		try {
+			if (input == null)
+				throw new BuildException("Input not specified");
+			if (output == null)
+				throw new BuildException("Output not specified");
+			cpp.addInput(input);
+			writer = new FileWriter(output);
+			for (;;) {
+				Token	tok = cpp.token();
+				if (tok != null && tok.getType() == Token.EOF)
+					break;
+				writer.write(tok.getText());
+			}
+		}
+		finally {
+			if (writer != null) {
+				try {
+					writer.close();
+				}
+				catch (IOException e) {
+				}
+			}
+		}
+	}
+
+    protected void doFileOperations() {
+        if(fileCopyMap.size() > 0) {
+            log("Copying " + fileCopyMap.size()
+                    + " file" + (fileCopyMap.size() == 1 ? "" : "s")
+                    + " to " + destDir.getAbsolutePath());
+
+            Enumeration e = fileCopyMap.keys();
+
+            while (e.hasMoreElements()) {
+                String fromFile = (String)e.nextElement();
+                String[] toFiles = (String[])fileCopyMap.get(fromFile);
+
+                for(int i = 0; i < toFiles.length; i++) {
+                    String toFile = toFiles[i];
+
+                    if(fromFile.equals(toFile)) {
+                        log("Skipping self-copy of " + fromFile, verbosity);
+                        continue;
+                    }
+
+                    try {
+                        log("Copying " + fromFile + " to " + toFile, verbosity);
+
+                        FilterSetCollection executionFilters =
+                                new FilterSetCollection();
+                        if(filtering) {
+                            executionFilters
+                                    .addFilterSet(getProject().getGlobalFilterSet());
+                        }
+                        for(Enumeration filterEnum = getFilterSets().elements();
+                            filterEnum.hasMoreElements();) {
+                            executionFilters
+                                    .addFilterSet((FilterSet)filterEnum.nextElement());
+                        }
+
+                        File srcFile = new File(fromFile);
+                        File dstFile = new File(toFile);
+						preprocess(srcFile, dstFile);
+                    }
+                    catch(Exception ioe) {
+						ioe.printStackTrace();
+                        String msg = "Failed to copy " + fromFile + " to " + toFile
+                                + " due to " + ioe.getMessage();
+                        File targetFile = new File(toFile);
+                        if(targetFile.exists() && !targetFile.delete()) {
+                            msg += " and I couldn't delete the corrupt " + toFile;
+                        }
+                        throw new BuildException(msg, ioe, getLocation());
+                    }
+                }
+            }
+        }
+
+    }
+
 
 }

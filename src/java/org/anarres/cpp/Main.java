@@ -41,16 +41,16 @@ import static org.anarres.cpp.Token.*;
  */
 public class Main {
 
-    private static class Option extends LongOpt {
-        private String  eg;
-        private String  help;
-        public Option(String word, int arg, int ch,
-                        String eg, String help) {
-            super(word, arg, null, ch);
-            this.eg = eg;
-            this.help = help;
-        }
-    }
+	private static class Option extends LongOpt {
+		private String eg;
+		private String help;
+		public Option(String word, int arg, int ch,
+						String eg, String help) {
+			super(word, arg, null, ch);
+			this.eg = eg;
+			this.help = help;
+		}
+	}
 
 	private static final Option[]	OPTS = new Option[] {
 		new Option("help",   LongOpt.NO_ARGUMENT,       'h', null,
@@ -94,8 +94,8 @@ public class Main {
 
 	public void run(String[] args) throws Exception {
 		Option[]opts = OPTS;
-        String	sopts = getShortOpts(opts);
-        Getopt	g = new Getopt("jcpp", args, sopts, opts);
+		String	sopts = getShortOpts(opts);
+		Getopt	g = new Getopt("jcpp", args, sopts, opts);
 		int		c;
 		String	arg;
 		int		idx;
@@ -113,8 +113,8 @@ public class Main {
 		pp.getFrameworksPath().add("/Library/Frameworks");
 		pp.getFrameworksPath().add("/Local/Library/Frameworks");
 
-        GETOPT: while ((c = g.getopt()) != -1) {
-            switch (c) {
+		GETOPT: while ((c = g.getopt()) != -1) {
+			switch (c) {
 				case 'D':
 					arg = g.getOptarg();
 					idx = arg.indexOf('=');
@@ -141,7 +141,7 @@ public class Main {
 					else
 						pp.addWarning(Enum.valueOf(Warning.class, arg));
 					break;
-                case 'w':
+				case 'w':
 					pp.getWarnings().clear();
 					break;
 				case 1:	// --include=
@@ -160,12 +160,12 @@ public class Main {
 				case 3:
 					pp.addFeature(Feature.DEBUG);
 					break;
-                case 'h':
-                    usage(getClass().getName(), opts);
+				case 'h':
+					usage(getClass().getName(), opts);
 					return;
-                default:
-                    throw new Exception("Illegal option " + (char)c);
-                case '?':
+				default:
+					throw new Exception("Illegal option " + (char)c);
+				case '?':
 					continue;	/* Make failure-proof. */
 			}
 		}
@@ -214,123 +214,123 @@ public class Main {
 	}
 
 
-    private static String getShortOpts(Option[] opts)
-                        throws Exception {
-        StringBuilder   buf = new StringBuilder();
-        for (int i = 0; i < opts.length; i++) {
-            char    c = (char)opts[i].getVal();
+	private static String getShortOpts(Option[] opts)
+						throws Exception {
+		StringBuilder   buf = new StringBuilder();
+		for (int i = 0; i < opts.length; i++) {
+			char    c = (char)opts[i].getVal();
 			if (!Character.isLetterOrDigit(c))
 				continue;
-            for (int j = 0; j < buf.length(); j++)
-                if (buf.charAt(j) == c)
-                    throw new Exception(
-                            "Duplicate short option " + c
-                                );
-            buf.append(c);
-            switch (opts[i].getHasArg()) {
-                case LongOpt.NO_ARGUMENT:
-                    break;
-                case LongOpt.OPTIONAL_ARGUMENT:
-                    buf.append("::");
-                    break;
-                case LongOpt.REQUIRED_ARGUMENT:
-                    buf.append(":");
-                    break;
-            }
-        }
-        return buf.toString();
-    }
-
-    /* This is incomplete but nearly there. */
-    /**
-     * Wraps a string.
-     *
-     * The output form is:
-     * <pre>
-     * prefix     in[0]
-     * &lt;--indent-&gt; in[1]
-     * &lt;--indent-&gt; in[2]
-     * &lt;-----width----&gt;
-     * </pre>
-     */
-    /* XXX There's some of this in commons. */
-    private static String wrap(String in, String prefix,
-                            int indent, int width) {
-        StringBuilder   buf = new StringBuilder(prefix);
-
-        while (buf.length() < indent)
-            buf.append(' ');
-
-        int             start = 0;
-
-        while (start < in.length()) {
-            while (start < in.length() &&
-                    Character.isWhitespace(in.charAt(start)))
-                start++;
-
-            int     end = start + width - indent;
-
-            if (end > in.length()) {
-                buf.append(in.substring(start));
-                break;
-            }
-
-            int     idx = end;
-            while (!Character.isWhitespace(in.charAt(idx)))
-                idx--;
-
-            if (idx == start) {
-                idx = end - 1;
-                buf.append(in.substring(start, idx));
-                buf.append('-');
-            }
-            else {
-                buf.append(in.substring(start, idx));
-                start = idx;
-            }
-
-            start = idx;
-        }
-
-        return buf.toString();
+			for (int j = 0; j < buf.length(); j++)
+				if (buf.charAt(j) == c)
+					throw new Exception(
+							"Duplicate short option " + c
+								);
+			buf.append(c);
+			switch (opts[i].getHasArg()) {
+				case LongOpt.NO_ARGUMENT:
+					break;
+				case LongOpt.OPTIONAL_ARGUMENT:
+					buf.append("::");
+					break;
+				case LongOpt.REQUIRED_ARGUMENT:
+					buf.append(":");
+					break;
+			}
+		}
+		return buf.toString();
 	}
 
-    private static void usage(String command, Option[] options) {
-        StringBuilder   text = new StringBuilder("Usage: ");
-        text.append(command).append('\n');
-        for (int i = 0; i < options.length; i++) {
-            StringBuilder   line = new StringBuilder();
-            Option          opt = options[i];
-            line.append("    --").append(opt.getName());
-            switch (opt.getHasArg()) {
-                case LongOpt.NO_ARGUMENT:
-                    break;
-                case LongOpt.OPTIONAL_ARGUMENT:
-                    line.append("[=").append(opt.eg).append(']');
-                    break;
-                case LongOpt.REQUIRED_ARGUMENT:
-                    line.append('=').append(opt.eg);
-                    break;
-            }
+	/* This is incomplete but nearly there. */
+	/**
+	 * Wraps a string.
+	 *
+	 * The output form is:
+	 * <pre>
+	 * prefix     in[0]
+	 * &lt;--indent-&gt; in[1]
+	 * &lt;--indent-&gt; in[2]
+	 * &lt;-----width----&gt;
+	 * </pre>
+	 */
+	/* XXX There's some of this in commons. */
+	private static String wrap(String in, String prefix,
+							int indent, int width) {
+		StringBuilder   buf = new StringBuilder(prefix);
+
+		while (buf.length() < indent)
+			buf.append(' ');
+
+		int             start = 0;
+
+		while (start < in.length()) {
+			while (start < in.length() &&
+					Character.isWhitespace(in.charAt(start)))
+				start++;
+
+			int     end = start + width - indent;
+
+			if (end > in.length()) {
+				buf.append(in.substring(start));
+				break;
+			}
+
+			int     idx = end;
+			while (!Character.isWhitespace(in.charAt(idx)))
+				idx--;
+
+			if (idx == start) {
+				idx = end - 1;
+				buf.append(in.substring(start, idx));
+				buf.append('-');
+			}
+			else {
+				buf.append(in.substring(start, idx));
+				start = idx;
+			}
+
+			start = idx;
+		}
+
+		return buf.toString();
+	}
+
+	private static void usage(String command, Option[] options) {
+		StringBuilder   text = new StringBuilder("Usage: ");
+		text.append(command).append('\n');
+		for (int i = 0; i < options.length; i++) {
+			StringBuilder   line = new StringBuilder();
+			Option          opt = options[i];
+			line.append("    --").append(opt.getName());
+			switch (opt.getHasArg()) {
+				case LongOpt.NO_ARGUMENT:
+					break;
+				case LongOpt.OPTIONAL_ARGUMENT:
+					line.append("[=").append(opt.eg).append(']');
+					break;
+				case LongOpt.REQUIRED_ARGUMENT:
+					line.append('=').append(opt.eg);
+					break;
+			}
 			if (Character.isLetterOrDigit(opt.getVal()))
 				line.append(" (-").append((char)opt.getVal()).append(")");
-            if (line.length() < 30) {
-                while (line.length() < 30)
-                    line.append(' ');
-            }
-            else {
-                line.append('\n');
-                for (int j = 0; j < 30; j++)
-                    line.append(' ');
-            }
-            /* This should use wrap. */
-            line.append(opt.help);
-            line.append('\n');
-            text.append(line);
-        }
+			if (line.length() < 30) {
+				while (line.length() < 30)
+					line.append(' ');
+			}
+			else {
+				line.append('\n');
+				for (int j = 0; j < 30; j++)
+					line.append(' ');
+			}
+			/* This should use wrap. */
+			line.append(opt.help);
+			line.append('\n');
+			text.append(line);
+		}
 
-        System.out.println(text);
-    }
+		System.out.println(text);
+	}
 
 
 

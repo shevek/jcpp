@@ -55,7 +55,7 @@ one /* one */
 #define foo(x) foo(x, b)
 foo(1) -> _foo(1, b) without the _
 foo(foo(2)) -> _foo(_foo(2, b), b) without the _
-foo(y, z)
+// foo(y, z)
 
 #define var(x...) a x b
 var(e, f, g) -> a e, f, g b
