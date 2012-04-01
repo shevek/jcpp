@@ -350,11 +350,11 @@ public class Main {
 		}
 
 		Macro			m = new Macro("__WORDSIZE");
-		m.addToken(new Token(INTEGER, -1, -1, "32", Integer.valueOf(32)));
+		m.addToken(new Token(NUMBER, -1, -1, "32", new NumericValue(10, "32")));
 		pp.addMacro(m);
 
 		m = new Macro("__STDC__");
-		m.addToken(new Token(INTEGER, -1, -1, "1", Integer.valueOf(1)));
+		m.addToken(new Token(NUMBER, -1, -1, "1", new NumericValue(10, "1")));
 		pp.addMacro(m);
 
 		try {

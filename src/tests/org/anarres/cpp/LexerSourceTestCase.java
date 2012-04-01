@@ -31,7 +31,7 @@ public class LexerSourceTestCase extends BaseTestCase implements Test {
 
 		testLexerSource("int a = 5;",
 			IDENTIFIER, WHITESPACE, IDENTIFIER, WHITESPACE,
-			'=', WHITESPACE, INTEGER, ';', EOF
+			'=', WHITESPACE, NUMBER, ';', EOF
 		);
 
 		// \n is WHITESPACE because ppvalid = false
@@ -43,7 +43,7 @@ public class LexerSourceTestCase extends BaseTestCase implements Test {
 		testLexerSource("%:?", '#', '?');
 		testLexerSource("%:%=", '#', MOD_EQ);
 		testLexerSource("0x1234ffdUL 0765I",
-				INTEGER, WHITESPACE, INTEGER);
+				NUMBER, WHITESPACE, NUMBER);
 
 		testLexerSource("+= -= *= /= %= <= >= >>= <<= &= |= ^= x",
 			PLUS_EQ, WHITESPACE,
@@ -73,9 +73,9 @@ public class LexerSourceTestCase extends BaseTestCase implements Test {
 			INVALID);
 
 		testLexerSource("1i1I1l1L1ui1ul", 
-			INTEGER, INTEGER,
-			INTEGER, INTEGER,
-			INTEGER, INTEGER);
+			NUMBER, NUMBER,
+			NUMBER, NUMBER,
+			NUMBER, NUMBER);
 
 	}
 

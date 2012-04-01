@@ -52,7 +52,7 @@ public class PreprocessorTestCase extends BaseTestCase {
 	public void testPreprocessor() throws Exception {
 		/* Magic macros */
 		testInput("line = __LINE__\n",
-			I("line"), WHITESPACE, '=', WHITESPACE, INTEGER
+			I("line"), WHITESPACE, '=', WHITESPACE, NUMBER
 			/*, NL - all nls deferred so as not to block the reader */
 		);
 		testInput("file = __FILE__\n", NL,	/* from before, etc */

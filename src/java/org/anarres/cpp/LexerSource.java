@@ -435,43 +435,81 @@ public class LexerSource extends Source {
 						text.toString(), buf.toString());
 	}
 
-	private Token _number(StringBuilder text, long val, int d)
+	private Token _number_suffix(StringBuilder text, NumericValue value, int d)
 						throws IOException,
 								LexerException {
-		int	bits = 0;
+		int	flags = 0;	// U, I, L, LL, F, D, MSB
 		for (;;) {
-			/* XXX Error check duplicate bits. */
 			if (d == 'U' || d == 'u') {
-				bits |= 1;
+				if ((flags & NumericValue.F_UNSIGNED) != 0)
+					warning("Duplicate unsigned suffix " + d);
+				flags |= NumericValue.F_UNSIGNED;
 				text.append((char)d);
 				d = read();
 			}
 			else if (d == 'L' || d == 'l') {
-				if ((bits & 4) != 0)
-					warning("Conflicting numeric suffices: I and L.");
-				bits |= 2;
+				if ((flags & NumericValue.FF_SIZE) != 0)
+					warning("Nultiple length suffixes after " + text);
 				text.append((char)d);
-				d = read();
+				int e = read();
+				if (e == d) {	// Case must match. Ll is Welsh.
+					flags |= NumericValue.F_LONGLONG;
+					text.append((char)e);
+					d = read();
+				} else {
+					flags |= NumericValue.F_LONG;
+					d = e;
+				}
 			}
 			else if (d == 'I' || d == 'i') {
-				if ((bits & 2) != 0)
-					warning("Conflicting numeric suffices: L and I.");
-				bits |= 4;
+				if ((flags & NumericValue.FF_SIZE) != 0)
+					warning("Nultiple length suffixes after " + text);
+				flags |= NumericValue.F_INT;
+				text.append((char)d);
+				d = read();
+			} else if (d == 'F' || d == 'f') {
+				if ((flags & NumericValue.FF_SIZE) != 0)
+					warning("Nultiple length suffixes after " + text);
+				flags |= NumericValue.F_FLOAT;
+				text.append((char)d);
+				d = read();
+			} else if (d == 'D' || d == 'd') {
+				if ((flags & NumericValue.FF_SIZE) != 0)
+					warning("Nultiple length suffixes after " + text);
+				flags |= NumericValue.F_DOUBLE;
 				text.append((char)d);
 				d = read();
 			}
-			else if (Character.isLetter(d)) {
+			// This should probably be isPunct() || isWhite().
+			else if (Character.isLetter(d) || d == '_') {
 				unread(d);
-				return new Token(INVALID, text.toString(),
+				value.setFlags(flags);
+				return invalid(text, 
 						"Invalid suffix \"" + (char)d +
 						"\" on numeric constant");
 			}
 			else {
 				unread(d);
-				return new Token(INTEGER,
-					text.toString(), Long.valueOf(val));
+				value.setFlags(flags);
+				return new Token(NUMBER,
+					text.toString(), value);
 			}
 		}
+	}
+
+	/* Either a decimal part, or a hex exponent. */
+	private String _number_part(StringBuilder text, int base)
+						throws IOException,
+								LexerException {
+		StringBuilder	part = new StringBuilder();
+		int				d = read();
+		while (Character.digit(d, base) != -1) {
+			text.append((char)d);
+			part.append((char)d);
+			d = read();
+		}
+		unread(d);
+		return part.toString();
 	}
 
 	/* We already chewed a zero, so empty is fine. */
@@ -479,14 +517,10 @@ public class LexerSource extends Source {
 						throws IOException,
 								LexerException {
 		StringBuilder	text = new StringBuilder("0");
+		String			integer = _number_part(text, 8);
 		int				d = read();
-		long			val = 0;
-		while (Character.digit(d, 8) != -1) {
-			val = (val << 3) + Character.digit(d, 8);
-			text.append((char)d);
-			d = read();
-		}
-		return _number(text, val, d);
+		NumericValue	value = new NumericValue(8, integer);
+		return _number_suffix(text, value, d);
 	}
 
 	/* We do not know whether know the first digit is valid. */
@@ -495,38 +529,44 @@ public class LexerSource extends Source {
 								LexerException {
 		StringBuilder	text = new StringBuilder("0");
 		text.append(x);
+		String			integer = _number_part(text, 16);
+		NumericValue	value = new NumericValue(16, integer);
 		int				d = read();
-		if (Character.digit(d, 16) == -1) {
-			unread(d);
-			// error("Illegal hexadecimal constant " + (char)d);
-			return new Token(INVALID, text.toString(),
-					"Illegal hexadecimal digit " + (char)d +
-					" after "+ text);
-		}
-		long	val = 0;
-		do {
-			val = (val << 4) + Character.digit(d, 16);
-			text.append((char)d);
+		if (d == '.') {
+			String		fraction = _number_part(text, 16);
+			value.setFractionalPart(fraction);
 			d = read();
-		} while (Character.digit(d, 16) != -1);
-		return _number(text, val, d);
+		}
+		if (d == 'P' || d == 'p') {
+			String		exponent = _number_part(text, 10);
+			value.setExponent(exponent);
+			d = read();
+		}
+		// XXX Make sure it's got enough parts
+		return _number_suffix(text, value, d);
 	}
 
 	/* We know we have at least one valid digit, but empty is not
 	 * fine. */
-	/* XXX This needs a complete rewrite. */
-	private Token number_decimal(int c)
+	private Token number_decimal()
 						throws IOException,
 								LexerException {
-		StringBuilder	text = new StringBuilder((char)c);
-		int				d = c;
-		long			val = 0;
-		do {
-			val = val * 10 + Character.digit(d, 10);
-			text.append((char)d);
+		StringBuilder	text = new StringBuilder();
+		String			integer = _number_part(text, 10);
+		NumericValue	value = new NumericValue(10, integer);
+		int				d = read();
+		if (d == '.') {
+			String		fraction = _number_part(text, 10);
+			value.setFractionalPart(fraction);
 			d = read();
-		} while (Character.digit(d, 10) != -1);
-		return _number(text, val, d);
+		}
+		if (d == 'E' || d == 'e') {
+			String		exponent = _number_part(text, 10);
+			value.setExponent(exponent);
+			d = read();
+		}
+		// XXX Make sure it's got enough parts
+		return _number_suffix(text, value, d);
 	}
 
 	private Token identifier(int c)
@@ -760,6 +800,10 @@ public class LexerSource extends Source {
 					tok = cond('.', ELLIPSIS, RANGE);
 				else
 					unread(d);
+				if (Character.isDigit(d)) {
+					unread('.');
+					tok = number_decimal();
+				}
 				/* XXX decimal fraction */
 				break;
 
@@ -793,7 +837,8 @@ public class LexerSource extends Source {
 				tok = whitespace(c);
 			}
 			else if (Character.isDigit(c)) {
-				tok = number_decimal(c);
+				unread(c);
+				tok = number_decimal();
 			}
 			else if (Character.isJavaIdentifierStart(c)) {
 				tok = identifier(c);

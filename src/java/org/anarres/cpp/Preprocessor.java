@@ -772,10 +772,10 @@ public class Preprocessor implements Closeable {
 
 		if (m == __LINE__) {
 			push_source(new FixedTokenSource(
-					new Token[] { new Token(INTEGER,
+					new Token[] { new Token(NUMBER,
 							orig.getLine(), orig.getColumn(),
 							String.valueOf(orig.getLine()),
-							Integer.valueOf(orig.getLine())) }
+							new NumericValue(10, "" + orig.getLine())) }
 						), true);
 		}
 		else if (m == __FILE__) {
@@ -810,10 +810,10 @@ public class Preprocessor implements Closeable {
 			 * a special Macro subclass which overrides getTokens(). */
 			int	value = this.counter++;
 			push_source(new FixedTokenSource(
-					new Token[] { new Token(INTEGER,
+					new Token[] { new Token(NUMBER,
 							orig.getLine(), orig.getColumn(),
 							String.valueOf(value),
-							Integer.valueOf(value)) }
+							new NumericValue(10, "" + value)) }
 						), true);
 		}
 		else {
@@ -1342,21 +1342,21 @@ public class Preprocessor implements Closeable {
 					error(la,
 						"defined() needs identifier, not " +
 						la.getText());
-					tok = new Token(INTEGER,
+					tok = new Token(NUMBER,
 							la.getLine(), la.getColumn(),
-							"0", Integer.valueOf(0));
+							"0", new NumericValue(10, "0"));
 				}
 				else if (macros.containsKey(la.getText())) {
 					// System.out.println("Found macro");
-					tok = new Token(INTEGER,
+					tok = new Token(NUMBER,
 							la.getLine(), la.getColumn(),
-							"1", Integer.valueOf(1));
+							"1", new NumericValue(10, "1"));
 				}
 				else {
 					// System.out.println("Not found macro");
-					tok = new Token(INTEGER,
+					tok = new Token(NUMBER,
 							la.getLine(), la.getColumn(),
-							"0", Integer.valueOf(0));
+							"0", new NumericValue(10, "0"));
 				}
 
 				if (paren) {
@@ -1438,8 +1438,9 @@ public class Preprocessor implements Closeable {
 			case '~': lhs = ~expr(11);              break;
 			case '!': lhs =  expr(11) == 0 ? 1 : 0; break;
 			case '-': lhs = -expr(11);              break;
-			case INTEGER:
-				lhs = ((Number)tok.getValue()).longValue();
+			case NUMBER:
+				NumericValue value = (NumericValue)tok.getValue();
+				lhs = value.longValue();
 				break;
 			case CHARACTER:
 				lhs = (long)((Character)tok.getValue()).charValue();
@@ -1665,7 +1666,7 @@ public class Preprocessor implements Closeable {
 				case XOR_EQ:
 					return tok;
 
-				case INTEGER:
+				case NUMBER:
 					return tok;
 
 				case IDENTIFIER:
