@@ -431,8 +431,23 @@ public class LexerSource extends Source {
 			}
 		}
 		text.append(close);
-		return new Token(close == '>' ? HEADER : STRING,
+		switch (close) {
+			case '"':
+				return new Token(STRING,
+					text.toString(), buf.toString());
+			case '>':
+				return new Token(HEADER,
+					text.toString(), buf.toString());
+			case '\'':
+				if (buf.length() == 1)
+					return new Token(CHARACTER,
 						text.toString(), buf.toString());
+				return new Token(SQSTRING,
+					text.toString(), buf.toString());
+			default:
+				throw new IllegalStateException(
+					"Unknown closing character " + (char)close);
+		}
 	}
 
 	private Token _number_suffix(StringBuilder text, NumericValue value, int d)
@@ -819,7 +834,7 @@ public class LexerSource extends Source {
 				break;
 
 			case '\'':
-				tok = character();
+				tok = string('\'', '\'');
 				break;
 
 			case '"':
