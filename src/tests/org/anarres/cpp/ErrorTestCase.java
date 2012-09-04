@@ -60,7 +60,7 @@ public class ErrorTestCase extends BaseTestCase {
 	public void testErrors() throws Exception {
 		testError("\"");
 		testError("'");
-		testError("''");
+		// testError("''");
 	}
 
 }

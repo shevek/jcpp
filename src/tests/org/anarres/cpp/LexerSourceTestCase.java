@@ -69,14 +69,16 @@ public class LexerSourceTestCase extends BaseTestCase implements Test {
 			CHARACTER, WHITESPACE,
 			CHARACTER, WHITESPACE,
 			CHARACTER, WHITESPACE,
-			INVALID, WHITESPACE,
-			INVALID);
+			SQSTRING, WHITESPACE,
+			SQSTRING);
 
 		testLexerSource("1i1I1l1L1ui1ul", 
 			NUMBER, NUMBER,
 			NUMBER, NUMBER,
 			NUMBER, NUMBER);
 
+		testLexerSource("'' 'x' 'xx'",
+			SQSTRING, WHITESPACE, CHARACTER, WHITESPACE, SQSTRING);
 	}
 
 }
