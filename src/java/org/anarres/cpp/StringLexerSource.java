@@ -40,8 +40,7 @@ public class StringLexerSource extends LexerSource {
 	 * @param ppvalid true if preprocessor directives are to be
 	 *	honoured within the string.
 	 */
-	public StringLexerSource(String string, boolean ppvalid)
-						throws IOException {
+	public StringLexerSource(String string, boolean ppvalid) {
 		super(new StringReader(string), ppvalid);
 	}
 
@@ -51,8 +50,7 @@ public class StringLexerSource extends LexerSource {
 	 * By default, preprocessor directives are not honoured within
 	 * the string.
 	 */
-	public StringLexerSource(String string)
-						throws IOException {
+	public StringLexerSource(String string) {
 		this(string, false);
 	}
 
