@@ -47,7 +47,7 @@ public class FileLexerSource extends LexerSource {
 						throws IOException {
 		super(
 			new BufferedReader(
-				new FileReader(
+				new DeferredFileReader(
 					file
 				)
 			),
