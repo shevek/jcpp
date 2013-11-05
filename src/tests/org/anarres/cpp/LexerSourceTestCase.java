@@ -18,10 +18,13 @@ public class LexerSourceTestCase extends BaseTestCase implements Test {
 						Arrays.toString(out));
 		StringLexerSource	s = new StringLexerSource(in);
 
+		int col = 0;
 		for (int i = 0; i < out.length; i++) {
 			Token	tok = s.token();
 			System.out.println("Token is " + tok);
 			assertEquals(out[i], tok.getType());
+			assertEquals(col, tok.getColumn());
+			col += tok.getText().length();
 		}
 		assertEquals(EOF, s.token().getType());
 	}
