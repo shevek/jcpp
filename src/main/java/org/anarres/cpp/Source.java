@@ -136,7 +136,7 @@ public abstract class Source implements Iterable<Token>, Closeable {
 	 * it will ask the parent Source, and so forth recursively.
 	 * If no Source on the stack is a FileLexerSource, returns null.
 	 */
-	/* pp */ String getPath() {
+	public String getPath() {
 		Source	parent = getParent();
 		if (parent != null)
 			return parent.getPath();

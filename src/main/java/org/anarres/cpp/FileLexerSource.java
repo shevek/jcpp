@@ -47,7 +47,7 @@ public class FileLexerSource extends LexerSource {
 						throws IOException {
 		super(
 			new BufferedReader(
-				new FileReader(
+				new DeferredFileReader(
 					file
 				)
 			),
@@ -69,7 +69,7 @@ public class FileLexerSource extends LexerSource {
 	}
 
 	@Override
-	/* pp */ String getPath() {
+	public String getPath() {
 		return path;
 	}
 

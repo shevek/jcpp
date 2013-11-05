@@ -28,6 +28,7 @@ import java.util.Collections;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -116,7 +117,7 @@ public class Preprocessor implements Closeable {
 	public Preprocessor() {
 		this.inputs = new ArrayList<Source>();
 
-		this.macros = new HashMap<String,Macro>();
+		this.macros = createMacros();
 		macros.put(__LINE__.getName(), __LINE__);
 		macros.put(__FILE__.getName(), __FILE__);
 		macros.put(__COUNTER__.getName(), __COUNTER__);
@@ -146,6 +147,10 @@ public class Preprocessor implements Closeable {
 	public Preprocessor(File file)
 						throws IOException {
 		this(new FileLexerSource(file));
+	}
+
+	protected Map<String, Macro> createMacros() {
+		return new LinkedHashMap<String,Macro>();
 	}
 
 	/**
@@ -896,6 +901,11 @@ public class Preprocessor implements Closeable {
 							error(tok,
 								"Unterminated macro parameter list");
 							return tok;
+						case ELLIPSIS:
+							// Unnamed Variadic Macros
+							args.add("__VA_ARGS__");
+							source_untoken(tok);
+							break;
 						default:
 							error(tok,
 								"error in macro parameters: " +
@@ -1055,7 +1065,7 @@ public class Preprocessor implements Closeable {
 	 * User code may override this method to implement a virtual
 	 * file system.
 	 */
-	private boolean include(VirtualFile file)
+	protected boolean include(VirtualFile file)
 						throws IOException,
 								LexerException {
 		// System.out.println("Try to include " + file);
@@ -1070,7 +1080,7 @@ public class Preprocessor implements Closeable {
 	/**
 	 * Includes a file from an include path, by name.
 	 */
-	private boolean include(Iterable<String> path, String name)
+	protected boolean include(Iterable<String> path, String name)
 						throws IOException,
 								LexerException {
 		for (String dir : path) {
