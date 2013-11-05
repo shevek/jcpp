@@ -107,13 +107,30 @@ testInput("#define one one\n", NL);
 testInput("one /* one */\n", NL, I("one"), WHITESPACE, CCOMMENT);
 
 		/* Variadic macros. */
-		testInput("#define var(x...) a x b\n", NL);
+		testInput("#define var(x...) a x __VA_ARGS__ b\n", NL);
 		testInput("var(e, f, g)\n", NL,
 			I("a"), WHITESPACE,
 			I("e"), ',', WHITESPACE,
 			I("f"), ',', WHITESPACE,
 			I("g"), WHITESPACE,
+			I("__VA_ARGS__"), WHITESPACE, // __VA_ARGS__ is not expanded in this case.
 			I("b")
+		);
+		/* Variadic macros with anonymous args. */
+		testInput("#define var2(x, ...) a x __VA_ARGS__ e\n", NL);
+		testInput("var2(b, c, d)\n", NL,
+			I("a"), WHITESPACE,
+			I("b"), WHITESPACE,
+			I("c"), ',', WHITESPACE,
+			I("d"), WHITESPACE,
+			I("e")
+		);
+		testInput("#define var3(...) a __VA_ARGS__ d\n", NL);
+		testInput("var3(b, c)\n", NL,
+			I("a"), WHITESPACE,
+			I("b"), ',', WHITESPACE,
+			I("c"), WHITESPACE,
+			I("d")
 		);
 
 		testInput("#define _Widen(x) L ## x\n", NL);
