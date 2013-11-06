@@ -35,7 +35,7 @@ public class Version {
 	private static final int	patch;
 
 	static {
-		String[]	tmp = VERSION.split("\\.");
+		String[]	tmp = VERSION.replaceAll("-SNAPSHOT", "").split("\\.");
 		major = Integer.parseInt(tmp[0]);
 		minor = Integer.parseInt(tmp[1]);
 		patch = Integer.parseInt(tmp[2]);
