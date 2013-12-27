@@ -1,0 +1,12 @@
+apply plugin: 'groovy'
+apply plugin: 'idea'
+
+repositories {
+	mavenCentral()
+}
+
+dependencies {
+	compile gradleApi()
+	compile 'org.apache.velocity:velocity:1.7'
+}
+
