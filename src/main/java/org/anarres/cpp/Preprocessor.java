@@ -905,6 +905,13 @@ public class Preprocessor implements Closeable {
                         case IDENTIFIER:
                             args.add(tok.getText());
                             break;
+                        case ELLIPSIS:
+                            // Unnamed Variadic macro
+                            args.add("__VA_ARGS__");
+                            // We just named the ellipsis, but we unget the token
+                            // to allow the ELLIPSIS handling below to process it.
+                            source_untoken(tok);
+                            break;
                         case NL:
                         case EOF:
                             error(tok,

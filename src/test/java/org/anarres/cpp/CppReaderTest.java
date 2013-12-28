@@ -38,6 +38,13 @@ public class CppReaderTest {
     }
 
     @Test
+    public void testVarargs()
+            throws Exception {
+        // The newlines are irrelevant, We want exactly one "foo"
+        testCppReader("#include <varargs.c>\n");
+    }
+
+    @Test
     public void testPragmaOnce()
             throws Exception {
         // The newlines are irrelevant, We want exactly one "foo"
