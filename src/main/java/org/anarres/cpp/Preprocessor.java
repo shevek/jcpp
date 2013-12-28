@@ -1046,7 +1046,7 @@ public class Preprocessor implements Closeable {
      * User code may override this method to implement a virtual
      * file system.
      */
-    private boolean include(VirtualFile file)
+    protected boolean include(@Nonnull VirtualFile file)
             throws IOException,
             LexerException {
         // System.out.println("Try to include " + ((File)file).getAbsolutePath());
@@ -1061,7 +1061,7 @@ public class Preprocessor implements Closeable {
     /**
      * Includes a file from an include path, by name.
      */
-    private boolean include(Iterable<String> path, String name)
+    protected boolean include(@Nonnull Iterable<String> path, @Nonnull String name)
             throws IOException,
             LexerException {
         for (String dir : path) {
