@@ -19,6 +19,7 @@ package org.anarres.cpp;
 import java.io.Closeable;
 import java.io.IOException;
 import java.util.Iterator;
+import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import static org.anarres.cpp.Token.*;
 
@@ -127,6 +128,7 @@ public abstract class Source implements Iterable<Token>, Closeable {
      * it will ask the parent Source, and so forth recursively.
      * If no Source on the stack is a FileLexerSource, returns null.
      */
+    @CheckForNull
     /* pp */ String getPath() {
         Source parent = getParent();
         if (parent != null)

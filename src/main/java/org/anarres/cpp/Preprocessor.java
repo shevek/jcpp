@@ -1104,17 +1104,22 @@ public class Preprocessor implements Closeable {
     /**
      * Handles an include directive.
      */
-    private void include(String parent, int line,
-            @Nonnull String name, boolean quoted)
+    private void include(
+            @CheckForNull String parent, int line,
+            @Nonnull String name, boolean quoted, boolean next)
             throws IOException,
             LexerException {
         VirtualFile pdir = null;
         if (quoted) {
-            VirtualFile pfile = filesystem.getFile(parent);
-            pdir = pfile.getParentFile();
-            VirtualFile ifile = pdir.getChildFile(name);
-            if (include(ifile))
-                return;
+            if (parent != null) {
+                VirtualFile pfile = filesystem.getFile(parent);
+                pdir = pfile.getParentFile();
+            }
+            if (pdir != null) {
+                VirtualFile ifile = pdir.getChildFile(name);
+                if (include(ifile))
+                    return;
+            }
             if (include(quoteincludepath, name))
                 return;
         }
@@ -1187,7 +1192,7 @@ public class Preprocessor implements Closeable {
             }
 
             /* Do the inclusion. */
-            include(source.getPath(), tok.getLine(), name, quoted);
+            include(source.getPath(), tok.getLine(), name, quoted, next);
 
             /* 'tok' is the 'nl' after the include. We use it after the
              * #line directive. */
