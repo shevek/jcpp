@@ -587,11 +587,13 @@ public class LexerSource extends Source {
         NumericValue value = new NumericValue(10, integer);
         int d = read();
         if (d == '.') {
+            text.append((char) d);
             String fraction = _number_part(text, 10);
             value.setFractionalPart(fraction);
             d = read();
         }
         if (d == 'E' || d == 'e') {
+            text.append((char) d);
             String exponent = _number_part(text, 10);
             value.setExponent(exponent);
             d = read();
@@ -847,7 +849,11 @@ public class LexerSource extends Source {
                 d = read();
                 if (d == 'x' || d == 'X')
                     tok = number_hex((char) d);
-                else {
+                else if (d == '.') {
+                    unread(d);
+                    unread(c);
+                    tok = number_decimal();
+                } else {
                     unread(d);
                     tok = number_octal();
                 }
