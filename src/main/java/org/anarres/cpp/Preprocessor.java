@@ -32,6 +32,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.Stack;
 
+import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import static org.anarres.cpp.Token.*;
 import static org.anarres.cpp.PreprocessorCommand.*;
@@ -138,7 +139,7 @@ public class Preprocessor implements Closeable {
         this.listener = null;
     }
 
-    public Preprocessor(Source initial) {
+    public Preprocessor(@Nonnull Source initial) {
         this();
         addInput(initial);
     }
@@ -146,7 +147,7 @@ public class Preprocessor implements Closeable {
     /** Equivalent to
      * 'new Preprocessor(new {@link FileLexerSource}(file))'
      */
-    public Preprocessor(File file)
+    public Preprocessor(@Nonnull File file)
             throws IOException {
         this(new FileLexerSource(file));
     }
@@ -154,13 +155,14 @@ public class Preprocessor implements Closeable {
     /**
      * Sets the VirtualFileSystem used by this Preprocessor.
      */
-    public void setFileSystem(VirtualFileSystem filesystem) {
+    public void setFileSystem(@Nonnull VirtualFileSystem filesystem) {
         this.filesystem = filesystem;
     }
 
     /**
      * Returns the VirtualFileSystem used by this Preprocessor.
      */
+    @Nonnull
     public VirtualFileSystem getFileSystem() {
         return filesystem;
     }
@@ -172,7 +174,7 @@ public class Preprocessor implements Closeable {
      * The listener is notified of warnings, errors and source
      * changes, amongst other things.
      */
-    public void setListener(PreprocessorListener listener) {
+    public void setListener(@Nonnull PreprocessorListener listener) {
         this.listener = listener;
         Source s = source;
         while (s != null) {
@@ -186,6 +188,7 @@ public class Preprocessor implements Closeable {
      * Returns the PreprocessorListener which handles events for
      * this Preprocessor.
      */
+    @Nonnull
     public PreprocessorListener getListener() {
         return listener;
     }
@@ -195,6 +198,7 @@ public class Preprocessor implements Closeable {
      *
      * This set may be freely modified by user code.
      */
+    @Nonnull
     public Set<Feature> getFeatures() {
         return features;
     }
@@ -202,14 +206,14 @@ public class Preprocessor implements Closeable {
     /**
      * Adds a feature to the feature-set of this Preprocessor.
      */
-    public void addFeature(Feature f) {
+    public void addFeature(@Nonnull Feature f) {
         features.add(f);
     }
 
     /**
      * Adds features to the feature-set of this Preprocessor.
      */
-    public void addFeatures(Collection<Feature> f) {
+    public void addFeatures(@Nonnull Collection<Feature> f) {
         features.addAll(f);
     }
 
@@ -217,7 +221,7 @@ public class Preprocessor implements Closeable {
      * Returns true if the given feature is in
      * the feature-set of this Preprocessor.
      */
-    public boolean getFeature(Feature f) {
+    public boolean getFeature(@Nonnull Feature f) {
         return features.contains(f);
     }
 
@@ -226,6 +230,7 @@ public class Preprocessor implements Closeable {
      *
      * This set may be freely modified by user code.
      */
+    @Nonnull
     public Set<Warning> getWarnings() {
         return warnings;
     }
@@ -233,14 +238,14 @@ public class Preprocessor implements Closeable {
     /**
      * Adds a warning to the warning-set of this Preprocessor.
      */
-    public void addWarning(Warning w) {
+    public void addWarning(@Nonnull Warning w) {
         warnings.add(w);
     }
 
     /**
      * Adds warnings to the warning-set of this Preprocessor.
      */
-    public void addWarnings(Collection<Warning> w) {
+    public void addWarnings(@Nonnull Collection<Warning> w) {
         warnings.addAll(w);
     }
 
@@ -248,7 +253,7 @@ public class Preprocessor implements Closeable {
      * Returns true if the given warning is in
      * the warning-set of this Preprocessor.
      */
-    public boolean getWarning(Warning w) {
+    public boolean getWarning(@Nonnull Warning w) {
         return warnings.contains(w);
     }
 
@@ -257,7 +262,7 @@ public class Preprocessor implements Closeable {
      *
      * Inputs are processed in the order in which they are added.
      */
-    public void addInput(Source source) {
+    public void addInput(@Nonnull Source source) {
         source.init(this);
         inputs.add(source);
     }
@@ -267,7 +272,7 @@ public class Preprocessor implements Closeable {
      *
      * @see #addInput(Source)
      */
-    public void addInput(File file)
+    public void addInput(@Nonnull File file)
             throws IOException {
         addInput(new FileLexerSource(file));
     }
@@ -636,7 +641,7 @@ public class Preprocessor implements Closeable {
         Token tok;
         List<Argument> args;
 
-		// System.out.println("pp: expanding " + m);
+        // System.out.println("pp: expanding " + m);
         if (m.isFunctionLike()) {
             OPEN:
             for (;;) {
@@ -1076,7 +1081,7 @@ public class Preprocessor implements Closeable {
      * Handles an include directive.
      */
     private void include(String parent, int line,
-            String name, boolean quoted)
+            @Nonnull String name, boolean quoted)
             throws IOException,
             LexerException {
         VirtualFile pdir = null;
@@ -1106,6 +1111,7 @@ public class Preprocessor implements Closeable {
         error(line, 0, buf.toString());
     }
 
+    @Nonnull
     private Token include(boolean next)
             throws IOException,
             LexerException {
@@ -1169,12 +1175,13 @@ public class Preprocessor implements Closeable {
         }
     }
 
-    protected void pragma(Token name, List<Token> value)
+    protected void pragma(@Nonnull Token name, @Nonnull List<Token> value)
             throws IOException,
             LexerException {
         warning(name, "Unknown #" + "pragma: " + name.getText());
     }
 
+    @Nonnull
     private Token pragma()
             throws IOException,
             LexerException {
@@ -1243,7 +1250,7 @@ public class Preprocessor implements Closeable {
     }
 
     /* For #error and #warning. */
-    private void error(Token pptok, boolean is_error)
+    private void error(@Nonnull Token pptok, boolean is_error)
             throws IOException,
             LexerException {
         StringBuilder buf = new StringBuilder();
@@ -1271,6 +1278,7 @@ public class Preprocessor implements Closeable {
     /* This bypasses token() for #elif expressions.
      * If we don't do this, then isActive() == false
      * causes token() to simply chew the entire input line. */
+    @Nonnull
     private Token expanded_token()
             throws IOException,
             LexerException {
@@ -1290,6 +1298,7 @@ public class Preprocessor implements Closeable {
         }
     }
 
+    @Nonnull
     private Token expanded_token_nonwhite()
             throws IOException,
             LexerException {
@@ -1301,8 +1310,10 @@ public class Preprocessor implements Closeable {
         return tok;
     }
 
+    @CheckForNull
     private Token expr_token = null;
 
+    @Nonnull
     private Token expr_token()
             throws IOException,
             LexerException {
@@ -1324,7 +1335,7 @@ public class Preprocessor implements Closeable {
                     la = source_token_nonwhite();
                 }
 
-				// System.out.println("Core token is " + la);
+                // System.out.println("Core token is " + la);
                 if (la.getType() != IDENTIFIER) {
                     error(la,
                             "defined() needs identifier, not "
@@ -1354,11 +1365,11 @@ public class Preprocessor implements Closeable {
             }
         }
 
-		// System.out.println("expr_token returns " + tok);
+        // System.out.println("expr_token returns " + tok);
         return tok;
     }
 
-    private void expr_untoken(Token tok)
+    private void expr_untoken(@Nonnull Token tok)
             throws LexerException {
         if (expr_token != null)
             throw new InternalException(
@@ -1367,7 +1378,7 @@ public class Preprocessor implements Closeable {
         expr_token = tok;
     }
 
-    private int expr_priority(Token op) {
+    private int expr_priority(@Nonnull Token op) {
         switch (op.getType()) {
             case '/':
                 return 11;
@@ -1425,7 +1436,7 @@ public class Preprocessor implements Closeable {
         Token tok = expr_token();
         long lhs, rhs;
 
-		// System.out.println("Expr lhs token is " + tok);
+        // System.out.println("Expr lhs token is " + tok);
         switch (tok.getType()) {
             case '(':
                 lhs = expr(0);
@@ -1562,11 +1573,12 @@ public class Preprocessor implements Closeable {
          (new Exception("expr returning " + lhs)).printStackTrace();
          System.err.flush();
          */
-		// System.out.println("expr returning " + lhs);
+        // System.out.println("expr returning " + lhs);
         return lhs;
     }
 
-    private Token toWhitespace(Token tok) {
+    @Nonnull
+    private Token toWhitespace(@Nonnull Token tok) {
         String text = tok.getText();
         int len = text.length();
         boolean cr = false;
@@ -1691,7 +1703,7 @@ public class Preprocessor implements Closeable {
                 /* The one remaining ASCII, might as well. */
                 case '`':
 
-				// case '#':
+                // case '#':
                 case AND_EQ:
                 case ARROW:
                 case CHARACTER:
@@ -1946,6 +1958,7 @@ public class Preprocessor implements Closeable {
         }
     }
 
+    @Nonnull
     private Token token_nonwhite()
             throws IOException,
             LexerException {
