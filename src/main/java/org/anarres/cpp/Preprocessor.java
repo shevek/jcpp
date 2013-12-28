@@ -26,6 +26,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -96,15 +97,16 @@ public class Preprocessor implements Closeable {
     private static final Macro __FILE__ = new Macro(INTERNAL, "__FILE__");
     private static final Macro __COUNTER__ = new Macro(INTERNAL, "__COUNTER__");
 
-    private List<Source> inputs;
+    private final List<Source> inputs;
 
     /* The fundamental engine. */
-    private Map<String, Macro> macros;
-    private Stack<State> states;
+    private final Map<String, Macro> macros;
+    private final Stack<State> states;
     private Source source;
 
     /* Miscellaneous support. */
     private int counter;
+    private final Set<String> onceseenpaths = new HashSet<String>();
 
     /* Support junk to make it work like cpp */
     private List<String> quoteincludepath;	/* -iquote */
@@ -112,8 +114,8 @@ public class Preprocessor implements Closeable {
     private List<String> sysincludepath;		/* -I */
 
     private List<String> frameworkspath;
-    private Set<Feature> features;
-    private Set<Warning> warnings;
+    private final Set<Feature> features;
+    private final Set<Warning> warnings;
     private VirtualFileSystem filesystem;
     private PreprocessorListener listener;
 
@@ -215,6 +217,13 @@ public class Preprocessor implements Closeable {
      */
     public void addFeatures(@Nonnull Collection<Feature> f) {
         features.addAll(f);
+    }
+
+    /**
+     * Adds features to the feature-set of this Preprocessor.
+     */
+    public void addFeatures(Feature... f) {
+        addFeatures(Arrays.asList(f));
     }
 
     /**
@@ -508,7 +517,8 @@ public class Preprocessor implements Closeable {
      * @see #getSource()
      * @see #push_source(Source,boolean)
      */
-    protected void pop_source()
+    @CheckForNull
+    protected Token pop_source(boolean linemarker)
             throws IOException {
         if (listener != null)
             listener.handleSourceChange(this.source, "pop");
@@ -518,14 +528,31 @@ public class Preprocessor implements Closeable {
         s.close();
         if (listener != null && this.source != null)
             listener.handleSourceChange(this.source, "resume");
+
+        Source t = getSource();
+        if (getFeature(Feature.LINEMARKERS)
+                && s.isNumbered()
+                && t != null) {
+            /* We actually want 'did the nested source
+             * contain a newline token', which isNumbered()
+             * approximates. This is not perfect, but works. */
+            return line_token(t.getLine() + 1, t.getName(), " 2");
+        }
+
+        return null;
     }
 
+    protected void pop_source()
+            throws IOException {
+        pop_source(false);
+    }
 
     /* Source tokens */
     private Token source_token;
 
     /* XXX Make this include the NL, and make all cpp directives eat
      * their own NL. */
+    @Nonnull
     private Token line_token(int line, String name, String extra) {
         StringBuilder buf = new StringBuilder();
         buf.append("#line ").append(line)
@@ -536,6 +563,7 @@ public class Preprocessor implements Closeable {
         return new Token(P_LINE, line, 0, buf.toString(), null);
     }
 
+    @Nonnull
     private Token source_token()
             throws IOException,
             LexerException {
@@ -562,16 +590,9 @@ public class Preprocessor implements Closeable {
             /* XXX Refactor with skipline() */
             if (tok.getType() == EOF && s.isAutopop()) {
                 // System.out.println("Autopop " + s);
-                pop_source();
-                Source t = getSource();
-                if (getFeature(Feature.LINEMARKERS)
-                        && s.isNumbered()
-                        && t != null) {
-                    /* We actually want 'did the nested source
-                     * contain a newline token', which isNumbered()
-                     * approximates. This is not perfect, but works. */
-                    return line_token(t.getLine() + 1, t.getName(), " 2");
-                }
+                Token mark = pop_source(true);
+                if (mark != null)
+                    return mark;
                 continue;
             }
             if (getFeature(Feature.DEBUG))
@@ -620,16 +641,9 @@ public class Preprocessor implements Closeable {
         /* XXX Refactor with source_token() */
         if (tok.getType() == EOF && s.isAutopop()) {
             // System.out.println("Autopop " + s);
-            pop_source();
-            Source t = getSource();
-            if (getFeature(Feature.LINEMARKERS)
-                    && s.isNumbered()
-                    && t != null) {
-                /* We actually want 'did the nested source
-                 * contain a newline token', which isNumbered()
-                 * approximates. This is not perfect, but works. */
-                return line_token(t.getLine() + 1, t.getName(), " 2");
-            }
+            Token mark = pop_source(true);
+            if (mark != null)
+                return mark;
         }
         return tok;
     }
@@ -823,7 +837,8 @@ public class Preprocessor implements Closeable {
      * Expands an argument.
      */
     /* I'd rather this were done lazily, but doing so breaks spec. */
-    /* pp */ List<Token> expand(List<Token> arg)
+    @Nonnull
+    /* pp */ List<Token> expand(@Nonnull List<Token> arg)
             throws IOException,
             LexerException {
         List<Token> expansion = new ArrayList<Token>();
@@ -853,7 +868,8 @@ public class Preprocessor implements Closeable {
             }
         }
 
-        pop_source();
+        // Always returns null.
+        pop_source(false);
 
         return expansion;
     }
@@ -1026,6 +1042,7 @@ public class Preprocessor implements Closeable {
 
     }
 
+    @Nonnull
     private Token undef()
             throws IOException,
             LexerException {
@@ -1175,9 +1192,26 @@ public class Preprocessor implements Closeable {
         }
     }
 
+    protected void pragma_once(@Nonnull Token name)
+            throws IOException, LexerException {
+        Source s = this.source;
+        if (!onceseenpaths.add(s.getPath())) {
+            Token mark = pop_source(true);
+            // FixedTokenSource should never generate a linemarker on exit.
+            if (mark != null)
+                push_source(new FixedTokenSource(Arrays.asList(mark)), true);
+        }
+    }
+
     protected void pragma(@Nonnull Token name, @Nonnull List<Token> value)
             throws IOException,
             LexerException {
+        if (getFeature(Feature.PRAGMA_ONCE)) {
+            if ("once".equals(name.getText())) {
+                pragma_once(name);
+                return;
+            }
+        }
         warning(name, "Unknown #" + "pragma: " + name.getText());
     }
 

@@ -38,5 +38,8 @@ public enum Feature {
 
 	/** Supports lexing of objective-C. */
 	OBJCSYNTAX,
-	INCLUDENEXT
+	INCLUDENEXT,
+
+    /** Random extensions. */
+    PRAGMA_ONCE
 }
