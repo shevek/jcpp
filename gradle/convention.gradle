@@ -60,7 +60,6 @@ status = project.hasProperty('preferredStatus')?project.preferredStatus:(version
         test.runtimeClasspath += project.configurations.provided
     }
 
-/*
 apply plugin: 'github-pages' // Used to create publishGhPages task
 
 def docTasks = [:]
@@ -72,7 +71,7 @@ def docTasks = [:]
 }
 
 githubPages {
-    repoUri = "git@github.com:Netflix/${rootProject.githubProjectName}.git"
+    repoUri = "git@github.com:shevek/${rootProject.githubProjectName}.git"
     pages {
         docTasks.each { shortName, docTask ->
             from(docTask.outputs.files) {
@@ -81,7 +80,6 @@ githubPages {
         }
     }
 }
-*/
 
 wrapper {
 	gradleVersion = '1.10'

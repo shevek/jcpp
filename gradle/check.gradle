@@ -18,8 +18,5 @@ findbugsTest.enabled = false
 
 apply plugin: 'cobertura'
 cobertura {
-    sourceDirs = sourceSets.main.java.srcDirs
-    format = 'html'
-    includes = ['**/*.java', '**/*.groovy']
-    excludes = []
+    coverageFormats = [ 'html', 'xml' ]
 }
