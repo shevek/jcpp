@@ -542,32 +542,40 @@ public class LexerSource extends Source {
 
     /* We already chewed a zero, so empty is fine. */
     @Nonnull
-    private Token number_octal()
+    private Token number_octal(boolean negative)
             throws IOException,
             LexerException {
-        StringBuilder text = new StringBuilder("0");
+        StringBuilder text = new StringBuilder(negative ? "-0" : "0");
         String integer = _number_part(text, 8);
+        NumericValue value = new NumericValue(8, negative, integer);
         int d = read();
-        NumericValue value = new NumericValue(8, integer);
+        if (d == '.') {
+            text.append((char) d);
+            String fraction = _number_part(text, 16);
+            value.setFractionalPart(fraction);
+            d = read();
+        }
         return _number_suffix(text, value, d);
     }
 
     /* We do not know whether know the first digit is valid. */
     @Nonnull
-    private Token number_hex(char x)
+    private Token number_hex(char x, boolean negative)
             throws IOException,
             LexerException {
-        StringBuilder text = new StringBuilder("0");
+        StringBuilder text = new StringBuilder(negative ? "-0" : "0");
         text.append(x);
         String integer = _number_part(text, 16);
-        NumericValue value = new NumericValue(16, integer);
+        NumericValue value = new NumericValue(16, negative, integer);
         int d = read();
         if (d == '.') {
+            text.append((char) d);
             String fraction = _number_part(text, 16);
             value.setFractionalPart(fraction);
             d = read();
         }
         if (d == 'P' || d == 'p') {
+            text.append((char) d);
             String exponent = _number_part(text, 10);
             value.setExponent(exponent);
             d = read();
@@ -579,12 +587,12 @@ public class LexerSource extends Source {
     /* We know we have at least one valid digit, but empty is not
      * fine. */
     @Nonnull
-    private Token number_decimal()
+    private Token number_decimal(boolean negative)
             throws IOException,
             LexerException {
-        StringBuilder text = new StringBuilder();
+        StringBuilder text = new StringBuilder(negative ? "-" : "");
         String integer = _number_part(text, 10);
-        NumericValue value = new NumericValue(10, integer);
+        NumericValue value = new NumericValue(10, negative, integer);
         int d = read();
         if (d == '.') {
             text.append((char) d);
@@ -600,6 +608,41 @@ public class LexerSource extends Source {
         }
         // XXX Make sure it's got enough parts
         return _number_suffix(text, value, d);
+    }
+
+    @Nonnull
+    private Token number()
+            throws IOException,
+            LexerException {
+        boolean negative = false;
+        Token tok;
+        int c = read();
+        if (c == '-') {
+            negative = true;
+            c = read();
+        }
+        if (c == '0') {
+            int d = read();
+            if (d == 'x' || d == 'X') {
+                tok = number_hex((char) d, negative);
+            } else if (d == '.') {
+                unread(d);
+                unread(c);
+                tok = number_decimal(negative);
+            } else {
+                unread(d);
+                tok = number_octal(negative);
+            }
+        } else if (Character.isDigit(c)) {
+            unread(c);
+            tok = number_decimal(negative);
+        } else if (c == '.') {
+            unread(c);
+            tok = number_decimal(negative);
+        } else {
+            throw new LexerException("Asked to parse something as a number which isn't: " + (char) c);
+        }
+        return tok;
     }
 
     @Nonnull
@@ -722,6 +765,10 @@ public class LexerSource extends Source {
                     tok = new Token(ARROW);
                 else
                     unread(d);
+                if (Character.isDigit(d)) {
+                    unread('-');
+                    tok = number();
+                }
                 break;
 
             case '*':
@@ -839,24 +886,9 @@ public class LexerSource extends Source {
                     unread(d);
                 if (Character.isDigit(d)) {
                     unread('.');
-                    tok = number_decimal();
+                    tok = number();
                 }
                 /* XXX decimal fraction */
-                break;
-
-            case '0':
-                /* octal or hex */
-                d = read();
-                if (d == 'x' || d == 'X')
-                    tok = number_hex((char) d);
-                else if (d == '.') {
-                    unread(d);
-                    unread(c);
-                    tok = number_decimal();
-                } else {
-                    unread(d);
-                    tok = number_octal();
-                }
                 break;
 
             case '\'':
@@ -878,7 +910,7 @@ public class LexerSource extends Source {
                 tok = whitespace(c);
             } else if (Character.isDigit(c)) {
                 unread(c);
-                tok = number_decimal();
+                tok = number();
             } else if (Character.isJavaIdentifierStart(c)) {
                 tok = identifier(c);
             } else {
@@ -904,6 +936,7 @@ public class LexerSource extends Source {
         return tok;
     }
 
+    @Override
     public void close()
             throws IOException {
         if (reader != null) {
