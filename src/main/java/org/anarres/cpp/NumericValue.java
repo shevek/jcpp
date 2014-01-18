@@ -126,15 +126,24 @@ public class NumericValue extends Number {
             return intValue();
     }
 
+    private double exponentValue() {
+        int e = Integer.parseInt(exponent, base);
+        return Math.pow(base, e);
+    }
+
     @Override
     public int intValue() {
         int v = integer.isEmpty() ? 0 : Integer.parseInt(integer, base);
+        if (exponent != null)
+            v = (int) (v * exponentValue());
         return isNegative() ? -v : v;
     }
 
     @Override
     public long longValue() {
         long v = integer.isEmpty() ? 0 : Long.parseLong(integer, base);
+        if (exponent != null)
+            v = (long) (v * exponentValue());
         return isNegative() ? -v : v;
     }
 

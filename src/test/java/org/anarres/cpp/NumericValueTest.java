@@ -73,5 +73,9 @@ public class NumericValueTest {
         testNumericValue("00.0", 0);
         testNumericValue("00.", 0);
 
+        testNumericValue("1e1", 1e1);
+        testNumericValue("-1e1", -1e1);
+        testNumericValue("1e-1", 1e-1);
+
     }
 }
