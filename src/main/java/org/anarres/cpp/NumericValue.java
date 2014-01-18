@@ -18,6 +18,9 @@ package org.anarres.cpp;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import javax.annotation.CheckForNull;
+import javax.annotation.Nonnegative;
+import javax.annotation.Nonnull;
 
 public class NumericValue extends Number {
 
@@ -31,24 +34,33 @@ public class NumericValue extends Number {
     public static final int FF_SIZE = F_INT | F_LONG | F_LONGLONG | F_FLOAT | F_DOUBLE;
 
     private final int base;
+    private final boolean negative;
     private final String integer;
     private String fraction;
     private String exponent;
     private int flags;
 
-    public NumericValue(int base, String integer) {
+    public NumericValue(int base, boolean negative, String integer) {
         this.base = base;
+        this.negative = negative;
         this.integer = integer;
     }
 
+    @Nonnegative
     public int getBase() {
         return base;
     }
 
+    public boolean isNegative() {
+        return negative;
+    }
+
+    @Nonnull
     public String getIntegerPart() {
         return integer;
     }
 
+    @CheckForNull
     public String getFractionalPart() {
         return fraction;
     }
@@ -57,6 +69,7 @@ public class NumericValue extends Number {
         this.fraction = fraction;
     }
 
+    @CheckForNull
     public String getExponent() {
         return exponent;
     }
@@ -78,6 +91,7 @@ public class NumericValue extends Number {
      * precision numbers is nontrivial, and this routine gets it wrong
      * in many important cases.
      */
+    @Nonnull
     public BigDecimal toBigDecimal() {
         int scale = 0;
         String text = getIntegerPart();
@@ -93,6 +107,7 @@ public class NumericValue extends Number {
         return new BigDecimal(unscaled, scale);
     }
 
+    @Nonnull
     public Number toJavaLangNumber() {
         int flags = getFlags();
         if ((flags & F_DOUBLE) != 0)
@@ -113,21 +128,27 @@ public class NumericValue extends Number {
 
     @Override
     public int intValue() {
-        return Integer.parseInt(toString());
+        int v = integer.isEmpty() ? 0 : Integer.parseInt(integer, base);
+        return isNegative() ? -v : v;
     }
 
     @Override
     public long longValue() {
-        return Long.parseLong(toString());
+        long v = integer.isEmpty() ? 0 : Long.parseLong(integer, base);
+        return isNegative() ? -v : v;
     }
 
     @Override
     public float floatValue() {
+        if (getBase() != 10)
+            return longValue();
         return Float.parseFloat(toString());
     }
 
     @Override
     public double doubleValue() {
+        if (getBase() != 10)
+            return longValue();
         return Double.parseDouble(toString());
     }
 
@@ -141,6 +162,8 @@ public class NumericValue extends Number {
     @Override
     public String toString() {
         StringBuilder buf = new StringBuilder();
+        if (isNegative())
+            buf.append('-');
         switch (base) {
             case 8:
                 buf.append('0');

@@ -20,3 +20,10 @@ apply plugin: 'cobertura'
 cobertura {
     coverageFormats = [ 'html', 'xml' ]
 }
+githubPages {
+	pages {
+		from(cobertura.coverageReportDir) {
+			into "docs/cobertura"
+		}
+	}
+}
