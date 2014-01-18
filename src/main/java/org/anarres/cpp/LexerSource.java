@@ -526,11 +526,16 @@ public class LexerSource extends Source {
 
     /* Either a decimal part, or a hex exponent. */
     @Nonnull
-    private String _number_part(StringBuilder text, int base)
+    private String _number_part(StringBuilder text, int base, boolean sign)
             throws IOException,
             LexerException {
         StringBuilder part = new StringBuilder();
         int d = read();
+        if (sign && d == '-') {
+            text.append((char) d);
+            part.append((char) d);
+            d = read();
+        }
         while (Character.digit(d, base) != -1) {
             text.append((char) d);
             part.append((char) d);
@@ -546,12 +551,12 @@ public class LexerSource extends Source {
             throws IOException,
             LexerException {
         StringBuilder text = new StringBuilder(negative ? "-0" : "0");
-        String integer = _number_part(text, 8);
+        String integer = _number_part(text, 8, false);
         NumericValue value = new NumericValue(8, negative, integer);
         int d = read();
         if (d == '.') {
             text.append((char) d);
-            String fraction = _number_part(text, 16);
+            String fraction = _number_part(text, 8, true);
             value.setFractionalPart(fraction);
             d = read();
         }
@@ -565,18 +570,18 @@ public class LexerSource extends Source {
             LexerException {
         StringBuilder text = new StringBuilder(negative ? "-0" : "0");
         text.append(x);
-        String integer = _number_part(text, 16);
+        String integer = _number_part(text, 16, false);
         NumericValue value = new NumericValue(16, negative, integer);
         int d = read();
         if (d == '.') {
             text.append((char) d);
-            String fraction = _number_part(text, 16);
+            String fraction = _number_part(text, 16, false);
             value.setFractionalPart(fraction);
             d = read();
         }
         if (d == 'P' || d == 'p') {
             text.append((char) d);
-            String exponent = _number_part(text, 10);
+            String exponent = _number_part(text, 16, true);
             value.setExponent(exponent);
             d = read();
         }
@@ -591,18 +596,18 @@ public class LexerSource extends Source {
             throws IOException,
             LexerException {
         StringBuilder text = new StringBuilder(negative ? "-" : "");
-        String integer = _number_part(text, 10);
+        String integer = _number_part(text, 10, false);
         NumericValue value = new NumericValue(10, negative, integer);
         int d = read();
         if (d == '.') {
             text.append((char) d);
-            String fraction = _number_part(text, 10);
+            String fraction = _number_part(text, 10, false);
             value.setFractionalPart(fraction);
             d = read();
         }
         if (d == 'E' || d == 'e') {
             text.append((char) d);
-            String exponent = _number_part(text, 10);
+            String exponent = _number_part(text, 10, true);
             value.setExponent(exponent);
             d = read();
         }
