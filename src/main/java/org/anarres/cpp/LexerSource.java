@@ -545,32 +545,6 @@ public class LexerSource extends Source {
         return part.toString();
     }
 
-    /* We already chewed a zero, so empty is fine. */
-    @Nonnull
-    private Token number_octal(boolean negative)
-            throws IOException,
-            LexerException {
-        StringBuilder text = new StringBuilder(negative ? "-0" : "0");
-        String integer = _number_part(text, 8, false);
-        NumericValue value = new NumericValue(8, negative, integer);
-        int d = read();
-        if (d == '.') {
-            // TODO: This means it's decimal.
-            text.append((char) d);
-            String fraction = _number_part(text, 8, true);
-            value.setFractionalPart(fraction);
-            d = read();
-        }
-        if (d == 'E' || d == 'e') {
-            // TODO: This means it's decimal.
-            text.append((char) d);
-            String exponent = _number_part(text, 10, true);
-            value.setExponent(10, exponent);
-            d = read();
-        }
-        return _number_suffix(text, value, d);
-    }
-
     /* We do not know whether know the first digit is valid. */
     @Nonnull
     private Token number_hex(char x, boolean negative)
@@ -597,6 +571,15 @@ public class LexerSource extends Source {
         return _number_suffix(text, value, d);
     }
 
+    private static boolean is_octal(@Nonnull String text) {
+        if (!text.startsWith("0"))
+            return false;
+        for (int i = 0; i < text.length(); i++)
+            if (Character.digit(text.charAt(i), 8) == -1)
+                return false;
+        return true;
+    }
+
     /* We know we have at least one valid digit, but empty is not
      * fine. */
     @Nonnull
@@ -605,20 +588,31 @@ public class LexerSource extends Source {
             LexerException {
         StringBuilder text = new StringBuilder(negative ? "-" : "");
         String integer = _number_part(text, 10, false);
-        NumericValue value = new NumericValue(10, negative, integer);
+        String fraction = null;
+        String exponent = null;
         int d = read();
         if (d == '.') {
             text.append((char) d);
-            String fraction = _number_part(text, 10, false);
-            value.setFractionalPart(fraction);
+            fraction = _number_part(text, 10, false);
             d = read();
         }
         if (d == 'E' || d == 'e') {
             text.append((char) d);
-            String exponent = _number_part(text, 10, true);
-            value.setExponent(10, exponent);
+            exponent = _number_part(text, 10, true);
             d = read();
         }
+        int base = 10;
+        if (fraction == null && exponent == null && integer.startsWith("0")) {
+            if (!is_octal(integer))
+                warning("Decimal constant starts with 0, but not octal: " + integer);
+            else
+                base = 8;
+        }
+        NumericValue value = new NumericValue(base, negative, integer);
+        if (fraction != null)
+            value.setFractionalPart(fraction);
+        if (exponent != null)
+            value.setExponent(10, exponent);
         // XXX Make sure it's got enough parts
         return _number_suffix(text, value, d);
     }
@@ -669,18 +663,12 @@ public class LexerSource extends Source {
             int d = read();
             if (d == 'x' || d == 'X') {
                 tok = number_hex((char) d, negative);
-            } else if (d == '.') {
+            } else {
                 unread(d);
                 unread(c);
                 tok = number_decimal(negative);
-            } else {
-                unread(d);
-                tok = number_octal(negative);
             }
-        } else if (Character.isDigit(c)) {
-            unread(c);
-            tok = number_decimal(negative);
-        } else if (c == '.') {
+        } else if (Character.isDigit(c) || c == '.') {
             unread(c);
             tok = number_decimal(negative);
         } else {
