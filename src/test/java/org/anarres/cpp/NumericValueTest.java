@@ -78,13 +78,20 @@ public class NumericValueTest {
         testNumericValue("-1e1", -1e1);
         testNumericValue("1e-1", 1e-1);
 
-        // Based numbers with exponents
-        // testNumericValue("012e3", 012e3);    // Fails
+        // Hex numbers with decimal exponents
         testNumericValue("0x12e3", 0x12e3);
         testNumericValue("0x12p3", 0x12p3);
 
-        // Octal prefix with decimal suffix
-        // testNumericValue("067e8", 067e8);    // Fails
+        // Octal numbers with decimal exponents
+        testNumericValue("012e3", 012e3);    // Fails
+        testNumericValue("067e4", 067e4);    // Fails
+
+        // Issues a warning.
+        try {
+            testNumericValue("097", 97);
+            fail("No warning.");
+        } catch (LexerException e) {
+        }
 
     }
 }
