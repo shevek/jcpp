@@ -120,10 +120,10 @@ public class LexerSource extends Source {
     }
 
     /*
-     private boolean _isLineSeparator(int c) {
-     return Character.getType(c) == Character.LINE_SEPARATOR
-     || c == -1;
-     }
+     * private boolean _isLineSeparator(int c) {
+     * return Character.getType(c) == Character.LINE_SEPARATOR
+     * || c == -1;
+     * }
      */
 
     /* XXX Move to JoinReader and canonicalise newlines. */
@@ -197,14 +197,14 @@ public class LexerSource extends Source {
         }
 
         /*
-         if (isLineSeparator(c)) {
-         line++;
-         lastcolumn = column;
-         column = 0;
-         }
-         else {
-         column++;
-         }
+         * if (isLineSeparator(c)) {
+         * line++;
+         * lastcolumn = column;
+         * column = 0;
+         * }
+         * else {
+         * column++;
+         * }
          */
         return c;
     }
@@ -479,7 +479,7 @@ public class LexerSource extends Source {
                 d = read();
             } else if (d == 'L' || d == 'l') {
                 if ((flags & NumericValue.FF_SIZE) != 0)
-                    warning("Nultiple length suffixes after " + text);
+                    warning("Multiple length suffixes after " + text);
                 text.append((char) d);
                 int e = read();
                 if (e == d) {	// Case must match. Ll is Welsh.
@@ -492,19 +492,19 @@ public class LexerSource extends Source {
                 }
             } else if (d == 'I' || d == 'i') {
                 if ((flags & NumericValue.FF_SIZE) != 0)
-                    warning("Nultiple length suffixes after " + text);
+                    warning("Multiple length suffixes after " + text);
                 flags |= NumericValue.F_INT;
                 text.append((char) d);
                 d = read();
             } else if (d == 'F' || d == 'f') {
                 if ((flags & NumericValue.FF_SIZE) != 0)
-                    warning("Nultiple length suffixes after " + text);
+                    warning("Multiple length suffixes after " + text);
                 flags |= NumericValue.F_FLOAT;
                 text.append((char) d);
                 d = read();
             } else if (d == 'D' || d == 'd') {
                 if ((flags & NumericValue.FF_SIZE) != 0)
-                    warning("Nultiple length suffixes after " + text);
+                    warning("Multiple length suffixes after " + text);
                 flags |= NumericValue.F_DOUBLE;
                 text.append((char) d);
                 d = read();
@@ -555,9 +555,17 @@ public class LexerSource extends Source {
         NumericValue value = new NumericValue(8, negative, integer);
         int d = read();
         if (d == '.') {
+            // TODO: This means it's decimal.
             text.append((char) d);
             String fraction = _number_part(text, 8, true);
             value.setFractionalPart(fraction);
+            d = read();
+        }
+        if (d == 'E' || d == 'e') {
+            // TODO: This means it's decimal.
+            text.append((char) d);
+            String exponent = _number_part(text, 10, true);
+            value.setExponent(10, exponent);
             d = read();
         }
         return _number_suffix(text, value, d);
@@ -581,8 +589,8 @@ public class LexerSource extends Source {
         }
         if (d == 'P' || d == 'p') {
             text.append((char) d);
-            String exponent = _number_part(text, 16, true);
-            value.setExponent(exponent);
+            String exponent = _number_part(text, 10, true);
+            value.setExponent(2, exponent);
             d = read();
         }
         // XXX Make sure it's got enough parts
@@ -608,13 +616,44 @@ public class LexerSource extends Source {
         if (d == 'E' || d == 'e') {
             text.append((char) d);
             String exponent = _number_part(text, 10, true);
-            value.setExponent(exponent);
+            value.setExponent(10, exponent);
             d = read();
         }
         // XXX Make sure it's got enough parts
         return _number_suffix(text, value, d);
     }
 
+    /**
+     * Section 6.4.4.2 of C99
+     *
+     * A floating constant has a significand part that may be followed
+     * by an exponent part and a suffix that specifies its type. The
+     * components of the significand part may include a digit sequence
+     * representing the whole-number part, followed by a period (.),
+     * followed by a digit sequence representing the fraction part.
+     *
+     * The components of the exponent part are an e, E, p, or P
+     * followed by an exponent consisting of an optionally signed digit
+     * sequence. Either the whole-number part or the fraction part has to
+     * be present; for decimal floating constants, either the period or
+     * the exponent part has to be present.
+     *
+     * The significand part is interpreted as a (decimal or hexadecimal)
+     * rational number; the digit sequence in the exponent part is
+     * interpreted as a decimal integer. For decimal floating constants,
+     * the exponent indicates the power of 10 by which the significand
+     * part is to be scaled. For hexadecimal floating constants, the
+     * exponent indicates the power of 2 by which the significand part is
+     * to be scaled.
+     *
+     * For decimal floating constants, and also for hexadecimal
+     * floating constants when FLT_RADIX is not a power of 2, the result
+     * is either the nearest representable value, or the larger or smaller
+     * representable value immediately adjacent to the nearest representable
+     * value, chosen in an implementation-defined manner. For hexadecimal
+     * floating constants when FLT_RADIX is a power of 2, the result is
+     * correctly rounded.
+     */
     @Nonnull
     private Token number()
             throws IOException,
