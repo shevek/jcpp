@@ -19,6 +19,7 @@ package org.anarres.cpp;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import javax.annotation.CheckForNull;
+import javax.annotation.CheckForSigned;
 import javax.annotation.Nonnegative;
 import javax.annotation.Nonnull;
 
@@ -37,6 +38,7 @@ public class NumericValue extends Number {
     private final boolean negative;
     private final String integer;
     private String fraction;
+    private int expbase = 0;
     private String exponent;
     private int flags;
 
@@ -69,12 +71,18 @@ public class NumericValue extends Number {
         this.fraction = fraction;
     }
 
+    @CheckForSigned
+    public int getExponentBase() {
+        return expbase;
+    }
+
     @CheckForNull
     public String getExponent() {
         return exponent;
     }
 
-    /* pp */ void setExponent(String exponent) {
+    /* pp */ void setExponent(int expbase, String exponent) {
+        this.expbase = expbase;
         this.exponent = exponent;
     }
 
@@ -126,24 +134,27 @@ public class NumericValue extends Number {
             return intValue();
     }
 
-    private double exponentValue() {
-        int e = Integer.parseInt(exponent, base);
-        return Math.pow(base, e);
+    private int exponentValue() {
+        return Integer.parseInt(exponent, 10);
     }
 
     @Override
     public int intValue() {
         int v = integer.isEmpty() ? 0 : Integer.parseInt(integer, base);
-        if (exponent != null)
-            v = (int) (v * exponentValue());
+        if (expbase == 2)
+            v = v << exponentValue();
+        else if (expbase != 0)
+            v = (int) (v * Math.pow(expbase, exponentValue()));
         return isNegative() ? -v : v;
     }
 
     @Override
     public long longValue() {
         long v = integer.isEmpty() ? 0 : Long.parseLong(integer, base);
-        if (exponent != null)
-            v = (long) (v * exponentValue());
+        if (expbase == 2)
+            v = v << exponentValue();
+        else if (expbase != 0)
+            v = (int) (v * Math.pow(expbase, exponentValue()));
         return isNegative() ? -v : v;
     }
 

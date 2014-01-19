@@ -29,10 +29,10 @@ public class NumericValueTest {
         Token tok = testNumericValue(in);
         assertEquals(in, tok.getText());
         NumericValue value = (NumericValue) tok.getValue();
-        assertEquals(out, value.doubleValue(), 0.01d);
-        assertEquals((float) out, value.floatValue(), 0.01f);
-        assertEquals((long) out, value.longValue());
-        assertEquals((int) out, value.intValue());
+        assertEquals("Double mismatch", out, value.doubleValue(), 0.01d);
+        assertEquals("Float mismatch", (float) out, value.floatValue(), 0.01f);
+        assertEquals("Long mismatch", (long) out, value.longValue());
+        assertEquals("Integer mismatch", (int) out, value.intValue());
     }
 
     @Test
@@ -73,9 +73,18 @@ public class NumericValueTest {
         testNumericValue("00.0", 0);
         testNumericValue("00.", 0);
 
+        // Sign on exponents
         testNumericValue("1e1", 1e1);
         testNumericValue("-1e1", -1e1);
         testNumericValue("1e-1", 1e-1);
+
+        // Based numbers with exponents
+        // testNumericValue("012e3", 012e3);    // Fails
+        testNumericValue("0x12e3", 0x12e3);
+        testNumericValue("0x12p3", 0x12p3);
+
+        // Octal prefix with decimal suffix
+        // testNumericValue("067e8", 067e8);    // Fails
 
     }
 }
