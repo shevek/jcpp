@@ -47,31 +47,31 @@ import static org.anarres.cpp.PreprocessorCommand.*;
  * {@link CppReader}, which does this.)
  */
 /*
- Source file name and line number information is conveyed by lines of the form
-
- # linenum filename flags
-
- These are called linemarkers. They are inserted as needed into
- the output (but never within a string or character constant). They
- mean that the following line originated in file filename at line
- linenum. filename will never contain any non-printing characters;
- they are replaced with octal escape sequences.
-
- After the file name comes zero or more flags, which are `1', `2',
- `3', or `4'. If there are multiple flags, spaces separate them. Here
- is what the flags mean:
-
- `1'
- This indicates the start of a new file.
- `2'
- This indicates returning to a file (after having included another
- file).
- `3'
- This indicates that the following text comes from a system header
- file, so certain warnings should be suppressed.
- `4'
- This indicates that the following text should be treated as being
- wrapped in an implicit extern "C" block.
+ * Source file name and line number information is conveyed by lines of the form
+ *
+ * # linenum filename flags
+ *
+ * These are called linemarkers. They are inserted as needed into
+ * the output (but never within a string or character constant). They
+ * mean that the following line originated in file filename at line
+ * linenum. filename will never contain any non-printing characters;
+ * they are replaced with octal escape sequences.
+ *
+ * After the file name comes zero or more flags, which are `1', `2',
+ * `3', or `4'. If there are multiple flags, spaces separate them. Here
+ * is what the flags mean:
+ *
+ * `1'
+ * This indicates the start of a new file.
+ * `2'
+ * This indicates returning to a file (after having included another
+ * file).
+ * `3'
+ * This indicates that the following text comes from a system header
+ * file, so certain warnings should be suppressed.
+ * `4'
+ * This indicates that the following text should be treated as being
+ * wrapped in an implicit extern "C" block.
  */
 public class Preprocessor implements Closeable {
 
@@ -292,7 +292,7 @@ public class Preprocessor implements Closeable {
      * If a PreprocessorListener is installed, it receives the
      * error. Otherwise, an exception is thrown.
      */
-    protected void error(int line, int column, String msg)
+    protected void error(int line, int column, @Nonnull String msg)
             throws LexerException {
         if (listener != null)
             listener.handleError(source, line, column, msg);
@@ -308,7 +308,7 @@ public class Preprocessor implements Closeable {
      *
      * @see #error(int, int, String)
      */
-    protected void error(Token tok, String msg)
+    protected void error(@Nonnull Token tok, @Nonnull String msg)
             throws LexerException {
         error(tok.getLine(), tok.getColumn(), msg);
     }
@@ -319,7 +319,7 @@ public class Preprocessor implements Closeable {
      * If a PreprocessorListener is installed, it receives the
      * warning. Otherwise, an exception is thrown.
      */
-    protected void warning(int line, int column, String msg)
+    protected void warning(int line, int column, @Nonnull String msg)
             throws LexerException {
         if (warnings.contains(Warning.ERROR))
             error(line, column, msg);
@@ -337,7 +337,7 @@ public class Preprocessor implements Closeable {
      *
      * @see #warning(int, int, String)
      */
-    protected void warning(Token tok, String msg)
+    protected void warning(@Nonnull Token tok, @Nonnull String msg)
             throws LexerException {
         warning(tok.getLine(), tok.getColumn(), msg);
     }
@@ -348,7 +348,7 @@ public class Preprocessor implements Closeable {
      * The given {@link Macro} object encapsulates both the name
      * and the expansion.
      */
-    public void addMacro(Macro m) throws LexerException {
+    public void addMacro(@Nonnull Macro m) throws LexerException {
         // System.out.println("Macro " + m);
         String name = m.getName();
         /* Already handled as a source error in macro(). */
@@ -363,7 +363,7 @@ public class Preprocessor implements Closeable {
      * The String value is lexed into a token stream, which is
      * used as the macro expansion.
      */
-    public void addMacro(String name, String value)
+    public void addMacro(@Nonnull String name, @Nonnull String value)
             throws LexerException {
         try {
             Macro m = new Macro(name);
@@ -386,7 +386,7 @@ public class Preprocessor implements Closeable {
      * This is a convnience method, and is equivalent to
      * <code>addMacro(name, "1")</code>.
      */
-    public void addMacro(String name)
+    public void addMacro(@Nonnull String name)
             throws LexerException {
         addMacro(name, "1");
     }
@@ -395,7 +395,7 @@ public class Preprocessor implements Closeable {
      * Sets the user include path used by this Preprocessor.
      */
     /* Note for future: Create an IncludeHandler? */
-    public void setQuoteIncludePath(List<String> path) {
+    public void setQuoteIncludePath(@Nonnull List<String> path) {
         this.quoteincludepath = path;
     }
 
@@ -404,6 +404,7 @@ public class Preprocessor implements Closeable {
      *
      * This list may be freely modified by user code.
      */
+    @Nonnull
     public List<String> getQuoteIncludePath() {
         return quoteincludepath;
     }
@@ -412,7 +413,7 @@ public class Preprocessor implements Closeable {
      * Sets the system include path used by this Preprocessor.
      */
     /* Note for future: Create an IncludeHandler? */
-    public void setSystemIncludePath(List<String> path) {
+    public void setSystemIncludePath(@Nonnull List<String> path) {
         this.sysincludepath = path;
     }
 
@@ -421,6 +422,7 @@ public class Preprocessor implements Closeable {
      *
      * This list may be freely modified by user code.
      */
+    @Nonnull
     public List<String> getSystemIncludePath() {
         return sysincludepath;
     }
@@ -429,7 +431,7 @@ public class Preprocessor implements Closeable {
      * Sets the Objective-C frameworks path used by this Preprocessor.
      */
     /* Note for future: Create an IncludeHandler? */
-    public void setFrameworksPath(List<String> path) {
+    public void setFrameworksPath(@Nonnull List<String> path) {
         this.frameworkspath = path;
     }
 
@@ -439,6 +441,7 @@ public class Preprocessor implements Closeable {
      *
      * This list may be freely modified by user code.
      */
+    @Nonnull
     public List<String> getFrameworksPath() {
         return frameworkspath;
     }
@@ -447,6 +450,7 @@ public class Preprocessor implements Closeable {
      * Returns the Map of Macros parsed during the run of this
      * Preprocessor.
      */
+    @Nonnull
     public Map<String, Macro> getMacros() {
         return macros;
     }
@@ -457,6 +461,7 @@ public class Preprocessor implements Closeable {
      * While you can modify the returned object, unexpected things
      * might happen if you do.
      */
+    @CheckForNull
     public Macro getMacro(String name) {
         return macros.get(name);
     }
@@ -765,8 +770,8 @@ public class Preprocessor implements Closeable {
                 }
 
                 /*
-                 for (Argument a : args)
-                 a.expand(this);
+                 * for (Argument a : args)
+                 * a.expand(this);
                  */
                 for (int i = 0; i < args.size(); i++) {
                     args.get(i).expand(this);
@@ -1060,7 +1065,7 @@ public class Preprocessor implements Closeable {
             if (tok.getType() == NL || tok.getType() == EOF)
                 return tok;
         } else {
-            Macro m = macros.get(tok.getText());
+            Macro m = getMacro(tok.getText());
             if (m != null) {
                 /* XXX error if predefined */
                 macros.remove(m.getName());
@@ -1332,7 +1337,7 @@ public class Preprocessor implements Closeable {
             Token tok = source_token();
             // System.out.println("Source token is " + tok);
             if (tok.getType() == IDENTIFIER) {
-                Macro m = macros.get(tok.getText());
+                Macro m = getMacro(tok.getText());
                 if (m == null)
                     return tok;
                 if (source.isExpanding(m))
@@ -1474,9 +1479,9 @@ public class Preprocessor implements Closeable {
             throws IOException,
             LexerException {
         /*
-         System.out.flush();
-         (new Exception("expr(" + priority + ") called")).printStackTrace();
-         System.err.flush();
+         * System.out.flush();
+         * (new Exception("expr(" + priority + ") called")).printStackTrace();
+         * System.err.flush();
          */
 
         Token tok = expr_token();
@@ -1615,9 +1620,9 @@ public class Preprocessor implements Closeable {
         }
 
         /*
-         System.out.flush();
-         (new Exception("expr returning " + lhs)).printStackTrace();
-         System.err.flush();
+         * System.out.flush();
+         * (new Exception("expr returning " + lhs)).printStackTrace();
+         * System.err.flush();
          */
         // System.out.println("expr returning " + lhs);
         return lhs;
@@ -1783,7 +1788,7 @@ public class Preprocessor implements Closeable {
                     return tok;
 
                 case IDENTIFIER:
-                    Macro m = macros.get(tok.getText());
+                    Macro m = getMacro(tok.getText());
                     if (m == null)
                         return tok;
                     if (source.isExpanding(m))
@@ -2050,7 +2055,7 @@ public class Preprocessor implements Closeable {
         Iterator<String> mt = keys.iterator();
         while (mt.hasNext()) {
             String key = mt.next();
-            Macro macro = macros.get(key);
+            Macro macro = getMacro(key);
             buf.append("#").append("macro ").append(macro).append("\n");
         }
 
