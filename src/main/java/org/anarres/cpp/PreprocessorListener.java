@@ -82,4 +82,7 @@ public class PreprocessorListener {
     public void handleSourceChange(Source source, String event) {
     }
 
+    public void handlePreprocesorDirective(Source source, PreprocessorDirective directive) {
+    }
+
 }

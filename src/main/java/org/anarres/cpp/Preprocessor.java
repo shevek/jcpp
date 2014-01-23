@@ -301,6 +301,17 @@ public class Preprocessor implements Closeable {
     }
 
     /**
+     * Handles a preprocessor directive.
+     *
+     * If a PreprocessorListener is installed, it receives the
+     * directive. Otherwise, it is ignored.
+     */
+    protected void directive(PreprocessorDirective directive) {
+        if (listener != null)
+            listener.handlePreprocesorDirective(getSource(), directive);
+    }
+
+    /**
      * Handles an error.
      *
      * If a PreprocessorListener is installed, it receives the
@@ -880,10 +891,11 @@ public class Preprocessor implements Closeable {
     }
 
     /* processes a #define directive */
-    private Token define()
+    private Token define(@Nonnull PreprocessorDirective preprocessorDirective)
             throws IOException,
             LexerException {
         Token tok = source_token_nonwhite();
+        preprocessorDirective.addToken(tok);
         if (tok.getType() != IDENTIFIER) {
             error(tok, "Expected identifier");
             return source_skipline(false);
@@ -900,8 +912,10 @@ public class Preprocessor implements Closeable {
         List<String> args;
 
         tok = source_token();
+        preprocessorDirective.addToken(tok);
         if (tok.getType() == '(') {
             tok = source_token_nonwhite();
+            preprocessorDirective.addToken(tok);
             if (tok.getType() != ')') {
                 args = new ArrayList<String>();
                 ARGS:
@@ -929,6 +943,7 @@ public class Preprocessor implements Closeable {
                             return source_skipline(false);
                     }
                     tok = source_token_nonwhite();
+                    preprocessorDirective.addToken(tok);
                     switch (tok.getType()) {
                         case ',':
                             break;
@@ -955,6 +970,7 @@ public class Preprocessor implements Closeable {
                             return source_skipline(false);
                     }
                     tok = source_token_nonwhite();
+                    preprocessorDirective.addToken(tok);
                 }
             } else {
                 assert tok.getType() == ')' : "Expected ')'";
@@ -975,6 +991,7 @@ public class Preprocessor implements Closeable {
 
         /* Ensure no space at start. */
         tok = source_token_nonwhite();
+        preprocessorDirective.addToken(tok);
         EXPANSION:
         for (;;) {
             switch (tok.getType()) {
@@ -1044,7 +1061,10 @@ public class Preprocessor implements Closeable {
                     break;
             }
             tok = source_token();
+            preprocessorDirective.addToken(tok);
         }
+
+        directive(preprocessorDirective);
 
         if (getFeature(Feature.DEBUG))
             System.err.println("Defined macro " + m);
@@ -1055,10 +1075,11 @@ public class Preprocessor implements Closeable {
     }
 
     @Nonnull
-    private Token undef()
+    private Token undef(@Nonnull PreprocessorDirective preprocessorDirective)
             throws IOException,
             LexerException {
         Token tok = source_token_nonwhite();
+        preprocessorDirective.addToken(tok);
         if (tok.getType() != IDENTIFIER) {
             error(tok,
                     "Expected identifier, not " + tok.getText());
@@ -1070,6 +1091,7 @@ public class Preprocessor implements Closeable {
                 /* XXX error if predefined */
                 macros.remove(m.getName());
             }
+            directive(preprocessorDirective);
         }
         return source_skipline(true);
     }
@@ -1146,13 +1168,14 @@ public class Preprocessor implements Closeable {
     }
 
     @Nonnull
-    private Token include(boolean next)
+    private Token include(boolean next, @Nonnull PreprocessorDirective preprocessorDirective)
             throws IOException,
             LexerException {
         LexerSource lexer = (LexerSource) source;
         try {
             lexer.setInclude(true);
             Token tok = token_nonwhite();
+            preprocessorDirective.addToken(tok);
 
             String name;
             boolean quoted;
@@ -1164,6 +1187,7 @@ public class Preprocessor implements Closeable {
                 HEADER:
                 for (;;) {
                     tok = token_nonwhite();
+                    preprocessorDirective.addToken(tok);
                     switch (tok.getType()) {
                         case STRING:
                             buf.append((String) tok.getValue());
@@ -1195,7 +1219,7 @@ public class Preprocessor implements Closeable {
                         return source_skipline(false);
                 }
             }
-
+            directive(preprocessorDirective);
             /* Do the inclusion. */
             include(source.getPath(), tok.getLine(), name, quoted, next);
 
@@ -1233,7 +1257,7 @@ public class Preprocessor implements Closeable {
     }
 
     @Nonnull
-    private Token pragma()
+    private Token pragma(@Nonnull PreprocessorDirective preprocessorDirective)
             throws IOException,
             LexerException {
         Token name;
@@ -1241,6 +1265,7 @@ public class Preprocessor implements Closeable {
         NAME:
         for (;;) {
             Token tok = token();
+            preprocessorDirective.addToken(tok);
             switch (tok.getType()) {
                 case EOF:
                     /* There ought to be a newline before EOF.
@@ -1271,6 +1296,7 @@ public class Preprocessor implements Closeable {
         VALUE:
         for (;;) {
             tok = token();
+            preprocessorDirective.addToken(tok);
             switch (tok.getType()) {
                 case EOF:
                     /* There ought to be a newline before EOF.
@@ -1294,6 +1320,7 @@ public class Preprocessor implements Closeable {
             }
         }
 
+        directive(preprocessorDirective);
         pragma(name, value);
 
         return tok;	/* The NL. */
@@ -1301,13 +1328,14 @@ public class Preprocessor implements Closeable {
     }
 
     /* For #error and #warning. */
-    private void error(@Nonnull Token pptok, boolean is_error)
+    private void error(@Nonnull Token pptok, boolean is_error, @Nonnull PreprocessorDirective preprocessorDirective)
             throws IOException,
             LexerException {
         StringBuilder buf = new StringBuilder();
         buf.append('#').append(pptok.getText()).append(' ');
         /* Peculiar construction to ditch first whitespace. */
         Token tok = source_token_nonwhite();
+        preprocessorDirective.addToken(tok);
         ERROR:
         for (;;) {
             switch (tok.getType()) {
@@ -1319,11 +1347,14 @@ public class Preprocessor implements Closeable {
                     break;
             }
             tok = source_token();
+            preprocessorDirective.addToken(tok);
         }
         if (is_error)
             error(pptok, buf.toString());
         else
             warning(pptok, buf.toString());
+
+        directive(preprocessorDirective);
     }
 
     /* This bypasses token() for #elif expressions.
@@ -1812,7 +1843,10 @@ public class Preprocessor implements Closeable {
                 // break;
 
                 case HASH:
+                    PreprocessorDirective preprocessorDirective = new PreprocessorDirective();
+                    preprocessorDirective.addToken(tok);
                     tok = source_token_nonwhite();
+                    preprocessorDirective.addToken(tok);
                     // (new Exception("here")).printStackTrace();
                     switch (tok.getType()) {
                         case NL:
@@ -1841,21 +1875,21 @@ public class Preprocessor implements Closeable {
                             if (!isActive())
                                 return source_skipline(false);
                             else
-                                return define();
+                                return define(preprocessorDirective);
                         // break;
 
                         case PP_UNDEF:
                             if (!isActive())
                                 return source_skipline(false);
                             else
-                                return undef();
+                                return undef(preprocessorDirective);
                         // break;
 
                         case PP_INCLUDE:
                             if (!isActive())
                                 return source_skipline(false);
                             else
-                                return include(false);
+                                return include(false, preprocessorDirective);
                         // break;
                         case PP_INCLUDE_NEXT:
                             if (!isActive())
@@ -1866,7 +1900,7 @@ public class Preprocessor implements Closeable {
                                 );
                                 return source_skipline(false);
                             }
-                            return include(true);
+                            return include(true, preprocessorDirective);
                         // break;
 
                         case PP_WARNING:
@@ -1874,7 +1908,7 @@ public class Preprocessor implements Closeable {
                             if (!isActive())
                                 return source_skipline(false);
                             else
-                                error(tok, ppcmd == PP_ERROR);
+                                error(tok, ppcmd == PP_ERROR, preprocessorDirective);
                             break;
 
                         case PP_IF:
@@ -1940,6 +1974,7 @@ public class Preprocessor implements Closeable {
                                 return source_skipline(false);
                             } else {
                                 tok = source_token_nonwhite();
+                                preprocessorDirective.addToken(tok);
                                 // System.out.println("ifdef " + tok);
                                 if (tok.getType() != IDENTIFIER) {
                                     error(tok,
@@ -1947,6 +1982,7 @@ public class Preprocessor implements Closeable {
                                             + tok.getText());
                                     return source_skipline(false);
                                 } else {
+                                    directive(preprocessorDirective);
                                     String text = tok.getText();
                                     boolean exists
                                             = macros.containsKey(text);
@@ -1962,12 +1998,14 @@ public class Preprocessor implements Closeable {
                                 return source_skipline(false);
                             } else {
                                 tok = source_token_nonwhite();
+                                preprocessorDirective.addToken(tok);
                                 if (tok.getType() != IDENTIFIER) {
                                     error(tok,
                                             "Expected identifier, not "
                                             + tok.getText());
                                     return source_skipline(false);
                                 } else {
+                                    directive(preprocessorDirective);
                                     String text = tok.getText();
                                     boolean exists
                                             = macros.containsKey(text);
@@ -1979,17 +2017,19 @@ public class Preprocessor implements Closeable {
 
                         case PP_ENDIF:
                             pop_state();
+                            directive(preprocessorDirective);
                             return source_skipline(warnings.contains(Warning.ENDIF_LABELS));
                         // break;
 
                         case PP_LINE:
+                            directive(preprocessorDirective);
                             return source_skipline(false);
                         // break;
 
                         case PP_PRAGMA:
                             if (!isActive())
                                 return source_skipline(false);
-                            return pragma();
+                            return pragma(preprocessorDirective);
                         // break;
 
                         default:
