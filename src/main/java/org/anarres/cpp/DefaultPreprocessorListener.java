@@ -1,3 +1,5 @@
+package org.anarres.cpp;
+
 /*
  * Anarres C Preprocessor
  * Copyright (c) 2007-2008, Shevek
@@ -6,15 +8,15 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
- * or implied.  See the License for the specific language governing
+ * or implied. See the License for the specific language governing
  * permissions and limitations under the License.
  */
-package org.anarres.cpp;
+import javax.annotation.Nonnegative;
 
 /**
  * A handler for preprocessor events, primarily errors and warnings.
@@ -23,7 +25,33 @@ package org.anarres.cpp;
  * error and warning events will throw an exception. Installing a
  * listener allows more intelligent handling of these events.
  */
-public interface PreprocessorListener {
+public class DefaultPreprocessorListener implements PreprocessorListener {
+
+    private int errors;
+    private int warnings;
+
+    public DefaultPreprocessorListener() {
+        clear();
+    }
+
+    public void clear() {
+        errors = 0;
+        warnings = 0;
+    }
+
+    @Nonnegative
+    public int getErrors() {
+        return errors;
+    }
+
+    @Nonnegative
+    public int getWarnings() {
+        return warnings;
+    }
+
+    protected void print(String msg) {
+        System.err.println(msg);
+    }
 
     /**
      * Handles a warning.
@@ -34,7 +62,11 @@ public interface PreprocessorListener {
      */
     public void handleWarning(Source source, int line, int column,
             String msg)
-            throws LexerException;
+            throws LexerException {
+        warnings++;
+        print(source.getName() + ":" + line + ":" + column
+                + ": warning: " + msg);
+    }
 
     /**
      * Handles an error.
@@ -45,10 +77,17 @@ public interface PreprocessorListener {
      */
     public void handleError(Source source, int line, int column,
             String msg)
-            throws LexerException;
+            throws LexerException {
+        errors++;
+        print(source.getName() + ":" + line + ":" + column
+                + ": error: " + msg);
+    }
 
-    public void handleSourceChange(Source source, String event);
+    public void handleSourceChange(Source source, String event) {
+    }
 
-    public void handlePreprocesorDirective(Source source, PreprocessorDirective directive);
+    public void handlePreprocesorDirective(Source source, PreprocessorDirective directive) {
+        System.err.println(directive.toString());
+    }
 
 }

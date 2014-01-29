@@ -92,7 +92,7 @@ public class Main {
         pp.addFeature(Feature.TRIGRAPHS);
         pp.addFeature(Feature.LINEMARKERS);
         pp.addWarning(Warning.IMPORT);
-        pp.setListener(new PreprocessorListener());
+        pp.setListener(new DefaultPreprocessorListener());
         pp.addMacro("__JCPP__");
         pp.getSystemIncludePath().add("/usr/local/include");
         pp.getSystemIncludePath().add("/usr/include");

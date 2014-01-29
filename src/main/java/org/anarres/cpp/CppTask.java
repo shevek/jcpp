@@ -34,7 +34,7 @@ import org.apache.tools.ant.types.Path;
  */
 public class CppTask extends Copy {
 
-    private class Listener extends PreprocessorListener {
+    private class Listener extends DefaultPreprocessorListener {
 
         @Override
         protected void print(String msg) {
