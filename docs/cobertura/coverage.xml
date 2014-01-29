@@ -1,12 +1,12 @@
 <?xml version="1.0"?>
 <!DOCTYPE coverage SYSTEM "http://cobertura.sourceforge.net/xml/coverage-04.dtd">
 
-<coverage line-rate="0.5609126130004305" branch-rate="0.4645048203330412" lines-covered="1303" lines-valid="2323" branches-covered="530" branches-valid="1141" complexity="4.110759493670886" version="2.0.3" timestamp="1390153796040">
+<coverage line-rate="0.5609126130004305" branch-rate="0.4645048203330412" lines-covered="1303" lines-valid="2323" branches-covered="530" branches-valid="1141" complexity="4.081504702194358" version="2.0.3" timestamp="1390983987539">
 	<sources>
 		<source>/home/shevek/java/jcpp/src/main/java</source>
 	</sources>
 	<packages>
-		<package name="org.anarres.cpp" line-rate="0.5609126130004305" branch-rate="0.4645048203330412" complexity="4.110759493670886">
+		<package name="org.anarres.cpp" line-rate="0.5609126130004305" branch-rate="0.4645048203330412" complexity="4.081504702194358">
 			<classes>
 				<class name="org.anarres.cpp.Argument" filename="org/anarres/cpp/Argument.java" line-rate="0.42857142857142855" branch-rate="0.125" complexity="1.8">
 					<methods>
@@ -884,6 +884,78 @@
 						<line number="59" hits="0" branch="false"/>
 						<line number="60" hits="0" branch="false"/>
 						<line number="63" hits="0" branch="false"/>
+					</lines>
+				</class>
+				<class name="org.anarres.cpp.DefaultPreprocessorListener" filename="org/anarres/cpp/DefaultPreprocessorListener.java" line-rate="0.7647058823529411" branch-rate="1.0" complexity="1.0">
+					<methods>
+						<method name="&lt;init&gt;" signature="()V" line-rate="1.0" branch-rate="1.0">
+							<lines>
+								<line number="33" hits="3" branch="false"/>
+								<line number="34" hits="3" branch="false"/>
+								<line number="35" hits="3" branch="false"/>
+							</lines>
+						</method>
+						<method name="clear" signature="()V" line-rate="1.0" branch-rate="1.0">
+							<lines>
+								<line number="38" hits="3" branch="false"/>
+								<line number="39" hits="3" branch="false"/>
+								<line number="40" hits="3" branch="false"/>
+							</lines>
+						</method>
+						<method name="getErrors" signature="()I" line-rate="1.0" branch-rate="1.0">
+							<lines>
+								<line number="44" hits="2" branch="false"/>
+							</lines>
+						</method>
+						<method name="getWarnings" signature="()I" line-rate="0.0" branch-rate="1.0">
+							<lines>
+								<line number="49" hits="0" branch="false"/>
+							</lines>
+						</method>
+						<method name="handleError" signature="(Lorg/anarres/cpp/Source;IILjava/lang/String;)V" line-rate="1.0" branch-rate="1.0">
+							<lines>
+								<line number="81" hits="2" branch="false"/>
+								<line number="82" hits="2" branch="false"/>
+								<line number="84" hits="2" branch="false"/>
+							</lines>
+						</method>
+						<method name="handleSourceChange" signature="(Lorg/anarres/cpp/Source;Ljava/lang/String;)V" line-rate="1.0" branch-rate="1.0">
+							<lines>
+								<line number="87" hits="4" branch="false"/>
+							</lines>
+						</method>
+						<method name="handleWarning" signature="(Lorg/anarres/cpp/Source;IILjava/lang/String;)V" line-rate="0.0" branch-rate="1.0">
+							<lines>
+								<line number="66" hits="0" branch="false"/>
+								<line number="67" hits="0" branch="false"/>
+								<line number="69" hits="0" branch="false"/>
+							</lines>
+						</method>
+						<method name="print" signature="(Ljava/lang/String;)V" line-rate="1.0" branch-rate="1.0">
+							<lines>
+								<line number="53" hits="2" branch="false"/>
+								<line number="54" hits="2" branch="false"/>
+							</lines>
+						</method>
+					</methods>
+					<lines>
+						<line number="33" hits="3" branch="false"/>
+						<line number="34" hits="3" branch="false"/>
+						<line number="35" hits="3" branch="false"/>
+						<line number="38" hits="3" branch="false"/>
+						<line number="39" hits="3" branch="false"/>
+						<line number="40" hits="3" branch="false"/>
+						<line number="44" hits="2" branch="false"/>
+						<line number="49" hits="0" branch="false"/>
+						<line number="53" hits="2" branch="false"/>
+						<line number="54" hits="2" branch="false"/>
+						<line number="66" hits="0" branch="false"/>
+						<line number="67" hits="0" branch="false"/>
+						<line number="69" hits="0" branch="false"/>
+						<line number="81" hits="2" branch="false"/>
+						<line number="82" hits="2" branch="false"/>
+						<line number="84" hits="2" branch="false"/>
+						<line number="87" hits="4" branch="false"/>
 					</lines>
 				</class>
 				<class name="org.anarres.cpp.Feature" filename="org/anarres/cpp/Feature.java" line-rate="1.0" branch-rate="1.0" complexity="0.0">
@@ -8686,76 +8758,10 @@
 						<line number="42" hits="0" branch="false"/>
 					</lines>
 				</class>
-				<class name="org.anarres.cpp.PreprocessorListener" filename="org/anarres/cpp/PreprocessorListener.java" line-rate="0.7647058823529411" branch-rate="1.0" complexity="1.0">
+				<class name="org.anarres.cpp.PreprocessorListener" filename="org/anarres/cpp/PreprocessorListener.java" line-rate="1.0" branch-rate="1.0" complexity="1.0">
 					<methods>
-						<method name="&lt;init&gt;" signature="()V" line-rate="1.0" branch-rate="1.0">
-							<lines>
-								<line number="31" hits="3" branch="false"/>
-								<line number="32" hits="3" branch="false"/>
-								<line number="33" hits="3" branch="false"/>
-							</lines>
-						</method>
-						<method name="clear" signature="()V" line-rate="1.0" branch-rate="1.0">
-							<lines>
-								<line number="36" hits="3" branch="false"/>
-								<line number="37" hits="3" branch="false"/>
-								<line number="38" hits="3" branch="false"/>
-							</lines>
-						</method>
-						<method name="getErrors" signature="()I" line-rate="1.0" branch-rate="1.0">
-							<lines>
-								<line number="41" hits="2" branch="false"/>
-							</lines>
-						</method>
-						<method name="getWarnings" signature="()I" line-rate="0.0" branch-rate="1.0">
-							<lines>
-								<line number="45" hits="0" branch="false"/>
-							</lines>
-						</method>
-						<method name="handleError" signature="(Lorg/anarres/cpp/Source;IILjava/lang/String;)V" line-rate="1.0" branch-rate="1.0">
-							<lines>
-								<line number="77" hits="2" branch="false"/>
-								<line number="78" hits="2" branch="false"/>
-								<line number="80" hits="2" branch="false"/>
-							</lines>
-						</method>
-						<method name="handleSourceChange" signature="(Lorg/anarres/cpp/Source;Ljava/lang/String;)V" line-rate="1.0" branch-rate="1.0">
-							<lines>
-								<line number="83" hits="4" branch="false"/>
-							</lines>
-						</method>
-						<method name="handleWarning" signature="(Lorg/anarres/cpp/Source;IILjava/lang/String;)V" line-rate="0.0" branch-rate="1.0">
-							<lines>
-								<line number="62" hits="0" branch="false"/>
-								<line number="63" hits="0" branch="false"/>
-								<line number="65" hits="0" branch="false"/>
-							</lines>
-						</method>
-						<method name="print" signature="(Ljava/lang/String;)V" line-rate="1.0" branch-rate="1.0">
-							<lines>
-								<line number="49" hits="2" branch="false"/>
-								<line number="50" hits="2" branch="false"/>
-							</lines>
-						</method>
 					</methods>
 					<lines>
-						<line number="31" hits="3" branch="false"/>
-						<line number="32" hits="3" branch="false"/>
-						<line number="33" hits="3" branch="false"/>
-						<line number="36" hits="3" branch="false"/>
-						<line number="37" hits="3" branch="false"/>
-						<line number="38" hits="3" branch="false"/>
-						<line number="41" hits="2" branch="false"/>
-						<line number="45" hits="0" branch="false"/>
-						<line number="49" hits="2" branch="false"/>
-						<line number="50" hits="2" branch="false"/>
-						<line number="62" hits="0" branch="false"/>
-						<line number="63" hits="0" branch="false"/>
-						<line number="65" hits="0" branch="false"/>
-						<line number="77" hits="2" branch="false"/>
-						<line number="78" hits="2" branch="false"/>
-						<line number="80" hits="2" branch="false"/>
-						<line number="83" hits="4" branch="false"/>
 					</lines>
 				</class>
 				<class name="org.anarres.cpp.ResourceFileSystem" filename="org/anarres/cpp/ResourceFileSystem.java" line-rate="0.0" branch-rate="1.0" complexity="1.3">
@@ -8872,286 +8878,286 @@
 					<methods>
 						<method name="&lt;init&gt;" signature="()V" line-rate="1.0" branch-rate="1.0">
 							<lines>
-								<line number="79" hits="170" branch="false"/>
 								<line number="80" hits="170" branch="false"/>
 								<line number="81" hits="170" branch="false"/>
 								<line number="82" hits="170" branch="false"/>
 								<line number="83" hits="170" branch="false"/>
 								<line number="84" hits="170" branch="false"/>
 								<line number="85" hits="170" branch="false"/>
+								<line number="86" hits="170" branch="false"/>
 							</lines>
 						</method>
 						<method name="close" signature="()V" line-rate="1.0" branch-rate="1.0">
 							<lines>
-								<line number="287" hits="173" branch="false"/>
+								<line number="290" hits="173" branch="false"/>
 							</lines>
 						</method>
 						<method name="error" signature="(IILjava/lang/String;)V" line-rate="0.0" branch-rate="0.0">
 							<lines>
-								<line number="269" hits="0" branch="true" condition-coverage="0% (0/2)">
+								<line number="272" hits="0" branch="true" condition-coverage="0% (0/2)">
 									<conditions>
 										<condition number="0" type="jump" coverage="0%"/>
 									</conditions>
 								</line>
-								<line number="270" hits="0" branch="false"/>
-								<line number="272" hits="0" branch="false"/>
 								<line number="273" hits="0" branch="false"/>
+								<line number="275" hits="0" branch="false"/>
+								<line number="276" hits="0" branch="false"/>
 							</lines>
 						</method>
 						<method name="getColumn" signature="()I" line-rate="0.0" branch-rate="0.0">
 							<lines>
-								<line number="163" hits="0" branch="false"/>
-								<line number="164" hits="0" branch="true" condition-coverage="0% (0/2)">
+								<line number="166" hits="0" branch="false"/>
+								<line number="167" hits="0" branch="true" condition-coverage="0% (0/2)">
 									<conditions>
 										<condition number="0" type="jump" coverage="0%"/>
 									</conditions>
 								</line>
-								<line number="165" hits="0" branch="false"/>
-								<line number="166" hits="0" branch="false"/>
+								<line number="168" hits="0" branch="false"/>
+								<line number="169" hits="0" branch="false"/>
 							</lines>
 						</method>
 						<method name="getLine" signature="()I" line-rate="0.0" branch-rate="0.0">
 							<lines>
-								<line number="153" hits="0" branch="false"/>
-								<line number="154" hits="0" branch="true" condition-coverage="0% (0/2)">
+								<line number="156" hits="0" branch="false"/>
+								<line number="157" hits="0" branch="true" condition-coverage="0% (0/2)">
 									<conditions>
 										<condition number="0" type="jump" coverage="0%"/>
 									</conditions>
 								</line>
-								<line number="155" hits="0" branch="false"/>
-								<line number="156" hits="0" branch="false"/>
+								<line number="158" hits="0" branch="false"/>
+								<line number="159" hits="0" branch="false"/>
 							</lines>
 						</method>
 						<method name="getName" signature="()Ljava/lang/String;" line-rate="0.75" branch-rate="0.5">
 							<lines>
-								<line number="143" hits="3" branch="false"/>
-								<line number="144" hits="3" branch="true" condition-coverage="50% (1/2)">
+								<line number="145" hits="3" branch="false"/>
+								<line number="146" hits="3" branch="true" condition-coverage="50% (1/2)">
 									<conditions>
 										<condition number="0" type="jump" coverage="50%"/>
 									</conditions>
 								</line>
-								<line number="145" hits="0" branch="false"/>
-								<line number="146" hits="3" branch="false"/>
+								<line number="147" hits="0" branch="false"/>
+								<line number="148" hits="3" branch="false"/>
 							</lines>
 						</method>
 						<method name="getParent" signature="()Lorg/anarres/cpp/Source;" line-rate="1.0" branch-rate="1.0">
 							<lines>
-								<line number="103" hits="193" branch="false"/>
+								<line number="104" hits="193" branch="false"/>
 							</lines>
 						</method>
 						<method name="getPath" signature="()Ljava/lang/String;" line-rate="0.75" branch-rate="0.5">
 							<lines>
-								<line number="133" hits="4" branch="false"/>
-								<line number="134" hits="4" branch="true" condition-coverage="50% (1/2)">
+								<line number="134" hits="4" branch="false"/>
+								<line number="135" hits="4" branch="true" condition-coverage="50% (1/2)">
 									<conditions>
 										<condition number="0" type="jump" coverage="50%"/>
 									</conditions>
 								</line>
-								<line number="135" hits="0" branch="false"/>
-								<line number="136" hits="4" branch="false"/>
+								<line number="136" hits="0" branch="false"/>
+								<line number="137" hits="4" branch="false"/>
 							</lines>
 						</method>
 						<method name="init" signature="(Lorg/anarres/cpp/Preprocessor;)V" line-rate="1.0" branch-rate="1.0">
 							<lines>
-								<line number="109" hits="119" branch="false"/>
 								<line number="110" hits="119" branch="false"/>
 								<line number="111" hits="119" branch="false"/>
+								<line number="112" hits="119" branch="false"/>
 							</lines>
 						</method>
 						<method name="isActive" signature="()Z" line-rate="0.0" branch-rate="1.0">
 							<lines>
-								<line number="205" hits="0" branch="false"/>
+								<line number="208" hits="0" branch="false"/>
 							</lines>
 						</method>
 						<method name="isAutopop" signature="()Z" line-rate="1.0" branch-rate="1.0">
 							<lines>
-								<line number="188" hits="100" branch="false"/>
+								<line number="191" hits="100" branch="false"/>
 							</lines>
 						</method>
 						<method name="isExpanding" signature="(Lorg/anarres/cpp/Macro;)Z" line-rate="1.0" branch-rate="1.0">
 							<lines>
-								<line number="175" hits="84" branch="false"/>
-								<line number="176" hits="84" branch="true" condition-coverage="100% (2/2)">
+								<line number="178" hits="84" branch="false"/>
+								<line number="179" hits="84" branch="true" condition-coverage="100% (2/2)">
 									<conditions>
 										<condition number="0" type="jump" coverage="100%"/>
 									</conditions>
 								</line>
-								<line number="177" hits="34" branch="false"/>
-								<line number="178" hits="50" branch="false"/>
+								<line number="180" hits="34" branch="false"/>
+								<line number="181" hits="50" branch="false"/>
 							</lines>
 						</method>
 						<method name="isNumbered" signature="()Z" line-rate="1.0" branch-rate="1.0">
 							<lines>
-								<line number="195" hits="1" branch="false"/>
+								<line number="198" hits="1" branch="false"/>
 							</lines>
 						</method>
 						<method name="iterator" signature="()Ljava/util/Iterator;" line-rate="0.0" branch-rate="1.0">
 							<lines>
-								<line number="223" hits="0" branch="false"/>
+								<line number="226" hits="0" branch="false"/>
 							</lines>
 						</method>
 						<method name="setActive" signature="(Z)V" line-rate="0.0" branch-rate="1.0">
 							<lines>
-								<line number="201" hits="0" branch="false"/>
-								<line number="202" hits="0" branch="false"/>
+								<line number="204" hits="0" branch="false"/>
+								<line number="205" hits="0" branch="false"/>
 							</lines>
 						</method>
 						<method name="setListener" signature="(Lorg/anarres/cpp/PreprocessorListener;)V" line-rate="1.0" branch-rate="1.0">
 							<lines>
-								<line number="121" hits="119" branch="false"/>
 								<line number="122" hits="119" branch="false"/>
+								<line number="123" hits="119" branch="false"/>
 							</lines>
 						</method>
 						<method name="setParent" signature="(Lorg/anarres/cpp/Source;Z)V" line-rate="1.0" branch-rate="1.0">
 							<lines>
-								<line number="93" hits="108" branch="false"/>
 								<line number="94" hits="108" branch="false"/>
 								<line number="95" hits="108" branch="false"/>
+								<line number="96" hits="108" branch="false"/>
 							</lines>
 						</method>
 						<method name="skipline" signature="(Z)Lorg/anarres/cpp/Token;" line-rate="0.3333333333333333" branch-rate="0.16666666666666666">
 							<lines>
-								<line number="238" hits="8" branch="false"/>
-								<line number="239" hits="8" branch="true" condition-coverage="25% (1/4)">
+								<line number="241" hits="8" branch="false"/>
+								<line number="242" hits="8" branch="true" condition-coverage="25% (1/4)">
 									<conditions>
 										<condition number="0" type="switch" coverage="25%"/>
 									</conditions>
 								</line>
-								<line number="244" hits="0" branch="false"/>
-								<line number="246" hits="0" branch="false"/>
-								<line number="252" hits="8" branch="false"/>
-								<line number="256" hits="0" branch="false"/>
-								<line number="259" hits="0" branch="true" condition-coverage="0% (0/2)">
+								<line number="247" hits="0" branch="false"/>
+								<line number="249" hits="0" branch="false"/>
+								<line number="255" hits="8" branch="false"/>
+								<line number="259" hits="0" branch="false"/>
+								<line number="262" hits="0" branch="true" condition-coverage="0% (0/2)">
 									<conditions>
 										<condition number="0" type="jump" coverage="0%"/>
 									</conditions>
 								</line>
-								<line number="260" hits="0" branch="false"/>
-								<line number="264" hits="0" branch="false"/>
+								<line number="263" hits="0" branch="false"/>
+								<line number="267" hits="0" branch="false"/>
 							</lines>
 						</method>
 						<method name="warning" signature="(IILjava/lang/String;)V" line-rate="0.5" branch-rate="0.5">
 							<lines>
-								<line number="277" hits="1" branch="true" condition-coverage="50% (1/2)">
+								<line number="280" hits="1" branch="true" condition-coverage="50% (1/2)">
 									<conditions>
 										<condition number="0" type="jump" coverage="50%"/>
 									</conditions>
 								</line>
-								<line number="278" hits="0" branch="false"/>
-								<line number="279" hits="1" branch="true" condition-coverage="50% (1/2)">
+								<line number="281" hits="0" branch="false"/>
+								<line number="282" hits="1" branch="true" condition-coverage="50% (1/2)">
 									<conditions>
 										<condition number="0" type="jump" coverage="50%"/>
 									</conditions>
 								</line>
-								<line number="280" hits="0" branch="false"/>
-								<line number="282" hits="1" branch="false"/>
 								<line number="283" hits="0" branch="false"/>
+								<line number="285" hits="1" branch="false"/>
+								<line number="286" hits="0" branch="false"/>
 							</lines>
 						</method>
 					</methods>
 					<lines>
-						<line number="79" hits="170" branch="false"/>
 						<line number="80" hits="170" branch="false"/>
 						<line number="81" hits="170" branch="false"/>
 						<line number="82" hits="170" branch="false"/>
 						<line number="83" hits="170" branch="false"/>
 						<line number="84" hits="170" branch="false"/>
 						<line number="85" hits="170" branch="false"/>
-						<line number="93" hits="108" branch="false"/>
+						<line number="86" hits="170" branch="false"/>
 						<line number="94" hits="108" branch="false"/>
 						<line number="95" hits="108" branch="false"/>
-						<line number="103" hits="193" branch="false"/>
-						<line number="109" hits="119" branch="false"/>
+						<line number="96" hits="108" branch="false"/>
+						<line number="104" hits="193" branch="false"/>
 						<line number="110" hits="119" branch="false"/>
 						<line number="111" hits="119" branch="false"/>
-						<line number="121" hits="119" branch="false"/>
+						<line number="112" hits="119" branch="false"/>
 						<line number="122" hits="119" branch="false"/>
-						<line number="133" hits="4" branch="false"/>
-						<line number="134" hits="4" branch="true" condition-coverage="50% (1/2)">
+						<line number="123" hits="119" branch="false"/>
+						<line number="134" hits="4" branch="false"/>
+						<line number="135" hits="4" branch="true" condition-coverage="50% (1/2)">
 							<conditions>
 								<condition number="0" type="jump" coverage="50%"/>
 							</conditions>
 						</line>
-						<line number="135" hits="0" branch="false"/>
-						<line number="136" hits="4" branch="false"/>
-						<line number="143" hits="3" branch="false"/>
-						<line number="144" hits="3" branch="true" condition-coverage="50% (1/2)">
+						<line number="136" hits="0" branch="false"/>
+						<line number="137" hits="4" branch="false"/>
+						<line number="145" hits="3" branch="false"/>
+						<line number="146" hits="3" branch="true" condition-coverage="50% (1/2)">
 							<conditions>
 								<condition number="0" type="jump" coverage="50%"/>
 							</conditions>
 						</line>
-						<line number="145" hits="0" branch="false"/>
-						<line number="146" hits="3" branch="false"/>
-						<line number="153" hits="0" branch="false"/>
-						<line number="154" hits="0" branch="true" condition-coverage="0% (0/2)">
-							<conditions>
-								<condition number="0" type="jump" coverage="0%"/>
-							</conditions>
-						</line>
-						<line number="155" hits="0" branch="false"/>
+						<line number="147" hits="0" branch="false"/>
+						<line number="148" hits="3" branch="false"/>
 						<line number="156" hits="0" branch="false"/>
-						<line number="163" hits="0" branch="false"/>
-						<line number="164" hits="0" branch="true" condition-coverage="0% (0/2)">
+						<line number="157" hits="0" branch="true" condition-coverage="0% (0/2)">
 							<conditions>
 								<condition number="0" type="jump" coverage="0%"/>
 							</conditions>
 						</line>
-						<line number="165" hits="0" branch="false"/>
+						<line number="158" hits="0" branch="false"/>
+						<line number="159" hits="0" branch="false"/>
 						<line number="166" hits="0" branch="false"/>
-						<line number="175" hits="84" branch="false"/>
-						<line number="176" hits="84" branch="true" condition-coverage="100% (2/2)">
+						<line number="167" hits="0" branch="true" condition-coverage="0% (0/2)">
+							<conditions>
+								<condition number="0" type="jump" coverage="0%"/>
+							</conditions>
+						</line>
+						<line number="168" hits="0" branch="false"/>
+						<line number="169" hits="0" branch="false"/>
+						<line number="178" hits="84" branch="false"/>
+						<line number="179" hits="84" branch="true" condition-coverage="100% (2/2)">
 							<conditions>
 								<condition number="0" type="jump" coverage="100%"/>
 							</conditions>
 						</line>
-						<line number="177" hits="34" branch="false"/>
-						<line number="178" hits="50" branch="false"/>
-						<line number="188" hits="100" branch="false"/>
-						<line number="195" hits="1" branch="false"/>
-						<line number="201" hits="0" branch="false"/>
-						<line number="202" hits="0" branch="false"/>
+						<line number="180" hits="34" branch="false"/>
+						<line number="181" hits="50" branch="false"/>
+						<line number="191" hits="100" branch="false"/>
+						<line number="198" hits="1" branch="false"/>
+						<line number="204" hits="0" branch="false"/>
 						<line number="205" hits="0" branch="false"/>
-						<line number="223" hits="0" branch="false"/>
-						<line number="238" hits="8" branch="false"/>
-						<line number="239" hits="8" branch="true" condition-coverage="25% (1/4)">
+						<line number="208" hits="0" branch="false"/>
+						<line number="226" hits="0" branch="false"/>
+						<line number="241" hits="8" branch="false"/>
+						<line number="242" hits="8" branch="true" condition-coverage="25% (1/4)">
 							<conditions>
 								<condition number="0" type="switch" coverage="25%"/>
 							</conditions>
 						</line>
-						<line number="244" hits="0" branch="false"/>
-						<line number="246" hits="0" branch="false"/>
-						<line number="252" hits="8" branch="false"/>
-						<line number="256" hits="0" branch="false"/>
-						<line number="259" hits="0" branch="true" condition-coverage="0% (0/2)">
+						<line number="247" hits="0" branch="false"/>
+						<line number="249" hits="0" branch="false"/>
+						<line number="255" hits="8" branch="false"/>
+						<line number="259" hits="0" branch="false"/>
+						<line number="262" hits="0" branch="true" condition-coverage="0% (0/2)">
 							<conditions>
 								<condition number="0" type="jump" coverage="0%"/>
 							</conditions>
 						</line>
-						<line number="260" hits="0" branch="false"/>
-						<line number="264" hits="0" branch="false"/>
-						<line number="269" hits="0" branch="true" condition-coverage="0% (0/2)">
+						<line number="263" hits="0" branch="false"/>
+						<line number="267" hits="0" branch="false"/>
+						<line number="272" hits="0" branch="true" condition-coverage="0% (0/2)">
 							<conditions>
 								<condition number="0" type="jump" coverage="0%"/>
 							</conditions>
 						</line>
-						<line number="270" hits="0" branch="false"/>
-						<line number="272" hits="0" branch="false"/>
 						<line number="273" hits="0" branch="false"/>
-						<line number="277" hits="1" branch="true" condition-coverage="50% (1/2)">
+						<line number="275" hits="0" branch="false"/>
+						<line number="276" hits="0" branch="false"/>
+						<line number="280" hits="1" branch="true" condition-coverage="50% (1/2)">
 							<conditions>
 								<condition number="0" type="jump" coverage="50%"/>
 							</conditions>
 						</line>
-						<line number="278" hits="0" branch="false"/>
-						<line number="279" hits="1" branch="true" condition-coverage="50% (1/2)">
+						<line number="281" hits="0" branch="false"/>
+						<line number="282" hits="1" branch="true" condition-coverage="50% (1/2)">
 							<conditions>
 								<condition number="0" type="jump" coverage="50%"/>
 							</conditions>
 						</line>
-						<line number="280" hits="0" branch="false"/>
-						<line number="282" hits="1" branch="false"/>
 						<line number="283" hits="0" branch="false"/>
-						<line number="287" hits="173" branch="false"/>
+						<line number="285" hits="1" branch="false"/>
+						<line number="286" hits="0" branch="false"/>
+						<line number="290" hits="173" branch="false"/>
 					</lines>
 				</class>
 				<class name="org.anarres.cpp.SourceIterator" filename="org/anarres/cpp/SourceIterator.java" line-rate="0.7142857142857143" branch-rate="0.8333333333333334" complexity="2.6">
