@@ -22,7 +22,7 @@ public class ErrorTest {
 
     private void testError(String input) throws Exception {
         StringLexerSource sl;
-        PreprocessorListener pl;
+        DefaultPreprocessorListener pl;
         Preprocessor p;
 
         /* Without a PreprocessorListener, throws an exception. */
@@ -42,7 +42,7 @@ public class ErrorTest {
         p = new Preprocessor();
         p.addFeature(Feature.CSYNTAX);
         p.addInput(sl);
-        pl = new PreprocessorListener();
+        pl = new DefaultPreprocessorListener();
         p.setListener(pl);
         assertNotNull("CPP has listener", p.getListener());
         assertTrue(testError(p));

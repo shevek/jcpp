@@ -20,6 +20,7 @@ import java.io.Closeable;
 import java.io.IOException;
 import java.util.Iterator;
 import javax.annotation.CheckForNull;
+import javax.annotation.Nonnegative;
 import javax.annotation.Nonnull;
 import static org.anarres.cpp.Token.*;
 
@@ -139,7 +140,8 @@ public abstract class Source implements Iterable<Token>, Closeable {
     /**
      * Returns the human-readable name of the current Source.
      */
-    /* pp */ String getName() {
+    @CheckForNull
+    public String getName() {
         Source parent = getParent();
         if (parent != null)
             return parent.getName();
@@ -149,6 +151,7 @@ public abstract class Source implements Iterable<Token>, Closeable {
     /**
      * Returns the current line number within this Source.
      */
+    @Nonnegative
     public int getLine() {
         Source parent = getParent();
         if (parent == null)

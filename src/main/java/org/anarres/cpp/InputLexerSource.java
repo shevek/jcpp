@@ -53,7 +53,7 @@ public class InputLexerSource extends LexerSource {
     }
 
     @Override
-    /* pp */ String getName() {
+    public String getName() {
         return "standard input";
     }
 

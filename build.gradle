@@ -26,7 +26,7 @@ apply from: file('gradle/license.gradle')
 // apply from: file('gradle/release.gradle')
 
 apply plugin: 'application'
-apply plugin: VelocityPlugin
+apply plugin: 'velocity'
 
 dependencies {
     compile 'com.google.code.findbugs:jsr305:2.0.2'
@@ -38,9 +38,10 @@ dependencies {
 
 velocity {
 	def p = project
-	context {
-		version = p.version
-	}
+	Map m = [
+		version: project.version
+	]
+	context m
 }
 
 test {
