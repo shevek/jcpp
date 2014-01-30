@@ -83,6 +83,7 @@ public class PreprocessorListener {
     }
 
     public void handlePreprocesorDirective(Source source, PreprocessorDirective directive) {
+        System.err.println(directive.toString());
     }
 
 }

@@ -12,6 +12,7 @@ import java.util.List;
 public class PreprocessorDirective {
     private final List<Token> directiveTokens = new ArrayList<>();
     private boolean activeBlock = true;
+    private PreprocessorCommand command;
 
     public PreprocessorDirective() {
     }
@@ -20,22 +21,30 @@ public class PreprocessorDirective {
         directiveTokens.add(token);
     }
 
-    @Nonnull
-    public List<Token> getTokenList() {
-        return directiveTokens;
+    public void setCommand(PreprocessorCommand cmd) {
+        this.command = cmd;
     }
+
+    public PreprocessorCommand getCommand() {
+        return this.command;
+    }
+
+    @Nonnull
+    public List<Token> getTokenList() { return this.directiveTokens; }
 
     public boolean isActiveBlock() {
         return this.activeBlock;
     }
 
     public void setInactiveBlock() {
-
+        this.activeBlock = false;
     }
 
     @Override
     public String toString() {
         String result = new String();
+        if (!activeBlock)
+            result += "inactive block ";
         for (Token tok : directiveTokens) {
             result += " " + tok.getText();
         }

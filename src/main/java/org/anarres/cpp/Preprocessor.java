@@ -1867,6 +1867,7 @@ public class Preprocessor implements Closeable {
                                 + tok.getText());
                         return source_skipline(false);
                     }
+                    preprocessorDirective.setCommand(ppcmd);
 
                     PP:
                     switch (ppcmd) {
@@ -1919,6 +1920,9 @@ public class Preprocessor implements Closeable {
                             expr_token = null;
                             states.peek().setActive(expr(0) != 0);
                             tok = expr_token();	/* unget */
+                            if (!states.peek().isActive())
+                                preprocessorDirective.setInactiveBlock();
+                            directive(preprocessorDirective);
 
                             if (tok.getType() == NL)
                                 return tok;
@@ -1938,6 +1942,8 @@ public class Preprocessor implements Closeable {
                                 return source_skipline(false);
                             } else if (state.isActive()) {
                                 /* The 'if' part got executed. */
+                                preprocessorDirective.setInactiveBlock();
+                                directive(preprocessorDirective);
                                 state.setParentActive(false);
                                 /* This is like # else # if but with
                                  * only one # end. */
@@ -1946,6 +1952,9 @@ public class Preprocessor implements Closeable {
                             } else {
                                 expr_token = null;
                                 state.setActive(expr(0) != 0);
+                                if (!state.isActive())
+                                    preprocessorDirective.setInactiveBlock();
+                                directive(preprocessorDirective);
                                 tok = expr_token();	/* unget */
 
                                 if (tok.getType() == NL)
@@ -1956,14 +1965,18 @@ public class Preprocessor implements Closeable {
 
                         case PP_ELSE:
                             state = states.peek();
-                            if (false)
-								/* Check for 'if' */ ; else if (state.sawElse()) {
+                            if (false) {
+								/* Check for 'if' */ ;
+                            } else if (state.sawElse()) {
                                 error(tok,
                                         "#" + "else after #" + "else");
                                 return source_skipline(false);
                             } else {
                                 state.setSawElse();
                                 state.setActive(!state.isActive());
+                                if (!state.isActive())
+                                    preprocessorDirective.setInactiveBlock();
+                                directive(preprocessorDirective);
                                 return source_skipline(warnings.contains(Warning.ENDIF_LABELS));
                             }
                         // break;
@@ -1974,7 +1987,7 @@ public class Preprocessor implements Closeable {
                                 return source_skipline(false);
                             } else {
                                 tok = source_token_nonwhite();
-                                preprocessorDirective.addToken(tok);
+                                directive(preprocessorDirective);
                                 // System.out.println("ifdef " + tok);
                                 if (tok.getType() != IDENTIFIER) {
                                     error(tok,
@@ -1982,11 +1995,12 @@ public class Preprocessor implements Closeable {
                                             + tok.getText());
                                     return source_skipline(false);
                                 } else {
-                                    directive(preprocessorDirective);
                                     String text = tok.getText();
                                     boolean exists
                                             = macros.containsKey(text);
                                     states.peek().setActive(exists);
+                                    if (exists)
+                                        preprocessorDirective.setInactiveBlock();
                                     return source_skipline(true);
                                 }
                             }
@@ -1998,18 +2012,19 @@ public class Preprocessor implements Closeable {
                                 return source_skipline(false);
                             } else {
                                 tok = source_token_nonwhite();
-                                preprocessorDirective.addToken(tok);
+                                directive(preprocessorDirective);
                                 if (tok.getType() != IDENTIFIER) {
                                     error(tok,
                                             "Expected identifier, not "
                                             + tok.getText());
                                     return source_skipline(false);
                                 } else {
-                                    directive(preprocessorDirective);
                                     String text = tok.getText();
                                     boolean exists
                                             = macros.containsKey(text);
                                     states.peek().setActive(!exists);
+                                    if (!exists)
+                                        preprocessorDirective.setInactiveBlock();
                                     return source_skipline(true);
                                 }
                             }
