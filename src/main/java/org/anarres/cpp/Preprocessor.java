@@ -793,7 +793,7 @@ public class Preprocessor implements Closeable {
                     new Token[]{new Token(NUMBER,
                                 orig.getLine(), orig.getColumn(),
                                 Integer.toString(orig.getLine()),
-                                new NumericValue(10, false, Integer.toString(orig.getLine())))}
+                                new NumericValue(10, Integer.toString(orig.getLine())))}
             ), true);
         } else if (m == __FILE__) {
             StringBuilder buf = new StringBuilder("\"");
@@ -829,7 +829,7 @@ public class Preprocessor implements Closeable {
                     new Token[]{new Token(NUMBER,
                                 orig.getLine(), orig.getColumn(),
                                 Integer.toString(value),
-                                new NumericValue(10, false, Integer.toString(value)))}
+                                new NumericValue(10, Integer.toString(value)))}
             ), true);
         } else {
             push_source(new MacroTokenSource(m, args), true);
@@ -1393,17 +1393,17 @@ public class Preprocessor implements Closeable {
                             + la.getText());
                     tok = new Token(NUMBER,
                             la.getLine(), la.getColumn(),
-                            "0", new NumericValue(10, false, "0"));
+                            "0", new NumericValue(10, "0"));
                 } else if (macros.containsKey(la.getText())) {
                     // System.out.println("Found macro");
                     tok = new Token(NUMBER,
                             la.getLine(), la.getColumn(),
-                            "1", new NumericValue(10, false, "1"));
+                            "1", new NumericValue(10, "1"));
                 } else {
                     // System.out.println("Not found macro");
                     tok = new Token(NUMBER,
                             la.getLine(), la.getColumn(),
-                            "0", new NumericValue(10, false, "0"));
+                            "0", new NumericValue(10, "0"));
                 }
 
                 if (paren) {
