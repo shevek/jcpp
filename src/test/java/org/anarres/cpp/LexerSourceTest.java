@@ -98,5 +98,6 @@ public class LexerSourceTest {
         testLexerSource("1e6", true, NUMBER);
         testLexerSource("1.45e6", true, NUMBER);
         testLexerSource(".45e6", true, NUMBER);
+        testLexerSource("-6", true, '-', NUMBER);
     }
 }

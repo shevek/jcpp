@@ -547,13 +547,13 @@ public class LexerSource extends Source {
 
     /* We do not know whether know the first digit is valid. */
     @Nonnull
-    private Token number_hex(char x, boolean negative)
+    private Token number_hex(char x)
             throws IOException,
             LexerException {
-        StringBuilder text = new StringBuilder(negative ? "-0" : "0");
+        StringBuilder text = new StringBuilder("0");
         text.append(x);
         String integer = _number_part(text, 16, false);
-        NumericValue value = new NumericValue(16, negative, integer);
+        NumericValue value = new NumericValue(16, integer);
         int d = read();
         if (d == '.') {
             text.append((char) d);
@@ -583,10 +583,10 @@ public class LexerSource extends Source {
     /* We know we have at least one valid digit, but empty is not
      * fine. */
     @Nonnull
-    private Token number_decimal(boolean negative)
+    private Token number_decimal()
             throws IOException,
             LexerException {
-        StringBuilder text = new StringBuilder(negative ? "-" : "");
+        StringBuilder text = new StringBuilder();
         String integer = _number_part(text, 10, false);
         String fraction = null;
         String exponent = null;
@@ -608,7 +608,7 @@ public class LexerSource extends Source {
             else
                 base = 8;
         }
-        NumericValue value = new NumericValue(base, negative, integer);
+        NumericValue value = new NumericValue(base, integer);
         if (fraction != null)
             value.setFractionalPart(fraction);
         if (exponent != null)
@@ -618,6 +618,10 @@ public class LexerSource extends Source {
     }
 
     /**
+     * Section 6.4.4.1 of C99
+     * 
+     * (Not pasted here, but says that the initial negation is a separate token.)
+     * 
      * Section 6.4.4.2 of C99
      *
      * A floating constant has a significand part that may be followed
@@ -652,25 +656,20 @@ public class LexerSource extends Source {
     private Token number()
             throws IOException,
             LexerException {
-        boolean negative = false;
         Token tok;
         int c = read();
-        if (c == '-') {
-            negative = true;
-            c = read();
-        }
         if (c == '0') {
             int d = read();
             if (d == 'x' || d == 'X') {
-                tok = number_hex((char) d, negative);
+                tok = number_hex((char) d);
             } else {
                 unread(d);
                 unread(c);
-                tok = number_decimal(negative);
+                tok = number_decimal();
             }
         } else if (Character.isDigit(c) || c == '.') {
             unread(c);
-            tok = number_decimal(negative);
+            tok = number_decimal();
         } else {
             throw new LexerException("Asked to parse something as a number which isn't: " + (char) c);
         }
@@ -797,10 +796,6 @@ public class LexerSource extends Source {
                     tok = new Token(ARROW);
                 else
                     unread(d);
-                if (Character.isDigit(d)) {
-                    unread('-');
-                    tok = number();
-                }
                 break;
 
             case '*':

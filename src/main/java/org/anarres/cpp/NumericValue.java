@@ -35,26 +35,20 @@ public class NumericValue extends Number {
     public static final int FF_SIZE = F_INT | F_LONG | F_LONGLONG | F_FLOAT | F_DOUBLE;
 
     private final int base;
-    private final boolean negative;
     private final String integer;
     private String fraction;
     private int expbase = 0;
     private String exponent;
     private int flags;
 
-    public NumericValue(int base, boolean negative, String integer) {
+    public NumericValue(int base, String integer) {
         this.base = base;
-        this.negative = negative;
         this.integer = integer;
     }
 
     @Nonnegative
     public int getBase() {
         return base;
-    }
-
-    public boolean isNegative() {
-        return negative;
     }
 
     @Nonnull
@@ -145,7 +139,7 @@ public class NumericValue extends Number {
             v = v << exponentValue();
         else if (expbase != 0)
             v = (int) (v * Math.pow(expbase, exponentValue()));
-        return isNegative() ? -v : v;
+        return v;
     }
 
     @Override
@@ -155,7 +149,7 @@ public class NumericValue extends Number {
             v = v << exponentValue();
         else if (expbase != 0)
             v = (int) (v * Math.pow(expbase, exponentValue()));
-        return isNegative() ? -v : v;
+        return v;
     }
 
     @Override
@@ -182,8 +176,6 @@ public class NumericValue extends Number {
     @Override
     public String toString() {
         StringBuilder buf = new StringBuilder();
-        if (isNegative())
-            buf.append('-');
         switch (base) {
             case 8:
                 buf.append('0');
