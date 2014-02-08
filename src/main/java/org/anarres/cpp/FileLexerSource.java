@@ -74,7 +74,7 @@ public class FileLexerSource extends LexerSource {
      * This is not necessarily the same as getFile().getPath() in case we are in a chroot.
      */
     @Override
-    /* pp */ String getPath() {
+    public String getPath() {
         return path;
     }
 

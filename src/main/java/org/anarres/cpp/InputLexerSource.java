@@ -48,7 +48,7 @@ public class InputLexerSource extends LexerSource {
     }
 
     @Override
-    /* pp */ String getPath() {
+    public String getPath() {
         return "<standard-input>";
     }
 
