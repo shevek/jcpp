@@ -41,6 +41,11 @@ import static org.anarres.cpp.Token.*;
     }
 
     @Override
+    boolean isExpanding() {
+        return true;
+    }
+
+    @Override
     /* pp */ boolean isExpanding(Macro m) {
         /* When we are expanding an arg, 'this' macro is not
          * being expanded, and thus we may re-expand it. */

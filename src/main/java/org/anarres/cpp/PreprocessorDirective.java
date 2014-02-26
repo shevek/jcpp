@@ -46,7 +46,11 @@ public class PreprocessorDirective {
         if (!activeBlock)
             result += "inactive block ";
         for (Token tok : directiveTokens) {
-            result += " " + tok.getText();
+            if (tok.getType() == Token.NL) {
+                result += " \\n";
+            } else {
+                result += " " + tok.getText();
+            }
         }
         return result;
     }

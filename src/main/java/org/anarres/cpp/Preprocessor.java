@@ -307,8 +307,16 @@ public class Preprocessor implements Closeable {
      * directive. Otherwise, it is ignored.
      */
     protected void directive(PreprocessorDirective directive) {
-        if (listener != null)
+        if (listener != null) {
             listener.handlePreprocesorDirective(getSource(), directive);
+        }
+    }
+
+    protected void macroExpansion(Token identifier, boolean inExpandingSources) {
+        if (listener != null && (inExpandingSources || !getSource().isExpanding())) {
+            listener.handleMacroExpansion(getSource(), identifier.getLine(),
+                    identifier.getColumn(), identifier.getText());
+        }
     }
 
     /**
@@ -799,6 +807,8 @@ public class Preprocessor implements Closeable {
             args = null;
         }
 
+        macroExpansion(orig, false);
+
         if (m == __LINE__) {
             push_source(new FixedTokenSource(
                     new Token[]{new Token(NUMBER,
@@ -912,8 +922,8 @@ public class Preprocessor implements Closeable {
         List<String> args;
 
         tok = source_token();
-        preprocessorDirective.addToken(tok);
         if (tok.getType() == '(') {
+            preprocessorDirective.addToken(tok);
             tok = source_token_nonwhite();
             preprocessorDirective.addToken(tok);
             if (tok.getType() != ')') {
@@ -1987,20 +1997,22 @@ public class Preprocessor implements Closeable {
                                 return source_skipline(false);
                             } else {
                                 tok = source_token_nonwhite();
-                                directive(preprocessorDirective);
                                 // System.out.println("ifdef " + tok);
                                 if (tok.getType() != IDENTIFIER) {
                                     error(tok,
                                             "Expected identifier, not "
                                             + tok.getText());
+                                    directive(preprocessorDirective);
                                     return source_skipline(false);
                                 } else {
+                                    preprocessorDirective.addToken(tok);
                                     String text = tok.getText();
                                     boolean exists
                                             = macros.containsKey(text);
                                     states.peek().setActive(exists);
-                                    if (exists)
+                                    if (!exists)
                                         preprocessorDirective.setInactiveBlock();
+                                    directive(preprocessorDirective);
                                     return source_skipline(true);
                                 }
                             }
@@ -2012,19 +2024,21 @@ public class Preprocessor implements Closeable {
                                 return source_skipline(false);
                             } else {
                                 tok = source_token_nonwhite();
-                                directive(preprocessorDirective);
                                 if (tok.getType() != IDENTIFIER) {
                                     error(tok,
                                             "Expected identifier, not "
                                             + tok.getText());
+                                    directive(preprocessorDirective);
                                     return source_skipline(false);
                                 } else {
+                                    preprocessorDirective.addToken(tok);
                                     String text = tok.getText();
                                     boolean exists
                                             = macros.containsKey(text);
                                     states.peek().setActive(!exists);
-                                    if (!exists)
+                                    if (exists)
                                         preprocessorDirective.setInactiveBlock();
+                                    directive(preprocessorDirective);
                                     return source_skipline(true);
                                 }
                             }

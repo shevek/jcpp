@@ -51,4 +51,6 @@ public interface PreprocessorListener {
 
     public void handlePreprocesorDirective(Source source, PreprocessorDirective directive);
 
+    public void handleMacroExpansion(Source source, int line, int column, String macro);
+
 }

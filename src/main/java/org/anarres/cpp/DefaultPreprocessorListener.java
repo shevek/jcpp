@@ -90,4 +90,8 @@ public class DefaultPreprocessorListener implements PreprocessorListener {
         System.err.println(directive.toString());
     }
 
+    public void handleMacroExpansion(Source source, int line, int column, String macro) {
+        System.err.println(source.getName() + " : " + line + ":" + column + " macro: " + macro);
+    }
+
 }

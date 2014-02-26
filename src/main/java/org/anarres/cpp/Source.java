@@ -169,6 +169,16 @@ public abstract class Source implements Iterable<Token>, Closeable {
         return parent.getColumn();
     }
 
+    /***
+     * Returns true if this Source is expanding any macro.
+     */
+    boolean isExpanding() {
+        Source parent = getParent();
+        if (parent != null)
+            return parent.isExpanding();
+        return false;
+    }
+
     /**
      * Returns true if this Source is expanding the given macro.
      *
