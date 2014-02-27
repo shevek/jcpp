@@ -86,6 +86,11 @@ public class DefaultPreprocessorListener implements PreprocessorListener {
     public void handleSourceChange(Source source, String event) {
     }
 
+    @Override
+    public boolean beforeInclude(String filePath) {
+        return false;
+    }
+
     public void handlePreprocesorDirective(Source source, PreprocessorDirective directive) {
         System.err.println(directive.toString());
     }

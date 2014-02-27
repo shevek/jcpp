@@ -49,6 +49,15 @@ public interface PreprocessorListener {
 
     public void handleSourceChange(Source source, String event);
 
+    /**
+     * Called when preprocessor is about to include file.
+     *
+     * @param filePath file path
+     * @return <code>true</code> if specified file should be skipped,
+     * <code>false</code> otherwise
+     */
+    public boolean beforeInclude(String filePath);
+
     public void handlePreprocesorDirective(Source source, PreprocessorDirective directive);
 
     public void handleMacroExpansion(Source source, int line, int column, String macro);

@@ -1118,6 +1118,15 @@ public class Preprocessor implements Closeable {
         // System.out.println("Try to include " + ((File)file).getAbsolutePath());
         if (!file.isFile())
             return false;
+        if (listener != null) {
+            System.out.println("Trying to include " + file.getPath());
+            if (listener.beforeInclude(file.getPath())) {
+                // push_source() omitted
+                if (getFeature(Feature.DEBUG))
+                    System.err.println("pp: skipping " + file);
+                return true;
+            }
+        }
         if (getFeature(Feature.DEBUG))
             System.err.println("pp: including " + file);
         push_source(file.getSource(), true);
