@@ -320,6 +320,20 @@ public class Preprocessor implements Closeable {
     }
 
     /**
+     * Marks all tokens that are part of macro definition. Therefore, when
+     * the macro is expanded and macro's tokens are returned by preprocessor,
+     * these tokens can be easily distinguished from tokens that comes from
+     * source file.
+     *
+     * @param m macro
+     */
+    protected void markTokens(Macro m) {
+        for (Token token : m.getTokens()) {
+            token.setExpanded(true);
+        }
+    }
+
+    /**
      * Handles an error.
      *
      * If a PreprocessorListener is installed, it receives the
@@ -373,6 +387,7 @@ public class Preprocessor implements Closeable {
         /* Already handled as a source error in macro(). */
         if ("defined".equals(name))
             throw new LexerException("Cannot redefine name 'defined'");
+        markTokens(m);
         macros.put(m.getName(), m);
     }
 

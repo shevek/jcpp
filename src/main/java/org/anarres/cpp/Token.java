@@ -29,6 +29,10 @@ public final class Token {
     private int column;
     private final Object value;
     private final String text;
+    /**
+     * Indicates that token comes from macro expansion.
+     */
+    private boolean isExpanded;
 
     public Token(int type, int line, int column,
             String text, Object value) {
@@ -37,6 +41,7 @@ public final class Token {
         this.column = column;
         this.text = text;
         this.value = value;
+        this.isExpanded = false;
     }
 
     public Token(int type, int line, int column, String text) {
@@ -110,6 +115,19 @@ public final class Token {
     }
 
     /**
+     * Returns if token comes from macro expansion.
+     *
+     * @return <code>true</code> when macro comes from macro expansion
+     */
+    public boolean isExpanded() {
+        return isExpanded;
+    }
+
+    /* pp */ void setExpanded(boolean isExpanded) {
+        this.isExpanded = isExpanded;
+    }
+
+    /**
      * Returns a description of this token, for debugging purposes.
      */
     @Override
@@ -122,6 +140,8 @@ public final class Token {
             if (column != -1)
                 buf.append(',').append(column);
         }
+        if (isExpanded)
+            buf.append("(expanded)");
         buf.append("]:");
         if (text != null)
             buf.append('"').append(text).append('"');
