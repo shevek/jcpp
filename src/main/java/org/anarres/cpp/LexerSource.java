@@ -257,18 +257,26 @@ public class LexerSource extends Source {
     private Token ccomment()
             throws IOException,
             LexerException {
+
         StringBuilder text = new StringBuilder("/*");
         int d;
         do {
             do {
                 d = read();
-                text.append((char) d);
-            } while (d != '*');
+                if (d != -1) {
+                    text.append((char) d);
+                }
+            } while (d != '*' && d != -1);
             do {
                 d = read();
-                text.append((char) d);
+                if (d != -1) {
+                    text.append((char) d);
+                }
             } while (d == '*');
-        } while (d != '/');
+        } while (d != '/' && d != -1);
+        if (d == -1) {
+           return new Token(INVALID, CCOMMENT, text.toString(), "End of file in a multiline comment");
+        }
         return new Token(CCOMMENT, text.toString());
     }
 
@@ -375,11 +383,11 @@ public class LexerSource extends Source {
             d = escape(text);
         } else if (isLineSeparator(d)) {
             unread(d);
-            return new Token(INVALID, text.toString(),
+            return new Token(INVALID, CHARACTER, text.toString(),
                     "Unterminated character literal");
         } else if (d == '\'') {
             text.append('\'');
-            return new Token(INVALID, text.toString(),
+            return new Token(INVALID, CHARACTER, text.toString(),
                     "Empty character literal");
         } else if (!Character.isDefined(d)) {
             text.append('?');
@@ -402,7 +410,7 @@ public class LexerSource extends Source {
                     break;
                 e = read();
             }
-            return new Token(INVALID, text.toString(),
+            return new Token(INVALID, CHARACTER, text.toString(),
                     "Illegal character constant " + text);
         }
         text.append('\'');
@@ -433,12 +441,12 @@ public class LexerSource extends Source {
             } else if (c == -1) {
                 unread(c);
                 // error("End of file in string literal after " + buf);
-                return new Token(INVALID, text.toString(),
+                return new Token(INVALID, STRING, text.toString(),
                         "End of file in string literal after " + buf);
             } else if (isLineSeparator(c)) {
                 unread(c);
                 // error("Unterminated string literal after " + buf);
-                return new Token(INVALID, text.toString(),
+                return new Token(INVALID, STRING, text.toString(),
                         "Unterminated string literal after " + buf);
             } else {
                 text.append((char) c);
@@ -685,11 +693,13 @@ public class LexerSource extends Source {
         text.append((char) c);
         for (;;) {
             d = read();
-            if (Character.isIdentifierIgnorable(d))
-				; else if (Character.isJavaIdentifierPart(d))
+            if (Character.isIdentifierIgnorable(d)) {
+                ;
+            } else if (Character.isJavaIdentifierPart(d)) {
                 text.append((char) d);
-            else
+            } else {
                 break;
+            }
         }
         unread(d);
         return new Token(IDENTIFIER, text.toString());

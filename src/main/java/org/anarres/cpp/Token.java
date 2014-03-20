@@ -25,6 +25,7 @@ public final class Token {
 
     // public static final int	EOF        = -1;
     private final int type;
+    private final int expected_type;
     private int line;
     private int column;
     private final Object value;
@@ -34,14 +35,20 @@ public final class Token {
      */
     private boolean isExpanded;
 
-    public Token(int type, int line, int column,
+    public Token(int type, int expected, int line, int column,
             String text, Object value) {
         this.type = type;
+        this.expected_type = expected;
         this.line = line;
         this.column = column;
         this.text = text;
         this.value = value;
         this.isExpanded = false;
+    }
+
+    public Token(int type, int line, int column,
+                 String text, Object value) {
+        this(type, -1, line, column, text, value);
     }
 
     public Token(int type, int line, int column, String text) {
@@ -52,12 +59,24 @@ public final class Token {
         this(type, -1, -1, text, value);
     }
 
+    Token(int type, int expected, String text, Object value) {
+        this(type, expected, -1, -1, text, value);
+    }
+
     /* pp */ Token(int type, String text) {
         this(type, text, null);
     }
 
+    Token(int type, int expected, String text) {
+        this(type, expected, text, null);
+    }
+
     /* pp */ Token(int type) {
         this(type, TokenType.getTokenText(type));
+    }
+
+    Token(int type, int expected) {
+        this(type, expected, TokenType.getTokenText(type));
     }
 
     /**
@@ -65,6 +84,13 @@ public final class Token {
      */
     public int getType() {
         return type;
+    }
+
+    /**
+     * If the token type is INVALID returns the expected type of this token.
+     */
+    public int getExpectedType() {
+        return expected_type;
     }
 
     /* pp */ void setLocation(int line, int column) {

@@ -70,6 +70,7 @@ public class LexerSourceTest {
         testLexerSource("/**/", true, CCOMMENT);
         testLexerSource("/* /**/ */", true, CCOMMENT, WHITESPACE, '*', '/');
         testLexerSource("/** ** **/", true, CCOMMENT);
+        testLexerSource("/*", true, INVALID);
         testLexerSource("//* ** **/", true, CPPCOMMENT);
         testLexerSource("'\\r' '\\xf' '\\xff' 'x' 'aa' ''", true,
                 CHARACTER, WHITESPACE,
