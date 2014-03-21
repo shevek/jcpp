@@ -428,6 +428,26 @@ public class LexerSource extends Source {
 
         StringBuilder buf = new StringBuilder();
 
+        final int expectedTokenType;
+        final String expectedTokenName;
+        switch (open) {
+            case '\"':
+                expectedTokenType = Token.STRING;
+                expectedTokenName = "string";
+                break;
+            case '\'':
+                expectedTokenType = Token.CHARACTER;
+                expectedTokenName = "character";
+                break;
+            case '>':
+                expectedTokenType = Token.HEADER;
+                expectedTokenName = "header";
+                break;
+            default:
+                expectedTokenType = 0;
+                expectedTokenName = "string";
+        }
+
         for (;;) {
             int c = read();
             if (c == close) {
@@ -441,13 +461,13 @@ public class LexerSource extends Source {
             } else if (c == -1) {
                 unread(c);
                 // error("End of file in string literal after " + buf);
-                return new Token(INVALID, STRING, text.toString(),
-                        "End of file in string literal after " + buf);
+                return new Token(INVALID, expectedTokenType, text.toString(),
+                        "End of file in " + expectedTokenName + " literal after " + buf);
             } else if (isLineSeparator(c)) {
                 unread(c);
                 // error("Unterminated string literal after " + buf);
-                return new Token(INVALID, STRING, text.toString(),
-                        "Unterminated string literal after " + buf);
+                return new Token(INVALID, expectedTokenType, text.toString(),
+                        "Unterminated " + expectedTokenName + " literal after " + buf);
             } else {
                 text.append((char) c);
                 buf.append((char) c);
