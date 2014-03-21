@@ -241,7 +241,7 @@ public class LexerSource extends Source {
 
     /* Consumes the rest of the current line into an invalid. */
     @Nonnull
-    private Token invalid(StringBuilder text, String reason)
+    private Token invalid(StringBuilder text, int expected, String reason)
             throws IOException,
             LexerException {
         int d = read();
@@ -250,7 +250,7 @@ public class LexerSource extends Source {
             d = read();
         }
         unread(d);
-        return new Token(INVALID, text.toString(), reason);
+        return new Token(INVALID, expected, text.toString(), reason);
     }
 
     @Nonnull
@@ -391,7 +391,7 @@ public class LexerSource extends Source {
                     "Empty character literal");
         } else if (!Character.isDefined(d)) {
             text.append('?');
-            return invalid(text, "Illegal unicode character literal");
+            return invalid(text, CHARACTER, "Illegal unicode character literal");
         } else {
             text.append((char) d);
         }
@@ -520,7 +520,7 @@ public class LexerSource extends Source {
             else if (Character.isLetter(d) || d == '_') {
                 unread(d);
                 value.setFlags(flags);
-                return invalid(text,
+                return invalid(text, Token.NUMBER,
                         "Invalid suffix \"" + (char) d
                         + "\" on numeric constant");
             } else {
