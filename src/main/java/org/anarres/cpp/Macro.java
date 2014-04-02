@@ -29,6 +29,11 @@ import java.util.List;
  * extra tokens {@link Token#M_ARG} and {@link Token#M_STRING}.
  */
 public class Macro {
+	/**
+	 * A value for indicating an unknown position of a macro name.
+	 */
+	public static final int UNKNOWN_POSITION_VALUE = -1;
+
 	private Source			source;
 	private String			name;
 	/* It's an explicit decision to keep these around here. We don't
@@ -39,12 +44,32 @@ public class Macro {
 	private boolean			variadic;
 	private List<Token>		tokens;
 
-	public Macro(Source source, String name) {
+	/**
+	 * Number of the line that the name of the macro in its definition starts
+	 * in. It is set to UNKNOWN_POSITION_VALUE if it is unknown, e.g. if the
+	 * macro does not come from any file.
+	 */
+	private final int nameStartLine;
+
+	/**
+	 * Number of the column that the name of the macro in its definition
+	 * starts in. It is set to UNKNOWN_POSITION_VALUE if it us unknown.
+	 */
+	private final int nameStartColumn;
+
+
+	public Macro(Source source, String name, int nameStartLine, int nameStartColumn) {
 		this.source = source;
 		this.name = name;
 		this.args = null;
 		this.variadic = false;
 		this.tokens = new ArrayList<Token>();
+		this.nameStartLine = nameStartLine;
+		this.nameStartColumn = nameStartColumn;
+	}
+
+	public Macro(Source source, String name) {
+		this(source, name, UNKNOWN_POSITION_VALUE, UNKNOWN_POSITION_VALUE);
 	}
 
 	public Macro(String name) {
@@ -95,6 +120,18 @@ public class Macro {
 	public int getArgs() {
 		return args.size();
 	}
+
+	/**
+	 * @return The number of the line the name of the macro in its definition
+	 *         starts or <code>UNKNOWN_POSITION_VALUE</code> if it is unknown.
+	 */
+	public int getNameStartLine() { return nameStartLine; }
+
+	/**
+	 * @return The number of the column the name of the macro in its definition
+	 *         starts or <code>UNKNOWN_POSITION_VALUE</code> if it is unknown.
+	 */
+	public int getNameStartColumn() { return nameStartColumn; }
 
 	/**
 	 * Sets the variadic flag on this Macro.

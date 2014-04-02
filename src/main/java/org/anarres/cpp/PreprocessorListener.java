@@ -60,6 +60,14 @@ public interface PreprocessorListener {
 
     public void handlePreprocesorDirective(Source source, PreprocessorDirective directive);
 
-    public void handleMacroExpansion(Source source, int line, int column, String macro);
+    /**
+     * @param definitionFileName Can be null in certain cases.
+     * @param definitionLine <code>Macro.UNKNOWN_POSITION_VALUE</code> if it is
+     *                       unknown, otherwise proper value
+     * @param definitionColumn <code>Macro.UNKNOWN_POSITION_VALUE</code> if it
+     *                         is unknown, otherwise proper value
+     */
+    public void handleMacroExpansion(Source source, int line, int column, String macro,
+            String definitionFileName, int definitionLine, int definitionColumn);
 
 }

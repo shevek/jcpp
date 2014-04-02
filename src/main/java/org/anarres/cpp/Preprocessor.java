@@ -312,10 +312,14 @@ public class Preprocessor implements Closeable {
         }
     }
 
-    protected void macroExpansion(Token identifier, boolean inExpandingSources) {
+    protected void macroExpansion(Macro macro, Token identifier, boolean inExpandingSources) {
         if (listener != null && (inExpandingSources || !getSource().isExpanding())) {
+            // Source can be null
+            final String definitionFileName = macro.getSource() != null ? macro.getSource().getPath() : null;
+
             listener.handleMacroExpansion(getSource(), identifier.getLine(),
-                    identifier.getColumn(), identifier.getText());
+                    identifier.getColumn(), identifier.getText(), definitionFileName,
+                    macro.getNameStartLine(), macro.getNameStartColumn());
         }
     }
 
@@ -822,7 +826,7 @@ public class Preprocessor implements Closeable {
             args = null;
         }
 
-        macroExpansion(orig, false);
+        macroExpansion(m, orig, false);
 
         if (m == __LINE__) {
             push_source(new FixedTokenSource(
@@ -933,7 +937,7 @@ public class Preprocessor implements Closeable {
             return source_skipline(false);
         }
 
-        Macro m = new Macro(getSource(), name);
+        Macro m = new Macro(getSource(), name, tok.getLine(), tok.getColumn());
         List<String> args;
 
         tok = source_token();
