@@ -34,6 +34,11 @@ public final class Token {
      * Indicates that token comes from macro expansion.
      */
     private boolean isExpanded;
+    /**
+     * Token that this one replaced (because of a macro expansion).
+     * It can be null.
+     */
+    private Token originalMacroToken;
 
     public Token(int type, int expected, int line, int column,
             String text, Object value) {
@@ -149,8 +154,28 @@ public final class Token {
         return isExpanded;
     }
 
+    /**
+     * @return Token that has been replaced by this one (and possibly some other
+     *         ones) because of macro expansion. It can be null even if a macro
+     *         expansion has happened.
+     *         If it is not null, it is never a token from a macro definition.
+     */
+    public Token getOriginalMacroToken() {
+        return originalMacroToken;
+    }
+
     /* pp */ void setExpanded(boolean isExpanded) {
         this.isExpanded = isExpanded;
+    }
+
+    /**
+     * Unconditionally sets the original macro token of this object to the given
+     * one.
+     *
+     * @param originalMacroToken Original macro token of this object. It can be null.
+     */
+    void setOriginalMacroToken(Token originalMacroToken) {
+        this.originalMacroToken = originalMacroToken;
     }
 
     /**

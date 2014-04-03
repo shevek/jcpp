@@ -185,7 +185,7 @@ import static org.anarres.cpp.Token.*;
                 case M_STRING:
                     /* Use the nonexpanded arg. */
                     idx = ((Integer) tok.getValue()).intValue();
-                    return originalTokenPosition(stringify(tok, args.get(idx)));
+                    return withOriginalToken(stringify(tok, args.get(idx)));
                 case M_ARG:
                     /* Expand the arg. */
                     idx = ((Integer) tok.getValue()).intValue();
@@ -196,21 +196,22 @@ import static org.anarres.cpp.Token.*;
                     paste(tok);
                     break;
                 default:
-                    return originalTokenPosition(tok);
+                    return withOriginalToken(tok);
             }
         } /* for */
 
     }
 
     /**
-     * @param token Token to change the position in. It should never be null.
-     * @return The given token but with position changed to the position of the
-     *         original macro token (from <code>originalToken</code> member
-     *         variable).
+     * Sets the original token of the given one to the original token from this
+     * object.
+     *
+     * @param token Token whose original one is to be assigned.
+     * @return The given token.
      */
-    private Token originalTokenPosition(Token token) {
+    private Token withOriginalToken(Token token) {
         assert token != null;
-        token.setLocation(originalToken.getLine(), originalToken.getColumn());
+        token.setOriginalMacroToken(originalToken);
         return token;
     }
 
