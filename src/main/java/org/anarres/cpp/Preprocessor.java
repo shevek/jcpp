@@ -872,7 +872,7 @@ public class Preprocessor implements Closeable {
                                 new NumericValue(10, Integer.toString(value)))}
             ), true);
         } else {
-            push_source(new MacroTokenSource(m, args), true);
+            push_source(new MacroTokenSource(m, args, orig), true);
         }
 
         return true;

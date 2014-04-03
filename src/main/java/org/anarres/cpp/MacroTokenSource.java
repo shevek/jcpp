@@ -33,11 +33,17 @@ import static org.anarres.cpp.Token.*;
 
     private Iterator<Token> arg;	/* "current expansion" */
 
-    /* pp */ MacroTokenSource(Macro m, List<Argument> args) {
+    /**
+     * Token with the macro identifier that tokens from this source replace.
+     */
+    private final Token originalToken;
+
+    /* pp */ MacroTokenSource(Macro m, List<Argument> args, Token originalToken) {
         this.macro = m;
         this.tokens = m.getTokens().iterator();
         this.args = args;
         this.arg = null;
+        this.originalToken = originalToken;
     }
 
     @Override
@@ -179,7 +185,7 @@ import static org.anarres.cpp.Token.*;
                 case M_STRING:
                     /* Use the nonexpanded arg. */
                     idx = ((Integer) tok.getValue()).intValue();
-                    return stringify(tok, args.get(idx));
+                    return originalTokenPosition(stringify(tok, args.get(idx)));
                 case M_ARG:
                     /* Expand the arg. */
                     idx = ((Integer) tok.getValue()).intValue();
@@ -190,10 +196,22 @@ import static org.anarres.cpp.Token.*;
                     paste(tok);
                     break;
                 default:
-                    return tok;
+                    return originalTokenPosition(tok);
             }
         } /* for */
 
+    }
+
+    /**
+     * @param token Token to change the position in. It should never be null.
+     * @return The given token but with position changed to the position of the
+     *         original macro token (from <code>originalToken</code> member
+     *         variable).
+     */
+    private Token originalTokenPosition(Token token) {
+        assert token != null;
+        token.setLocation(originalToken.getLine(), originalToken.getColumn());
+        return token;
     }
 
     @Override
