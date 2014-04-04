@@ -21,7 +21,7 @@ package org.anarres.cpp;
  *
  * @see Preprocessor
  */
-public final class Token {
+public final class Token implements Cloneable {
 
     // public static final int	EOF        = -1;
     private final int type;
@@ -176,6 +176,15 @@ public final class Token {
      */
     void setOriginalMacroToken(Token originalMacroToken) {
         this.originalMacroToken = originalMacroToken;
+    }
+
+    /**
+     * @return Shallow copy of this token (all references in the returned object
+     *         are the same as in this one).
+     */
+    @Override
+    public Object clone() throws CloneNotSupportedException {
+        return super.clone();
     }
 
     /**

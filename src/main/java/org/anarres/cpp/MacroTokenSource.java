@@ -17,6 +17,7 @@
 package org.anarres.cpp;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
@@ -40,10 +41,39 @@ import static org.anarres.cpp.Token.*;
 
     /* pp */ MacroTokenSource(Macro m, List<Argument> args, Token originalToken) {
         this.macro = m;
-        this.tokens = m.getTokens().iterator();
+
+        /* Clone all tokens from the macro definition. It is done to keep the
+           appropriate original tokens in those that are returned by
+           MacroTokenSource objects. Cloning tokens solves a problem with that
+           while nesting the same macro in itself, e.g. ADD(1, ADD(1, 2))
+           where ADD is defined as follows: #define ADD(x, y) x + y  */
+        final List<Token> clonedTokens = new ArrayList<>();
+        try {
+            for (Token token : m.getTokens()) {
+                clonedTokens.add((Token) token.clone());
+            }
+
+        } catch(CloneNotSupportedException e) {
+            /* This type of exception should never be thrown in the above code
+               because Token class implements 'clone' method and Cloneable
+               interface properly */
+            throw new RuntimeException("MacroTokenSource.<init>: CloneNotSupportedException"
+                + " caught\n" + e.getMessage());
+        }
+        this.tokens = clonedTokens.iterator();
+
         this.args = args;
         this.arg = null;
         this.originalToken = originalToken;
+    }
+
+    @Override
+    Token getExpandingRootToken() {
+        final Source parent = getParent();
+        if (parent == null || !parent.isExpanding()) {
+            return originalToken;
+        }
+        return parent.getExpandingRootToken();
     }
 
     @Override
@@ -203,15 +233,16 @@ import static org.anarres.cpp.Token.*;
     }
 
     /**
-     * Sets the original token of the given one to the original token from this
-     * object.
+     * Sets the original token of the given one to the original token from the
+     * source code (but not from a macro definition) that caused expansion of
+     * a macro that this object is result of.
      *
      * @param token Token whose original one is to be assigned.
      * @return The given token.
      */
     private Token withOriginalToken(Token token) {
         assert token != null;
-        token.setOriginalMacroToken(originalToken);
+        token.setOriginalMacroToken(getExpandingRootToken());
         return token;
     }
 
