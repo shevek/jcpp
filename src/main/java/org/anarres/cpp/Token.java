@@ -39,6 +39,12 @@ public final class Token implements Cloneable {
      * It can be null.
      */
     private Token originalMacroToken;
+    /**
+     * True if and only if the token comes from a macro argument stringizing,
+     * e.g. as the result of use of a macro defined as follows:
+     *    #define STRINGIZE(x) #x
+     */
+    private boolean isStringized;
 
     public Token(int type, int expected, int line, int column,
             String text, Object value) {
@@ -49,6 +55,7 @@ public final class Token implements Cloneable {
         this.text = text;
         this.value = value;
         this.isExpanded = false;
+        this.isStringized = false;
     }
 
     public Token(int type, int line, int column,
@@ -155,6 +162,14 @@ public final class Token implements Cloneable {
     }
 
     /**
+     * @return True if and only if the token comes from a use of operator '#'
+     *         in a macro definition.
+     */
+    public boolean isStringized() {
+        return isStringized;
+    }
+
+    /**
      * @return Token that has been replaced by this one (and possibly some other
      *         ones) because of macro expansion. It can be null even if a macro
      *         expansion has happened.
@@ -166,6 +181,15 @@ public final class Token implements Cloneable {
 
     /* pp */ void setExpanded(boolean isExpanded) {
         this.isExpanded = isExpanded;
+    }
+
+    /**
+     * Sets the <code>isStringized</code> flag to the given value.
+     *
+     * @param isStringized Value of the <code>isStringized</code> flag to set.
+     */
+    void setStringized(boolean isStringized) {
+        this.isStringized = isStringized;
     }
 
     /**

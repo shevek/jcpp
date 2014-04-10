@@ -33,6 +33,7 @@ import static org.anarres.cpp.Token.*;
     private final List<Argument> args;	/* { unexpanded, expanded } */
 
     private Iterator<Token> arg;	/* "current expansion" */
+    private boolean argumentPasted;  /* do tokens from 'arg' come from a paste? */
 
     /**
      * Token with the macro identifier that tokens from this source replace.
@@ -65,15 +66,16 @@ import static org.anarres.cpp.Token.*;
         this.args = args;
         this.arg = null;
         this.originalToken = originalToken;
+        this.argumentPasted = false;
     }
 
     @Override
-    Token getExpandingRootToken() {
+    MacroTokenSource getExpandingRoot() {
         final Source parent = getParent();
         if (parent == null || !parent.isExpanding()) {
-            return originalToken;
+            return this;
         }
-        return parent.getExpandingRootToken();
+        return parent.getExpandingRoot();
     }
 
     @Override
@@ -122,6 +124,31 @@ import static org.anarres.cpp.Token.*;
     }
 
     private Token stringify(Token pos, Argument arg) {
+        // Set the data for the position tracing
+        final MacroTokenSource expandingRoot = getExpandingRoot();
+        assert expandingRoot != null;
+        final Token expandingRootToken = expandingRoot.getOriginalToken();
+        Token origToken = null;  // original token to set in the result of this method
+        if (arg.size() > 0) {
+            final Token argFirstTok = arg.get(0);
+            final Token argFirstTokOrigTok = argFirstTok.getOriginalMacroToken();
+
+            if (expandingRoot.argumentContains(argFirstTok)) {
+                pos =   argFirstTokOrigTok != null
+                      ? argFirstTokOrigTok
+                      : argFirstTok;
+                origToken =   argFirstTokOrigTok != null
+                            ? argFirstTokOrigTok
+                            : null;
+            } else {
+                pos = expandingRootToken;
+                origToken = expandingRootToken;
+            }
+        } else {
+            pos = expandingRootToken;
+            origToken = expandingRootToken;
+        }
+
         StringBuilder buf = new StringBuilder();
         concat(buf, arg);
         // System.out.println("Concat: " + arg + " -> " + buf);
@@ -129,9 +156,15 @@ import static org.anarres.cpp.Token.*;
         escape(str, buf);
         str.append("\"");
         // System.out.println("Escape: " + buf + " -> " + str);
-        return new Token(STRING,
+
+        final Token result = new Token(STRING,
                 pos.getLine(), pos.getColumn(),
                 str.toString(), buf.toString());
+        result.setStringized(true);
+        if (origToken != null) {
+            result.setOriginalMacroToken(origToken);
+        }
+        return result;
     }
 
 
@@ -187,6 +220,7 @@ import static org.anarres.cpp.Token.*;
 
         /* XXX Check that concatenation produces a valid token. */
         arg = new SourceIterator(sl);
+        argumentPasted = true;
     }
 
     public Token token()
@@ -201,9 +235,10 @@ import static org.anarres.cpp.Token.*;
                     /* XXX PASTE -> INVALID. */
                     assert tok.getType() != M_PASTE :
                             "Unexpected paste token";
-                    return tok;
+                    return argumentPasted ? withOriginalToken(tok) : tok;
                 }
                 arg = null;
+                argumentPasted = false;
             }
 
             if (!tokens.hasNext())
@@ -215,7 +250,7 @@ import static org.anarres.cpp.Token.*;
                 case M_STRING:
                     /* Use the nonexpanded arg. */
                     idx = ((Integer) tok.getValue()).intValue();
-                    return withOriginalToken(stringify(tok, args.get(idx)));
+                    return stringify(tok, args.get(idx));
                 case M_ARG:
                     /* Expand the arg. */
                     idx = ((Integer) tok.getValue()).intValue();
@@ -244,6 +279,45 @@ import static org.anarres.cpp.Token.*;
         assert token != null;
         token.setOriginalMacroToken(getExpandingRootToken());
         return token;
+    }
+
+    /**
+     * @return Token with a macro identifier that caused the appearance of this
+     *         Source object.
+     */
+    Token getOriginalToken() {
+        return originalToken;
+    }
+
+    /**
+     * @return True if and only if the given token is a token from an argument
+     *         expansion or the actual argument of a macro use that this object
+     *         represents.
+     */
+    boolean argumentContains(Token tok) {
+        if (args == null) {
+            return false;
+        }
+
+        for (Argument arg : args) {
+            // Check if the token comes from an argument expansion
+            final Iterator<Token> argumentExpansion = arg.expansion();
+            while (argumentExpansion.hasNext()) {
+                if (argumentExpansion.next() == tok) {
+                    return true;
+                }
+            }
+
+            /* Check if the token comes from the original expression passed as
+               an argument (before its expansion) */
+            for (Token argTokBeforeExpansion : arg) {
+                if (argTokBeforeExpansion == tok) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
     }
 
     @Override

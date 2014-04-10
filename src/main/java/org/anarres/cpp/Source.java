@@ -170,16 +170,29 @@ public abstract class Source implements Iterable<Token>, Closeable {
     }
 
     /**
-     * @return Token with a macro identifier in the source code (not from
-     *         a macro definition) that caused appearance of this source.
-     *         If no macro is currently expanded, null is returned.
+     * @return Source object that represents the root of the macro expansion
+     *         if it is currently in progress. If no macro expansion is
+     *         currently in progress, returns null.
      */
-    Token getExpandingRootToken() {
+    MacroTokenSource getExpandingRoot() {
         final Source parent = getParent();
         if (parent == null) {
             return null;
         }
-        return parent.getExpandingRootToken();
+        return parent.getExpandingRoot();
+    }
+
+    /**
+     * @return Token with a macro identifier in the source code (not from
+     *         a macro definition) that caused appearance of this source.
+     *         If no macro is currently being expanded, null is returned.
+     */
+    final Token getExpandingRootToken() {
+        final MacroTokenSource expandingRoot = getExpandingRoot();
+        if (expandingRoot != null) {
+            return expandingRoot.getOriginalToken();
+        }
+        return null;
     }
 
     /***
