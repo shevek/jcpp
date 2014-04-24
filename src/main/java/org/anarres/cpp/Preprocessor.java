@@ -1131,7 +1131,7 @@ public class Preprocessor implements Closeable {
      * User code may override this method to implement a virtual
      * file system.
      */
-    protected boolean include(@Nonnull VirtualFile file)
+    protected boolean include(@Nonnull VirtualFile file, int line)
             throws IOException,
             LexerException {
         // System.out.println("Try to include " + ((File)file).getAbsolutePath());
@@ -1139,7 +1139,7 @@ public class Preprocessor implements Closeable {
             return false;
         if (listener != null) {
             System.out.println("Trying to include " + file.getPath());
-            if (listener.beforeInclude(file.getPath())) {
+            if (listener.beforeInclude(file.getPath(), line)) {
                 // push_source() omitted
                 if (getFeature(Feature.DEBUG))
                     System.err.println("pp: skipping " + file);
@@ -1155,12 +1155,12 @@ public class Preprocessor implements Closeable {
     /**
      * Includes a file from an include path, by name.
      */
-    protected boolean include(@Nonnull Iterable<String> path, @Nonnull String name)
+    protected boolean include(@Nonnull Iterable<String> path, @Nonnull String name, int line)
             throws IOException,
             LexerException {
         for (String dir : path) {
             VirtualFile file = filesystem.getFile(dir, name);
-            if (include(file))
+            if (include(file, line))
                 return true;
         }
         return false;
@@ -1182,14 +1182,14 @@ public class Preprocessor implements Closeable {
             }
             if (pdir != null) {
                 VirtualFile ifile = pdir.getChildFile(name);
-                if (include(ifile))
+                if (include(ifile, line))
                     return;
             }
-            if (include(quoteincludepath, name))
+            if (include(quoteincludepath, name, line))
                 return;
         }
 
-        if (include(sysincludepath, name))
+        if (include(sysincludepath, name, line))
             return;
 
         StringBuilder buf = new StringBuilder();

@@ -87,7 +87,7 @@ public class DefaultPreprocessorListener implements PreprocessorListener {
     }
 
     @Override
-    public boolean beforeInclude(String filePath) {
+    public boolean beforeInclude(String filePath, int line) {
         return false;
     }
 

@@ -53,10 +53,11 @@ public interface PreprocessorListener {
      * Called when preprocessor is about to include file.
      *
      * @param filePath file path
+     * @param line     line of include directive
      * @return <code>true</code> if specified file should be skipped,
      * <code>false</code> otherwise
      */
-    public boolean beforeInclude(String filePath);
+    public boolean beforeInclude(String filePath, int line);
 
     public void handlePreprocesorDirective(Source source, PreprocessorDirective directive);
 
