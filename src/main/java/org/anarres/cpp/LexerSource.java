@@ -510,11 +510,14 @@ public class LexerSource extends Source {
                 d = read();
             } // This should probably be isPunct() || isWhite().
             else if (Character.isLetter(d) || d == '_') {
+                // We've encountered an identifier initially identified as a number.
+                // Read it in completely and return it correctly.
+                while(Character.isLetterOrDigit(d) || d == '_') {
+                    text.append((char)d);
+                    d = read();
+                }
                 unread(d);
-                value.setFlags(flags);
-                return invalid(text,
-                        "Invalid suffix \"" + (char) d
-                        + "\" on numeric constant");
+                return new Token(IDENTIFIER,text.toString());
             } else {
                 unread(d);
                 value.setFlags(flags);
