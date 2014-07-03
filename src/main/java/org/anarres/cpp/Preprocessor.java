@@ -19,7 +19,6 @@ package org.anarres.cpp;
 import java.io.Closeable;
 import java.io.File;
 import java.io.IOException;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -32,7 +31,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.Stack;
-
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import static org.anarres.cpp.Token.*;
@@ -118,6 +116,9 @@ public class Preprocessor implements Closeable {
     private final Set<Warning> warnings;
     private VirtualFileSystem filesystem;
     private PreprocessorListener listener;
+    
+    // container for the used includes
+    private  List<String> includes;
 
     public Preprocessor() {
         this.inputs = new ArrayList<Source>();
@@ -139,6 +140,8 @@ public class Preprocessor implements Closeable {
         this.warnings = EnumSet.noneOf(Warning.class);
         this.filesystem = new JavaFileSystem();
         this.listener = null;
+        
+        this.includes = new ArrayList<String>();
     }
 
     public Preprocessor(@Nonnull Source initial) {
@@ -1075,6 +1078,14 @@ public class Preprocessor implements Closeable {
     }
 
     /**
+     * Get the includes..
+     * @return includes of source
+     */
+    public List<String> getIncludes() {
+      return includes;
+    }
+    
+    /**
      * Attempts to include the given file.
      *
      * User code may override this method to implement a virtual
@@ -1086,6 +1097,7 @@ public class Preprocessor implements Closeable {
         // System.out.println("Try to include " + ((File)file).getAbsolutePath());
         if (!file.isFile())
             return false;
+        includes.add(file.getPath());        
         if (getFeature(Feature.DEBUG))
             System.err.println("pp: including " + file);
         push_source(file.getSource(), true);
