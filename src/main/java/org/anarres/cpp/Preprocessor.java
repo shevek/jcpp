@@ -1749,6 +1749,9 @@ public class Preprocessor implements Closeable {
                     source.setActive(false);
                     tok = source_token();
                 } finally {
+                    if (source == null) {
+                        throw new LexerException("Requested a token with a null Source");
+                    }
                     /* XXX Tell lexer to stop ignoring warnings. */
                     source.setActive(true);
                 }
