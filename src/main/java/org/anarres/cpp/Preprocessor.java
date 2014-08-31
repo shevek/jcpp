@@ -386,7 +386,6 @@ public class Preprocessor implements Closeable {
      * and the expansion.
      */
     public void addMacro(@Nonnull Macro m) throws LexerException {
-        // System.out.println("Macro " + m);
         String name = m.getName();
         /* Already handled as a source error in macro(). */
         if ("defined".equals(name))
@@ -1138,7 +1137,8 @@ public class Preprocessor implements Closeable {
         if (!file.isFile())
             return false;
         if (listener != null) {
-            System.out.println("Trying to include " + file.getPath());
+            if (getFeature(Feature.DEBUG))
+                System.out.println("Trying to include " + file.getPath());
             if (listener.beforeInclude(file.getPath(), line)) {
                 // push_source() omitted
                 if (getFeature(Feature.DEBUG))
