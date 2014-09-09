@@ -10,4 +10,5 @@ dependencies {
     // classpath 'gradle-release:gradle-release:1.1.5'
     classpath 'org.ajoberstar:gradle-git:0.5.0'
     classpath 'org.anarres.gradle:gradle-velocity-plugin:1.0.0'
+    classpath 'net.ltgt.gradle:gradle-errorprone-plugin:0.0.3'
 }
