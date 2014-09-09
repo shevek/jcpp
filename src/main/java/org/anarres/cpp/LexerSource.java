@@ -262,10 +262,16 @@ public class LexerSource extends Source {
         do {
             do {
                 d = read();
+                if (d == -1)
+                    return new Token(INVALID, text.toString(),
+                            "Unterminated comment");
                 text.append((char) d);
             } while (d != '*');
             do {
                 d = read();
+                if (d == -1)
+                    return new Token(INVALID, text.toString(),
+                            "Unterminated comment");
                 text.append((char) d);
             } while (d == '*');
         } while (d != '/');

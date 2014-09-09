@@ -31,9 +31,12 @@ apply plugin: 'velocity'
 dependencies {
     compile 'com.google.code.findbugs:jsr305:2.0.2'
 	compile 'gnu.getopt:java-getopt:1.0.13'
+	// compile 'net.sf.jopt-simple:jopt-simple:4.7'
 	compile 'org.apache.ant:ant:1.7.0'
 
-    testCompile 'junit:junit:4.8.1'
+	testCompile 'junit:junit:4.11'
+	// testCompile 'com.google.guava:guava:18.0'
+	testCompile 'commons-logging:commons-logging:1.2'
 }
 
 velocity {

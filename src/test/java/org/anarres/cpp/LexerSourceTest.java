@@ -1,35 +1,41 @@
 package org.anarres.cpp;
 
 import java.util.Arrays;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.junit.Ignore;
 import org.junit.Test;
 import static org.anarres.cpp.Token.*;
 import static org.junit.Assert.*;
 
 public class LexerSourceTest {
 
-    private void testLexerSource(String in, boolean textmatch, int... out)
+    private static final Log LOG = LogFactory.getLog(LexerSourceTest.class);
+
+    public static void testLexerSource(String in, boolean textmatch, int... out)
             throws Exception {
-        System.out.println("Testing '" + in + "' => "
+        LOG.info("Testing '" + in + "' => "
                 + Arrays.toString(out));
         StringLexerSource s = new StringLexerSource(in);
 
         StringBuilder buf = new StringBuilder();
         for (int i = 0; i < out.length; i++) {
             Token tok = s.token();
-            System.out.println("Token is " + tok);
+            LOG.info("Token is " + tok);
             assertEquals(out[i], tok.getType());
             // assertEquals(col, tok.getColumn());
             buf.append(tok.getText());
         }
 
         Token tok = s.token();
-        System.out.println("Token is " + tok);
+        LOG.info("Token is " + tok);
         assertEquals(EOF, tok.getType());
 
         if (textmatch)
             assertEquals(in, buf.toString());
     }
 
+    @Ignore
     @Test
     public void testLexerSource()
             throws Exception {
@@ -99,5 +105,11 @@ public class LexerSourceTest {
         testLexerSource("1.45e6", true, NUMBER);
         testLexerSource(".45e6", true, NUMBER);
         testLexerSource("-6", true, '-', NUMBER);
+    }
+
+    @Test
+    public void testUnterminatedComment() throws Exception {
+        testLexerSource("5 /*", false, NUMBER, WHITESPACE, INVALID);    // Bug #15
+        testLexerSource("5 //", false, NUMBER, WHITESPACE, CPPCOMMENT);
     }
 }
