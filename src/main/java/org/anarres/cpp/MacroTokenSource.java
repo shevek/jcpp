@@ -20,6 +20,7 @@ import java.io.IOException;
 import java.util.Iterator;
 import java.util.List;
 
+import javax.annotation.Nonnull;
 import static org.anarres.cpp.Token.*;
 
 /* This source should always be active, since we don't expand macros
@@ -50,7 +51,11 @@ import static org.anarres.cpp.Token.*;
     }
 
     /* XXX Called from Preprocessor [ugly]. */
-    /* pp */ static void escape(StringBuilder buf, CharSequence cs) {
+    /* pp */ static void escape(@Nonnull StringBuilder buf, @Nonnull CharSequence cs) {
+        if (buf == null)
+            throw new NullPointerException("Buffer was null.");
+        if (cs == null)
+            throw new NullPointerException("CharSequence was null.");
         for (int i = 0; i < cs.length(); i++) {
             char c = cs.charAt(i);
             switch (c) {

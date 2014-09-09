@@ -4,12 +4,16 @@ import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.junit.Before;
 import org.junit.Test;
 import static org.anarres.cpp.Token.*;
 import static org.junit.Assert.*;
 
 public class PreprocessorTest {
+
+    private static final Log LOG = LogFactory.getLog(PreprocessorTest.class);
 
     private OutputStreamWriter writer;
     private Preprocessor p;
@@ -153,18 +157,31 @@ public class PreprocessorTest {
         Token t;
         do {
             t = p.token();
-            System.out.println("Remaining token " + t);
+            LOG.warn("Remaining token " + t);
+        } while (t.getType() != EOF);
+    }
+
+    @Test
+    public void testPreprocessorUnterminated() throws Exception {
+        testInput("#ifndef X\na\n#else\nb\n");   // Bug #16
+
+        writer.close();
+
+        Token t;
+        do {
+            t = p.token();
+            LOG.warn("Remaining token " + t);
         } while (t.getType() != EOF);
     }
 
     private void testInput(String in, Object... out)
             throws Exception {
-        System.out.print("Input: " + in);
+        LOG.info("Input: " + in);
         writer.write(in);
         writer.flush();
         for (int i = 0; i < out.length; i++) {
             Token t = p.token();
-            System.out.println(t);
+            LOG.info(t);
             Object v = out[i];
             if (v instanceof String) {
                 if (t.getType() != STRING)

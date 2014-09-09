@@ -495,6 +495,7 @@ public class Preprocessor implements Closeable {
      * @see #push_source(Source,boolean)
      * @see #pop_source()
      */
+    @CheckForNull
     protected Source getSource() {
         return source;
     }
@@ -552,18 +553,30 @@ public class Preprocessor implements Closeable {
         pop_source(false);
     }
 
+    @Nonnull
+    private Token next_source() {
+        if (inputs.isEmpty())
+            return new Token(EOF);
+        Source s = inputs.remove(0);
+        push_source(s, true);
+        return line_token(s.getLine(), s.getName(), " 1");
+    }
+
     /* Source tokens */
     private Token source_token;
 
     /* XXX Make this include the NL, and make all cpp directives eat
      * their own NL. */
     @Nonnull
-    private Token line_token(int line, String name, String extra) {
+    private Token line_token(int line, @CheckForNull String name, @Nonnull String extra) {
         StringBuilder buf = new StringBuilder();
         buf.append("#line ").append(line)
                 .append(" \"");
         /* XXX This call to escape(name) is correct but ugly. */
-        MacroTokenSource.escape(buf, name);
+        if (name == null)
+            buf.append("<unnamed-source>");
+        else
+            MacroTokenSource.escape(buf, name);
         buf.append("\"").append(extra).append("\n");
         return new Token(P_LINE, line, 0, buf.toString(), null);
     }
@@ -583,13 +596,10 @@ public class Preprocessor implements Closeable {
         for (;;) {
             Source s = getSource();
             if (s == null) {
-                if (inputs.isEmpty())
-                    return new Token(EOF);
-                Source t = inputs.remove(0);
-                push_source(t, true);
-                if (getFeature(Feature.LINEMARKERS))
-                    return line_token(t.getLine(), t.getName(), " 1");
-                continue;
+                Token t = next_source();
+                if (t.getType() == P_LINE && !getFeature(Feature.LINEMARKERS))
+                    continue;
+                return t;
             }
             Token tok = s.token();
             /* XXX Refactor with skipline() */
@@ -1675,13 +1685,21 @@ public class Preprocessor implements Closeable {
         for (;;) {
             Token tok;
             if (!isActive()) {
+                Source s = getSource();
+                if (s == null) {
+                    Token t = next_source();
+                    if (t.getType() == P_LINE && !getFeature(Feature.LINEMARKERS))
+                        continue;
+                    return t;
+                }
+
                 try {
                     /* XXX Tell lexer to ignore warnings. */
-                    source.setActive(false);
+                    s.setActive(false);
                     tok = source_token();
                 } finally {
                     /* XXX Tell lexer to stop ignoring warnings. */
-                    source.setActive(true);
+                    s.setActive(true);
                 }
                 switch (tok.getType()) {
                     case HASH:
