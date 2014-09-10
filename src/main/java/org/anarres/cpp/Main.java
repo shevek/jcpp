@@ -16,11 +16,11 @@
  */
 package org.anarres.cpp;
 
+import gnu.getopt.Getopt;
+import gnu.getopt.LongOpt;
 import java.io.File;
 import java.io.PrintStream;
 import java.util.EnumSet;
-import gnu.getopt.Getopt;
-import gnu.getopt.LongOpt;
 
 /**
  * (Currently a simple test class).
@@ -29,8 +29,8 @@ public class Main {
 
     private static class Option extends LongOpt {
 
-        private String eg;
-        private String help;
+        private final String eg;
+        private final String help;
 
         public Option(String word, int arg, int ch,
                 String eg, String help) {
@@ -204,8 +204,8 @@ public class Main {
     private static String getShortOpts(Option[] opts)
             throws Exception {
         StringBuilder buf = new StringBuilder();
-        for (int i = 0; i < opts.length; i++) {
-            char c = (char) opts[i].getVal();
+        for (Option opt : opts) {
+            char c = (char) opt.getVal();
             if (!Character.isLetterOrDigit(c))
                 continue;
             for (int j = 0; j < buf.length(); j++)
@@ -214,7 +214,7 @@ public class Main {
                             "Duplicate short option " + c
                     );
             buf.append(c);
-            switch (opts[i].getHasArg()) {
+            switch (opt.getHasArg()) {
                 case LongOpt.NO_ARGUMENT:
                     break;
                 case LongOpt.OPTIONAL_ARGUMENT:
@@ -284,9 +284,9 @@ public class Main {
     private static void usage(String command, Option[] options) {
         StringBuilder text = new StringBuilder("Usage: ");
         text.append(command).append('\n');
-        for (int i = 0; i < options.length; i++) {
+        for (Option option : options) {
             StringBuilder line = new StringBuilder();
-            Option opt = options[i];
+            Option opt = option;
             line.append("    --").append(opt.getName());
             switch (opt.getHasArg()) {
                 case LongOpt.NO_ARGUMENT:

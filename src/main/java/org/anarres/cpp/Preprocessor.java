@@ -19,7 +19,6 @@ package org.anarres.cpp;
 import java.io.Closeable;
 import java.io.File;
 import java.io.IOException;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -27,16 +26,15 @@ import java.util.Collections;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.Stack;
-
+import java.util.TreeMap;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
-import static org.anarres.cpp.Token.*;
 import static org.anarres.cpp.PreprocessorCommand.*;
+import static org.anarres.cpp.Token.*;
 
 /**
  * A C Preprocessor.
@@ -587,7 +585,7 @@ public class Preprocessor implements Closeable {
                 .append(" \"");
         /* XXX This call to escape(name) is correct but ugly. */
         if (name == null)
-            buf.append("<unnamed-source>");
+            buf.append("<no file>");
         else
             MacroTokenSource.escape(buf, name);
         buf.append("\"").append(extra).append("\n");
@@ -792,12 +790,8 @@ public class Preprocessor implements Closeable {
                     return false;
                 }
 
-                /*
-                 * for (Argument a : args)
-                 * a.expand(this);
-                 */
-                for (int i = 0; i < args.size(); i++) {
-                    args.get(i).expand(this);
+                for (Argument a : args) {
+                    a.expand(this);
                 }
 
                 // System.out.println("Macro " + m + " args " + args);
@@ -1537,7 +1531,7 @@ public class Preprocessor implements Closeable {
                 lhs = value.longValue();
                 break;
             case CHARACTER:
-                lhs = (long) ((Character) tok.getValue()).charValue();
+                lhs = ((Character) tok.getValue()).charValue();
                 break;
             case IDENTIFIER:
                 if (warnings.contains(Warning.UNDEF))
@@ -2079,15 +2073,8 @@ public class Preprocessor implements Closeable {
             s = s.getParent();
         }
 
-        Map<String, Macro> macros = getMacros();
-        List<String> keys = new ArrayList<String>(
-                macros.keySet()
-        );
-        Collections.sort(keys);
-        Iterator<String> mt = keys.iterator();
-        while (mt.hasNext()) {
-            String key = mt.next();
-            Macro macro = getMacro(key);
+        Map<String, Macro> macros = new TreeMap<String, Macro>(getMacros());
+        for (Macro macro : macros.values()) {
             buf.append("#").append("macro ").append(macro).append("\n");
         }
 

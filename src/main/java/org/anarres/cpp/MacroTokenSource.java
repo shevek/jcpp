@@ -19,7 +19,6 @@ package org.anarres.cpp;
 import java.io.IOException;
 import java.util.Iterator;
 import java.util.List;
-
 import javax.annotation.Nonnull;
 import static org.anarres.cpp.Token.*;
 

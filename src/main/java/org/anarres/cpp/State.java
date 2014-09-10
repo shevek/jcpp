@@ -14,54 +14,55 @@
  * or implied.  See the License for the specific language governing
  * permissions and limitations under the License.
  */
-
 package org.anarres.cpp;
 
 /* pp */ class State {
-	boolean	parent;
-	boolean	active;
-	boolean	sawElse;
 
-	/* pp */ State() {
-		this.parent = true;
-		this.active = true;
-		this.sawElse = false;
-	}
+    boolean parent;
+    boolean active;
+    boolean sawElse;
 
-	/* pp */ State(State parent) {
-		this.parent = parent.isParentActive() && parent.isActive();
-		this.active = true;
-		this.sawElse = false;
-	}
+    /* pp */ State() {
+        this.parent = true;
+        this.active = true;
+        this.sawElse = false;
+    }
 
-	/* Required for #elif */
-	/* pp */ void setParentActive(boolean b) {
-		this.parent = b;
-	}
+    /* pp */ State(State parent) {
+        this.parent = parent.isParentActive() && parent.isActive();
+        this.active = true;
+        this.sawElse = false;
+    }
 
-	/* pp */ boolean isParentActive() {
-		return parent;
-	}
+    /* Required for #elif */
+    /* pp */ void setParentActive(boolean b) {
+        this.parent = b;
+    }
 
-	/* pp */ void setActive(boolean b) {
-		this.active = b;
-	}
+    /* pp */ boolean isParentActive() {
+        return parent;
+    }
 
-	/* pp */ boolean isActive() {
-		return active;
-	}
+    /* pp */ void setActive(boolean b) {
+        this.active = b;
+    }
 
-	/* pp */ void setSawElse() {
-		sawElse = true;
-	}
+    /* pp */ boolean isActive() {
+        return active;
+    }
 
-	/* pp */ boolean sawElse() {
-		return sawElse;
-	}
+    /* pp */ void setSawElse() {
+        sawElse = true;
+    }
 
-	public String toString() {
-		return "parent=" + parent +
-			", active=" + active +
-			", sawelse=" + sawElse;
-	}
+    /* pp */ boolean sawElse() {
+        return sawElse;
+    }
+
+    @Override
+    public String toString() {
+        return "parent=" + parent
+                + ", active=" + active
+                + ", sawelse=" + sawElse;
+    }
 }

@@ -14,41 +14,32 @@
  * or implied.  See the License for the specific language governing
  * permissions and limitations under the License.
  */
-
 package org.anarres.cpp;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
 import java.io.IOException;
-import java.io.PushbackReader;
-import java.io.Reader;
-import java.io.StringReader;
-
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Iterator;
-
-import static org.anarres.cpp.Token.*;
+import static org.anarres.cpp.Token.EOF;
 
 @Deprecated
 /* pp */ class TokenSnifferSource extends Source {
-	private List<Token>	target;
 
-	/* pp */ TokenSnifferSource(List<Token> target) {
-		this.target = target;
-	}
+    private final List<Token> target;
 
-	public Token token()
-						throws IOException,
-								LexerException {
-		Token	tok = getParent().token();
-		if (tok.getType() != EOF)
-			target.add(tok);
-		return tok;
-	}
+    /* pp */ TokenSnifferSource(List<Token> target) {
+        this.target = target;
+    }
 
-	public String toString() {
-		return getParent().toString();
-	}
+    public Token token()
+            throws IOException,
+            LexerException {
+        Token tok = getParent().token();
+        if (tok.getType() != EOF)
+            target.add(tok);
+        return tok;
+    }
+
+    @Override
+    public String toString() {
+        return getParent().toString();
+    }
 }

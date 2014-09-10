@@ -14,7 +14,6 @@
  * or implied.  See the License for the specific language governing
  * permissions and limitations under the License.
  */
-
 package org.anarres.cpp;
 
 /**
@@ -25,7 +24,8 @@ package org.anarres.cpp;
  * report it as a bug.
  */
 public class InternalException extends RuntimeException {
-	public InternalException(String msg) {
-		super(msg);
-	}
+
+    public InternalException(String msg) {
+        super(msg);
+    }
 }

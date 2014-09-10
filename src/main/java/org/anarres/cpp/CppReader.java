@@ -19,8 +19,9 @@ package org.anarres.cpp;
 import java.io.Closeable;
 import java.io.IOException;
 import java.io.Reader;
-
-import static org.anarres.cpp.Token.*;
+import static org.anarres.cpp.Token.CCOMMENT;
+import static org.anarres.cpp.Token.CPPCOMMENT;
+import static org.anarres.cpp.Token.EOF;
 
 /**
  * A Reader wrapper around the Preprocessor.
@@ -108,13 +109,7 @@ public class CppReader extends Reader implements Closeable {
             }
             return true;
         } catch (LexerException e) {
-            /* Never happens.
-             if (e.getCause() instanceof IOException)
-             throw (IOException)e.getCause();
-             */
-            IOException ie = new IOException(String.valueOf(e));
-            ie.initCause(e);
-            throw ie;
+            throw new IOException(String.valueOf(e), e);
         }
     }
 

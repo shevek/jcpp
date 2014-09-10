@@ -101,7 +101,7 @@ public class NumericValue extends Number {
         if (t_fraction != null) {
             text += getFractionalPart();
             // XXX Wrong for anything but base 10.
-            scale += getFractionalPart().length();
+            scale += t_fraction.length();
         }
         if (getExponent() != null)
             scale -= Integer.parseInt(getExponent());
@@ -148,7 +148,7 @@ public class NumericValue extends Number {
         if (expbase == 2)
             v = v << exponentValue();
         else if (expbase != 0)
-            v = (int) (v * Math.pow(expbase, exponentValue()));
+            v = (long) (v * Math.pow(expbase, exponentValue()));
         return v;
     }
 

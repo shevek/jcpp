@@ -2,7 +2,7 @@ package org.anarres.cpp;
 
 import java.io.StringReader;
 import org.junit.Test;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 
 public class JoinReaderTest {
 
@@ -15,7 +15,7 @@ public class JoinReaderTest {
         for (int i = 0; i < out.length(); i++) {
             int c = j.read();
             System.out.println("At offset " + i + ": " + (char) c);
-            assertEquals((char) out.charAt(i), c);
+            assertEquals(out.charAt(i), c);
         }
         assertEquals(-1, j.read());
         assertEquals(-1, j.read());

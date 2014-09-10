@@ -179,22 +179,21 @@ public class PreprocessorTest {
         LOG.info("Input: " + in);
         writer.write(in);
         writer.flush();
-        for (int i = 0; i < out.length; i++) {
+        for (Object v : out) {
             Token t = p.token();
             LOG.info(t);
-            Object v = out[i];
             if (v instanceof String) {
                 if (t.getType() != STRING)
                     fail("Expected STRING, but got " + t);
-                assertEquals((String) v, (String) t.getValue());
+                assertEquals(v, t.getValue());
             } else if (v instanceof I) {
                 if (t.getType() != IDENTIFIER)
                     fail("Expected IDENTIFIER " + v + ", but got " + t);
                 assertEquals(((I) v).getText(), t.getText());
             } else if (v instanceof Character)
-                assertEquals((int) ((Character) v).charValue(), t.getType());
+                assertEquals(((Character) v).charValue(), t.getType());
             else if (v instanceof Integer)
-                assertEquals(((Integer) v).intValue(), t.getType());
+                assertEquals(((Number) v).intValue(), t.getType());
             else
                 fail("Bad object " + v.getClass());
         }

@@ -14,32 +14,30 @@
  * or implied.  See the License for the specific language governing
  * permissions and limitations under the License.
  */
-
 package org.anarres.cpp;
 
 /**
  * Features of the Preprocessor, which may be enabled or disabled.
  */
 public enum Feature {
-	/** Supports ANSI digraphs. */
-	DIGRAPHS,
-	/** Supports ANSI trigraphs. */
-	TRIGRAPHS,
-	/** Outputs linemarker tokens. */
-	LINEMARKERS,
-	/** Reports tokens of type INVALID as errors. */
-	CSYNTAX,
-	/** Preserves comments in the lexed output. */
-	KEEPCOMMENTS,
-	/** Preserves comments in the lexed output, even when inactive. */
-	KEEPALLCOMMENTS,
-	VERBOSE,
-	DEBUG,
 
-	/** Supports lexing of objective-C. */
-	OBJCSYNTAX,
-	INCLUDENEXT,
-
+    /** Supports ANSI digraphs. */
+    DIGRAPHS,
+    /** Supports ANSI trigraphs. */
+    TRIGRAPHS,
+    /** Outputs linemarker tokens. */
+    LINEMARKERS,
+    /** Reports tokens of type INVALID as errors. */
+    CSYNTAX,
+    /** Preserves comments in the lexed output. */
+    KEEPCOMMENTS,
+    /** Preserves comments in the lexed output, even when inactive. */
+    KEEPALLCOMMENTS,
+    VERBOSE,
+    DEBUG,
+    /** Supports lexing of objective-C. */
+    OBJCSYNTAX,
+    INCLUDENEXT,
     /** Random extensions. */
     PRAGMA_ONCE
 }

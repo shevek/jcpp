@@ -14,79 +14,74 @@
  * or implied.  See the License for the specific language governing
  * permissions and limitations under the License.
  */
-
 package org.anarres.cpp;
 
 import java.io.IOException;
-
 import java.util.Iterator;
 import java.util.NoSuchElementException;
-
-import static org.anarres.cpp.Token.*;
+import static org.anarres.cpp.Token.EOF;
 
 /**
  * An Iterator for {@link Source Sources},
  * returning {@link Token Tokens}.
  */
 public class SourceIterator implements Iterator<Token> {
-	private Source	source;
-	private Token	tok;
 
-	public SourceIterator(Source s) {
-		this.source = s;
-		this.tok = null;
-	}
+    private final Source source;
+    private Token tok;
 
-	/**
-	 * Rethrows IOException inside IllegalStateException.
-	 */
-	private void advance() {
-		try {
-			if (tok == null)
-				tok = source.token();
-		}
-		catch (LexerException e) {
-			throw new IllegalStateException(e);
-		}
-		catch (IOException e) {
-			throw new IllegalStateException(e);
-		}
-	}
+    public SourceIterator(Source s) {
+        this.source = s;
+        this.tok = null;
+    }
 
-	/**
-	 * Returns true if the enclosed Source has more tokens.
-	 *
-	 * The EOF token is never returned by the iterator.
-	 * @throws IllegalStateException if the Source
-	 *		throws a LexerException or IOException
-	 */
-	public boolean hasNext() {
-		advance();
-		return tok.getType() != EOF;
-	}
+    /**
+     * Rethrows IOException inside IllegalStateException.
+     */
+    private void advance() {
+        try {
+            if (tok == null)
+                tok = source.token();
+        } catch (LexerException e) {
+            throw new IllegalStateException(e);
+        } catch (IOException e) {
+            throw new IllegalStateException(e);
+        }
+    }
 
-	/**
-	 * Returns the next token from the enclosed Source.
-	 *
-	 * The EOF token is never returned by the iterator.
-	 * @throws IllegalStateException if the Source
-	 *		throws a LexerException or IOException
-	 */
-	public Token next() {
-		if (!hasNext())
-			throw new NoSuchElementException();
-		Token	t = this.tok;
-		this.tok = null;
-		return t;
-	}
+    /**
+     * Returns true if the enclosed Source has more tokens.
+     *
+     * The EOF token is never returned by the iterator.
+     * @throws IllegalStateException if the Source
+     *		throws a LexerException or IOException
+     */
+    public boolean hasNext() {
+        advance();
+        return tok.getType() != EOF;
+    }
 
-	/**
-	 * Not supported.
-	 *
-	 * @throws UnsupportedOperationException.
-	 */
-	public void remove() {
-		throw new UnsupportedOperationException();
-	}
+    /**
+     * Returns the next token from the enclosed Source.
+     *
+     * The EOF token is never returned by the iterator.
+     * @throws IllegalStateException if the Source
+     *		throws a LexerException or IOException
+     */
+    public Token next() {
+        if (!hasNext())
+            throw new NoSuchElementException();
+        Token t = this.tok;
+        this.tok = null;
+        return t;
+    }
+
+    /**
+     * Not supported.
+     *
+     * @throws UnsupportedOperationException.
+     */
+    public void remove() {
+        throw new UnsupportedOperationException();
+    }
 }
-

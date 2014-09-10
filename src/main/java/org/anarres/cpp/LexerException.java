@@ -14,7 +14,6 @@
  * or implied.  See the License for the specific language governing
  * permissions and limitations under the License.
  */
-
 package org.anarres.cpp;
 
 /**
@@ -23,11 +22,12 @@ package org.anarres.cpp;
  * Note to users: I don't really like the name of this class. S.
  */
 public class LexerException extends Exception {
-	public LexerException(String msg) {
-		super(msg);
-	}
 
-	public LexerException(Throwable cause) {
-		super(cause);
-	}
+    public LexerException(String msg) {
+        super(msg);
+    }
+
+    public LexerException(Throwable cause) {
+        super(cause);
+    }
 }

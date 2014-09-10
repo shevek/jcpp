@@ -18,7 +18,6 @@ package org.anarres.cpp;
 
 import java.io.IOException;
 import java.io.Reader;
-
 import javax.annotation.Nonnull;
 import static org.anarres.cpp.Token.*;
 

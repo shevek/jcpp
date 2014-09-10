@@ -14,16 +14,13 @@
  * or implied.  See the License for the specific language governing
  * permissions and limitations under the License.
  */
-
 package org.anarres.cpp;
 
 import java.io.IOException;
-
 import java.util.ArrayList;
-import java.util.List;
 import java.util.Iterator;
-
-import static org.anarres.cpp.Token.*;
+import java.util.List;
+import javax.annotation.Nonnull;
 
 /**
  * A macro argument.
@@ -31,47 +28,48 @@ import static org.anarres.cpp.Token.*;
  * This encapsulates a raw and preprocessed token stream.
  */
 /* pp */ class Argument extends ArrayList<Token> {
-	public static final int	NO_ARGS = -1;
 
-	private List<Token>	expansion;
+    private List<Token> expansion;
 
-	public Argument() {
-		this.expansion = null;
-	}
+    public Argument() {
+        this.expansion = null;
+    }
 
-	public void addToken(Token tok) {
-		add(tok);
-	}
+    public void addToken(@Nonnull Token tok) {
+        add(tok);
+    }
 
-	/* pp */ void expand(Preprocessor p)
-						throws IOException,
-								LexerException {
-		/* Cache expansion. */
-		if (expansion == null) {
-			this.expansion = p.expand(this);
-			// System.out.println("Expanded arg " + this);
-		}
-	}
+    /* pp */ void expand(@Nonnull Preprocessor p)
+            throws IOException,
+            LexerException {
+        /* Cache expansion. */
+        if (expansion == null) {
+            this.expansion = p.expand(this);
+            // System.out.println("Expanded arg " + this);
+        }
+    }
 
-	public Iterator<Token> expansion() {
-		return expansion.iterator();
-	}
+    @Nonnull
+    public Iterator<Token> expansion() {
+        return expansion.iterator();
+    }
 
-	public String toString() {
-		StringBuilder	buf = new StringBuilder();
-		buf.append("Argument(");
-		// buf.append(super.toString());
-		buf.append("raw=[ ");
-		for (int i = 0; i < size(); i++)
-			buf.append(get(i).getText());
-		buf.append(" ];expansion=[ ");
-		if (expansion == null)
-			buf.append("null");
-		else
-			for (int i = 0; i < expansion.size(); i++)
-				buf.append(expansion.get(i).getText());
-		buf.append(" ])");
-		return buf.toString();
-	}
+    @Override
+    public String toString() {
+        StringBuilder buf = new StringBuilder();
+        buf.append("Argument(");
+        // buf.append(super.toString());
+        buf.append("raw=[ ");
+        for (int i = 0; i < size(); i++)
+            buf.append(get(i).getText());
+        buf.append(" ];expansion=[ ");
+        if (expansion == null)
+            buf.append("null");
+        else
+            for (Token token : expansion)
+                buf.append(token.getText());
+        buf.append(" ])");
+        return buf.toString();
+    }
 
 }
