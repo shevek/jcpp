@@ -122,6 +122,9 @@ public class Preprocessor implements Closeable {
     private VirtualFileSystem filesystem;
     private PreprocessorListener listener;
 
+    HashSet<String> quotedImports=new HashSet<String>();
+    HashSet<String> sysImports=new HashSet<String>();
+
     public Preprocessor() {
         this.inputs = new ArrayList<Source>();
 
@@ -762,6 +765,7 @@ public class Preprocessor implements Closeable {
                         case WHITESPACE:
                         case CCOMMENT:
                         case CPPCOMMENT:
+                        case NL:
                             /* Avoid duplicating spaces. */
                             space = true;
                             break;
@@ -1149,6 +1153,25 @@ public class Preprocessor implements Closeable {
             }
             if (include(quoteincludepath, name))
                 return;
+        } else {
+            int forwardSlashPos=name.indexOf('/');
+            if (forwardSlashPos!=-1) {
+                String frameworkName=name.substring(0,forwardSlashPos);
+                String includeName=name.substring(forwardSlashPos+1);
+                for (String frameworkPath:frameworkspath) {
+                    File frameworkFile=new File(frameworkPath,frameworkName+".framework");
+                    if (!frameworkFile.exists() || !frameworkFile.isDirectory())
+                        continue;
+                    File frameworkHeadersFile=new File(frameworkFile,"Headers");
+                    if (!frameworkHeadersFile.exists() || !frameworkHeadersFile.isDirectory())
+                        continue;
+                    File includeFile=new File(frameworkHeadersFile,includeName);
+                    if (!includeFile.exists() || !includeFile.isFile())
+                        continue;
+                    if (include(filesystem.getFile(includeFile.getCanonicalPath())))
+                        return;
+                }
+            }
         }
 
         if (include(sysincludepath, name))
@@ -1168,7 +1191,7 @@ public class Preprocessor implements Closeable {
     }
 
     @Nonnull
-    private Token include(boolean next)
+    private Token include(boolean next,boolean isImport)
             throws IOException,
             LexerException {
         LexerSource lexer = (LexerSource) source;
@@ -1218,13 +1241,20 @@ public class Preprocessor implements Closeable {
                 }
             }
 
-            /* Do the inclusion. */
-            include(source.getPath(), tok.getLine(), name, quoted, next);
+            HashSet<String> importMap=quoted?quotedImports:sysImports;
+            if (!isImport || !importMap.contains(name)) {
+                /* Do the inclusion. */
+                include(source.getPath(), tok.getLine(), name, quoted, next);
+                
+                importMap.add(name);
 
-            /* 'tok' is the 'nl' after the include. We use it after the
-             * #line directive. */
-            if (getFeature(Feature.LINEMARKERS))
-                return line_token(1, source.getName(), " 1");
+                /* 'tok' is the 'nl' after the include. We use it after the
+                 * #line directive. */
+                if (getFeature(Feature.LINEMARKERS))
+                    return line_token(1, source.getName(), " 1");
+            } else {
+                warning(tok,"Already imported:"+name);
+            }
             return tok;
         } finally {
             lexer.setInclude(false);
@@ -1514,7 +1544,7 @@ public class Preprocessor implements Closeable {
                 tok = expr_token();
                 if (tok.getType() != ')') {
                     expr_untoken(tok);
-                    error(tok, "missing ) in expression");
+                    error(tok, "missing ) in expression at "+tok);
                     return 0;
                 }
                 break;
@@ -1629,7 +1659,17 @@ public class Preprocessor implements Closeable {
                     break;
 
                 case '?':
-                /* XXX Handle this? */
+                    {
+                        tok = expr_token();
+                        if (tok.getType() != ':') {
+                            expr_untoken(tok);
+                            error(tok, "missing : in conditional expression");
+                            return 0;
+                        }
+                        long falseResult=expr(0);
+                        lhs = (lhs!=0) ? rhs : falseResult;
+                    }
+                    break;
 
                 default:
                     error(op,
@@ -1807,6 +1847,7 @@ public class Preprocessor implements Closeable {
                 case RSH:
                 case RSH_EQ:
                 case STRING:
+                case SQSTRING :
                 case XOR_EQ:
                     return tok;
 
@@ -1877,11 +1918,12 @@ public class Preprocessor implements Closeable {
                                 return undef();
                         // break;
 
+                        case PP_IMPORT :
                         case PP_INCLUDE:
                             if (!isActive())
                                 return source_skipline(false);
                             else
-                                return include(false);
+                                return include(false,ppcmd==PP_IMPORT);
                         // break;
                         case PP_INCLUDE_NEXT:
                             if (!isActive())
@@ -1892,7 +1934,7 @@ public class Preprocessor implements Closeable {
                                 );
                                 return source_skipline(false);
                             }
-                            return include(true);
+                            return include(true,false);
                         // break;
 
                         case PP_WARNING:
