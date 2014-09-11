@@ -1149,6 +1149,15 @@ public class Preprocessor implements Closeable {
             }
             if (include(quoteincludepath, name))
                 return;
+        } else {
+            int idx = name.indexOf('/');
+            if (idx != -1) {
+                String frameworkName = name.substring(0, idx);
+                String headerName = name.substring(idx + 1);
+                String headerPath = frameworkName + ".framework/Headers/" + headerName;
+                if (include(frameworkspath, headerPath))
+                    return;
+            }
         }
 
         if (include(sysincludepath, name))
