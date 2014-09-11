@@ -176,7 +176,7 @@ public class PreprocessorTest {
         } while (t.getType() != EOF);
     }
 
-    private void assertType(int type, Token t) {
+    public static void assertType(int type, Token t) {
         String typeExpect = TokenType.getTokenName(type);
         String typeActual = TokenType.getTokenName(t.getType());
         assertEquals("Expected " + typeExpect + " but got " + typeActual, type, t.getType());

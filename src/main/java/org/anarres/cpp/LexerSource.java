@@ -513,13 +513,17 @@ public class LexerSource extends Source {
                 flags |= NumericValue.F_DOUBLE;
                 text.append((char) d);
                 d = read();
-            } // This should probably be isPunct() || isWhite().
-            else if (Character.isLetter(d) || d == '_') {
+            }
+            else if (Character.isUnicodeIdentifierPart(d)) {
+                String reason = "Invalid suffix \"" + (char) d + "\" on numeric constant";
+                // We've encountered something initially identified as a number.
+                // Read in the rest of this token as an identifer but return it as an invalid.
+                while (Character.isUnicodeIdentifierPart(d)) {
+                    text.append((char) d);
+                    d = read();
+                }
                 unread(d);
-                value.setFlags(flags);
-                return invalid(text,
-                        "Invalid suffix \"" + (char) d
-                        + "\" on numeric constant");
+                return new Token(INVALID, text.toString(), reason);
             } else {
                 unread(d);
                 value.setFlags(flags);

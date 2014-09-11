@@ -3,8 +3,8 @@ package org.anarres.cpp;
 import java.util.Arrays;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.junit.Ignore;
 import org.junit.Test;
+import static org.anarres.cpp.PreprocessorTest.assertType;
 import static org.anarres.cpp.Token.*;
 import static org.junit.Assert.*;
 
@@ -22,20 +22,19 @@ public class LexerSourceTest {
         for (int i = 0; i < out.length; i++) {
             Token tok = s.token();
             LOG.info("Token is " + tok);
-            assertEquals(out[i], tok.getType());
+            assertType(out[i], tok);
             // assertEquals(col, tok.getColumn());
             buf.append(tok.getText());
         }
 
         Token tok = s.token();
         LOG.info("Token is " + tok);
-        assertEquals(EOF, tok.getType());
+        assertType(EOF, tok);
 
         if (textmatch)
             assertEquals(in, buf.toString());
     }
 
-    @Ignore
     @Test
     public void testLexerSource()
             throws Exception {
@@ -85,10 +84,11 @@ public class LexerSourceTest {
                 SQSTRING, WHITESPACE,
                 SQSTRING);
 
-        testLexerSource("1i1I1l1L1ui1ul", true,
-                NUMBER, NUMBER,
-                NUMBER, NUMBER,
-                NUMBER, NUMBER);
+        if (false)  // Actually, I think this is illegal.
+            testLexerSource("1i1I1l1L1ui1ul", true,
+                    NUMBER, NUMBER,
+                    NUMBER, NUMBER,
+                    NUMBER, NUMBER);
 
         testLexerSource("'' 'x' 'xx'", true,
                 SQSTRING, WHITESPACE, CHARACTER, WHITESPACE, SQSTRING);
@@ -105,6 +105,31 @@ public class LexerSourceTest {
         testLexerSource("1.45e6", true, NUMBER);
         testLexerSource(".45e6", true, NUMBER);
         testLexerSource("-6", true, '-', NUMBER);
+    }
+
+    @Test
+    public void testNumbersSuffix() throws Exception {
+        testLexerSource("6f", true, NUMBER);
+        testLexerSource("6d", true, NUMBER);
+        testLexerSource("6l", true, NUMBER);
+        testLexerSource("6ll", true, NUMBER);
+        testLexerSource("6ul", true, NUMBER);
+        testLexerSource("6ull", true, NUMBER);
+        testLexerSource("6e3f", true, NUMBER);
+        testLexerSource("6e3d", true, NUMBER);
+        testLexerSource("6e3l", true, NUMBER);
+        testLexerSource("6e3ll", true, NUMBER);
+        testLexerSource("6e3ul", true, NUMBER);
+        testLexerSource("6e3ull", true, NUMBER);
+    }
+
+    @Test
+    public void testNumbersInvalid() throws Exception {
+        // testLexerSource("0x foo", true, INVALID, WHITESPACE, IDENTIFIER);   // FAIL
+        testLexerSource("6x foo", true, INVALID, WHITESPACE, IDENTIFIER);
+        testLexerSource("6g foo", true, INVALID, WHITESPACE, IDENTIFIER);
+        testLexerSource("6xsd foo", true, INVALID, WHITESPACE, IDENTIFIER);
+        testLexerSource("6gsd foo", true, INVALID, WHITESPACE, IDENTIFIER);
     }
 
     @Test
