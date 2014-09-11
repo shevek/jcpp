@@ -107,6 +107,7 @@ public class Preprocessor implements Closeable {
     /* Miscellaneous support. */
     private int counter;
     private final Set<String> onceseenpaths = new HashSet<String>();
+    private final List<VirtualFile> includes = new ArrayList<VirtualFile>();
 
     /* Support junk to make it work like cpp */
     private List<String> quoteincludepath;	/* -iquote */
@@ -464,6 +465,18 @@ public class Preprocessor implements Closeable {
     @CheckForNull
     public Macro getMacro(String name) {
         return macros.get(name);
+    }
+
+    /**
+     * Returns the list of {@link VirtualFile VirtualFiles} which have been
+     * included by this Preprocessor.
+     *
+     * This does not include any {@link Source} provided to the constructor
+     * or {@link #addInput(java.io.File)} or {@link #addInput(Source)}.
+     */
+    @Nonnull
+    public List<? extends VirtualFile> getIncludes() {
+        return includes;
     }
 
     /* States */
@@ -1098,6 +1111,7 @@ public class Preprocessor implements Closeable {
             return false;
         if (getFeature(Feature.DEBUG))
             System.err.println("pp: including " + file);
+        includes.add(file);
         push_source(file.getSource(), true);
         return true;
     }
@@ -1109,7 +1123,7 @@ public class Preprocessor implements Closeable {
             throws IOException,
             LexerException {
         for (String dir : path) {
-            VirtualFile file = filesystem.getFile(dir, name);
+            VirtualFile file = getFileSystem().getFile(dir, name);
             if (include(file))
                 return true;
         }
