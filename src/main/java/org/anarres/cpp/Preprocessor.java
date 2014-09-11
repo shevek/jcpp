@@ -1514,7 +1514,7 @@ public class Preprocessor implements Closeable {
                 tok = expr_token();
                 if (tok.getType() != ')') {
                     expr_untoken(tok);
-                    error(tok, "missing ) in expression");
+                    error(tok, "Missing ) in expression. Got " + tok.getText());
                     return 0;
                 }
                 break;
@@ -1628,8 +1628,17 @@ public class Preprocessor implements Closeable {
                     lhs = (lhs != 0) || (rhs != 0) ? 1 : 0;
                     break;
 
-                case '?':
-                /* XXX Handle this? */
+                case '?': {
+                    tok = expr_token();
+                    if (tok.getType() != ':') {
+                        expr_untoken(tok);
+                        error(tok, "Missing : in conditional expression. Got " + tok.getText());
+                        return 0;
+                    }
+                    long falseResult = expr(0);
+                    lhs = (lhs != 0) ? rhs : falseResult;
+                }
+                break;
 
                 default:
                     error(op,

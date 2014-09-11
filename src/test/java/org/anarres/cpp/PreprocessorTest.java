@@ -153,6 +153,10 @@ public class PreprocessorTest {
         testInput("LStr(x);\n", NL, I("L"), "x", ';');
 
         testInput("'foo'\n", NL, SQSTRING);
+        testInput("#if 1 ? 2 : 0\nTEXT\n#endif\n", NL, NL, I("TEXT"), NL);
+        testInput("#if 1 ? 0 : 2\nTEXT\n#endif\n", NL, NL, NL);
+        testInput("#if 0 ? 0 : 2\nTEXT\n#endif\n", NL, NL, I("TEXT"), NL);
+        testInput("#if 0 ? 2 : 0\nTEXT\n#endif\n", NL, NL, NL);
 
         writer.close();
 
