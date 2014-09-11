@@ -150,7 +150,9 @@ public class PreprocessorTest {
         testInput("#define _Widen(x) L ## x\n", NL);
         testInput("#define Widen(x) _Widen(x)\n", NL);
         testInput("#define LStr(x) _Widen(#x)\n", NL);
-        testInput("LStr(x);\n", NL, I("L"), "x");
+        testInput("LStr(x);\n", NL, I("L"), "x", ';');
+
+        testInput("'foo'\n", NL, SQSTRING);
 
         writer.close();
 
@@ -174,6 +176,12 @@ public class PreprocessorTest {
         } while (t.getType() != EOF);
     }
 
+    private void assertType(int type, Token t) {
+        String typeExpect = TokenType.getTokenName(type);
+        String typeActual = TokenType.getTokenName(t.getType());
+        assertEquals("Expected " + typeExpect + " but got " + typeActual, type, t.getType());
+    }
+
     private void testInput(String in, Object... out)
             throws Exception {
         LOG.info("Input: " + in);
@@ -190,12 +198,13 @@ public class PreprocessorTest {
                 if (t.getType() != IDENTIFIER)
                     fail("Expected IDENTIFIER " + v + ", but got " + t);
                 assertEquals(((I) v).getText(), t.getText());
-            } else if (v instanceof Character)
-                assertEquals(((Character) v).charValue(), t.getType());
-            else if (v instanceof Integer)
-                assertEquals(((Number) v).intValue(), t.getType());
-            else
+            } else if (v instanceof Character) {
+                assertType(((Character) v).charValue(), t);
+            } else if (v instanceof Integer) {
+                assertType(((Number) v).intValue(), t);
+            } else {
                 fail("Bad object " + v.getClass());
+            }
         }
     }
 }

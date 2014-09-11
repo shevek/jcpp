@@ -1807,6 +1807,7 @@ public class Preprocessor implements Closeable {
                 case RSH:
                 case RSH_EQ:
                 case STRING:
+                case SQSTRING:
                 case XOR_EQ:
                     return tok;
 
