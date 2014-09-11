@@ -16,54 +16,27 @@
  */
 package org.anarres.cpp;
 
-import gnu.getopt.Getopt;
-import gnu.getopt.LongOpt;
 import java.io.File;
 import java.io.PrintStream;
+import java.util.Arrays;
 import java.util.EnumSet;
+import java.util.List;
+import javax.annotation.Nonnull;
+import joptsimple.OptionParser;
+import joptsimple.OptionSet;
+import joptsimple.OptionSpec;
+import joptsimple.ValueConverter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * (Currently a simple test class).
  */
 public class Main {
 
-    private static class Option extends LongOpt {
+    private static final Logger LOG = LoggerFactory.getLogger(Main.class);
 
-        private final String eg;
-        private final String help;
-
-        public Option(String word, int arg, int ch,
-                String eg, String help) {
-            super(word, arg, null, ch);
-            this.eg = eg;
-            this.help = help;
-        }
-    }
-
-    private static final Option[] OPTS = new Option[]{
-        new Option("help", LongOpt.NO_ARGUMENT, 'h', null,
-        "Displays help and usage information."),
-        new Option("define", LongOpt.REQUIRED_ARGUMENT, 'D', "name=definition",
-        "Defines the given macro."),
-        new Option("undefine", LongOpt.REQUIRED_ARGUMENT, 'U', "name",
-        "Undefines the given macro, previously either builtin or defined using -D."),
-        new Option("include", LongOpt.REQUIRED_ARGUMENT, 1, "file",
-        "Process file as if \"#" + "include \"file\"\" appeared as the first line of the primary source file."),
-        new Option("incdir", LongOpt.REQUIRED_ARGUMENT, 'I', "dir",
-        "Adds the directory dir to the list of directories to be searched for header files."),
-        new Option("iquote", LongOpt.REQUIRED_ARGUMENT, 0, "dir",
-        "Adds the directory dir to the list of directories to be searched for header files included using \"\"."),
-        new Option("warning", LongOpt.REQUIRED_ARGUMENT, 'W', "type",
-        "Enables the named warning class (" + getWarnings() + ")."),
-        new Option("no-warnings", LongOpt.NO_ARGUMENT, 'w', null,
-        "Disables ALL warnings."),
-        new Option("verbose", LongOpt.NO_ARGUMENT, 'v', null,
-        "Operates incredibly verbosely."),
-        new Option("debug", LongOpt.NO_ARGUMENT, 3, null,
-        "Operates incredibly verbosely."),
-        new Option("version", LongOpt.NO_ARGUMENT, 2, null,
-        "Prints jcpp's version number (" + Version.getVersion() + ")"),};
-
+    @Nonnull
     private static CharSequence getWarnings() {
         StringBuilder buf = new StringBuilder();
         for (Warning w : Warning.values()) {
@@ -80,12 +53,52 @@ public class Main {
     }
 
     public void run(String[] args) throws Exception {
-        Option[] opts = OPTS;
-        String sopts = getShortOpts(opts);
-        Getopt g = new Getopt("jcpp", args, sopts, opts);
-        int c;
-        String arg;
-        int idx;
+
+        OptionParser parser = new OptionParser();
+        OptionSpec<?> helpOption = parser.accepts("help",
+                "Displays command-line help.")
+                .forHelp();
+        OptionSpec<?> versionOption = parser.acceptsAll(Arrays.asList("version"),
+                "Displays the product version (" + Version.getVersion() + ") and exits.")
+                .forHelp();
+
+        OptionSpec<?> debugOption = parser.acceptsAll(Arrays.asList("debug"),
+                "Enables debug output.");
+
+        OptionSpec<String> defineOption = parser.acceptsAll(Arrays.asList("define", "D"),
+                "Defines the given macro.")
+                .withRequiredArg().ofType(String.class).describedAs("name[=definition]");
+        OptionSpec<String> undefineOption = parser.acceptsAll(Arrays.asList("undefine", "U"),
+                "Undefines the given macro, previously either builtin or defined using -D.")
+                .withRequiredArg().describedAs("name");
+        OptionSpec<File> includeOption = parser.accepts("include",
+                "Process file as if \"#" + "include \"file\"\" appeared as the first line of the primary source file.")
+                .withRequiredArg().ofType(File.class).describedAs("file");
+        OptionSpec<File> incdirOption = parser.acceptsAll(Arrays.asList("incdir", "I"),
+                "Adds the directory dir to the list of directories to be searched for header files.")
+                .withRequiredArg().ofType(File.class).describedAs("dir");
+        OptionSpec<File> iquoteOption = parser.acceptsAll(Arrays.asList("iquote"),
+                "Adds the directory dir to the list of directories to be searched for header files included using \"\".")
+                .withRequiredArg().ofType(File.class).describedAs("dir");
+        OptionSpec<String> warningOption = parser.acceptsAll(Arrays.asList("warning", "W"),
+                "Enables the named warning class (" + getWarnings() + ").")
+                .withRequiredArg().ofType(String.class).describedAs("warning");
+        OptionSpec<Void> noWarningOption = parser.acceptsAll(Arrays.asList("no-warnings", "w"),
+                "Disables ALL warnings.");
+        OptionSpec<File> inputsOption = parser.nonOptions()
+                .ofType(File.class).describedAs("Files to process.");
+
+        OptionSet options = parser.parse(args);
+
+        if (options.has(helpOption)) {
+            parser.printHelpOn(System.out);
+            return;
+        }
+
+        if (options.has(versionOption)) {
+            version(System.out);
+            return;
+        }
 
         Preprocessor pp = new Preprocessor();
         pp.addFeature(Feature.DIGRAPHS);
@@ -100,78 +113,56 @@ public class Main {
         pp.getFrameworksPath().add("/Library/Frameworks");
         pp.getFrameworksPath().add("/Local/Library/Frameworks");
 
-        GETOPT:
-        while ((c = g.getopt()) != -1) {
-            switch (c) {
-                case 'D':
-                    arg = g.getOptarg();
-                    idx = arg.indexOf('=');
-                    if (idx == -1)
-                        pp.addMacro(arg);
-                    else
-                        pp.addMacro(arg.substring(0, idx),
-                                arg.substring(idx + 1));
-                    break;
-                case 'U':
-                    pp.getMacros().remove(g.getOptarg());
-                    break;
-                case 'I':
-                    pp.getSystemIncludePath().add(g.getOptarg());
-                    break;
-                case 0:	// --iquote=
-                    pp.getQuoteIncludePath().add(g.getOptarg());
-                    break;
-                case 'W':
-                    arg = g.getOptarg().toUpperCase();
-                    arg = arg.replace('-', '_');
-                    if (arg.equals("ALL"))
-                        pp.addWarnings(EnumSet.allOf(Warning.class));
-                    else
-                        pp.addWarning(Enum.valueOf(Warning.class, arg));
-                    break;
-                case 'w':
-                    pp.getWarnings().clear();
-                    break;
-                case 1:	// --include=
-                    // pp.addInput(new File(g.getOptarg()));
-                    // Comply exactly with spec.
-                    pp.addInput(new StringLexerSource(
-                            "#" + "include \"" + g.getOptarg() + "\"\n"
-                    ));
-                    break;
-                case 2:	// --version
-                    version(System.out);
-                    return;
-                case 'v':
-                    pp.addFeature(Feature.VERBOSE);
-                    break;
-                case 3:
-                    pp.addFeature(Feature.DEBUG);
-                    break;
-                case 'h':
-                    usage(getClass().getName(), opts);
-                    return;
-                default:
-                    throw new Exception("Illegal option " + (char) c);
-                case '?':
-                    continue;	/* Make failure-proof. */
+        if (options.has(debugOption))
+            pp.addFeature(Feature.DEBUG);
 
-            }
+        if (options.has(noWarningOption))
+            pp.getWarnings().clear();
+
+        for (String warning : options.valuesOf(warningOption)) {
+            warning = warning.toUpperCase();
+            warning = warning.replace('-', '_');
+            if (warning.equals("ALL"))
+                pp.addWarnings(EnumSet.allOf(Warning.class));
+            else
+                pp.addWarning(Enum.valueOf(Warning.class, warning));
         }
 
-        for (int i = g.getOptind(); i < args.length; i++)
-            pp.addInput(new FileLexerSource(new File(args[i])));
-        if (g.getOptind() == args.length)
-            pp.addInput(new InputLexerSource(System.in));
+        for (String arg : options.valuesOf(defineOption)) {
+            int idx = arg.indexOf('=');
+            if (idx == -1)
+                pp.addMacro(arg);
+            else
+                pp.addMacro(arg.substring(0, idx), arg.substring(idx + 1));
+        }
+        for (String arg : options.valuesOf(undefineOption)) {
+            pp.getMacros().remove(arg);
+        }
 
-        if (pp.getFeature(Feature.VERBOSE)) {
-            System.err.println("#" + "include \"...\" search starts here:");
+        for (File dir : options.valuesOf(incdirOption))
+            pp.getSystemIncludePath().add(dir.getAbsolutePath());
+        for (File dir : options.valuesOf(iquoteOption))
+            pp.getQuoteIncludePath().add(dir.getAbsolutePath());
+        for (File file : options.valuesOf(includeOption))
+            // Comply exactly with spec.
+            pp.addInput(new StringLexerSource("#" + "include \"" + file + "\"\n"));
+
+        List<File> inputs = options.valuesOf(inputsOption);
+        if (inputs.isEmpty()) {
+            pp.addInput(new InputLexerSource(System.in));
+        } else {
+            for (File input : inputs)
+                pp.addInput(new FileLexerSource(input));
+        }
+
+        if (pp.getFeature(Feature.DEBUG)) {
+            LOG.info("#" + "include \"...\" search starts here:");
             for (String dir : pp.getQuoteIncludePath())
-                System.err.println("  " + dir);
-            System.err.println("#" + "include <...> search starts here:");
+                LOG.info("  " + dir);
+            LOG.info("#" + "include <...> search starts here:");
             for (String dir : pp.getSystemIncludePath())
-                System.err.println("  " + dir);
-            System.err.println("End of search list.");
+                LOG.info("  " + dir);
+            LOG.info("End of search list.");
         }
 
         try {
@@ -184,137 +175,21 @@ public class Main {
                 System.out.print(tok.getText());
             }
         } catch (Exception e) {
-            e.printStackTrace(System.err);
+            StringBuilder buf = new StringBuilder("Preprocessor failed:\n");
             Source s = pp.getSource();
             while (s != null) {
-                System.err.println(" -> " + s);
+                buf.append(" -> ").append(s).append("\n");
                 s = s.getParent();
             }
+            LOG.error(buf.toString(), e);
         }
 
     }
 
-    private void version(PrintStream out) {
+    private static void version(@Nonnull PrintStream out) {
         out.println("Anarres Java C Preprocessor version " + Version.getVersion());
         out.println("Copyright (C) 2008-2014 Shevek (http://www.anarres.org/).");
         out.println("This is free software; see the source for copying conditions.  There is NO");
         out.println("warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.");
     }
-
-    private static String getShortOpts(Option[] opts)
-            throws Exception {
-        StringBuilder buf = new StringBuilder();
-        for (Option opt : opts) {
-            char c = (char) opt.getVal();
-            if (!Character.isLetterOrDigit(c))
-                continue;
-            for (int j = 0; j < buf.length(); j++)
-                if (buf.charAt(j) == c)
-                    throw new Exception(
-                            "Duplicate short option " + c
-                    );
-            buf.append(c);
-            switch (opt.getHasArg()) {
-                case LongOpt.NO_ARGUMENT:
-                    break;
-                case LongOpt.OPTIONAL_ARGUMENT:
-                    buf.append("::");
-                    break;
-                case LongOpt.REQUIRED_ARGUMENT:
-                    buf.append(":");
-                    break;
-            }
-        }
-        return buf.toString();
-    }
-
-    /* This is incomplete but nearly there. */
-    /**
-     * Wraps a string.
-     *
-     * The output form is:
-     * <pre>
-     * prefix     in[0]
-     * &lt;--indent-&gt; in[1]
-     * &lt;--indent-&gt; in[2]
-     * &lt;-----width----&gt;
-     * </pre>
-     */
-    /* XXX There's some of this in commons. */
-    private static String wrap(String in, String prefix,
-            int indent, int width) {
-        StringBuilder buf = new StringBuilder(prefix);
-
-        while (buf.length() < indent)
-            buf.append(' ');
-
-        int start = 0;
-
-        while (start < in.length()) {
-            while (start < in.length()
-                    && Character.isWhitespace(in.charAt(start)))
-                start++;
-
-            int end = start + width - indent;
-
-            if (end > in.length()) {
-                buf.append(in.substring(start));
-                break;
-            }
-
-            int idx = end;
-            while (!Character.isWhitespace(in.charAt(idx)))
-                idx--;
-
-            if (idx == start) {
-                idx = end - 1;
-                buf.append(in.substring(start, idx));
-                buf.append('-');
-            } else {
-                buf.append(in.substring(start, idx));
-                start = idx;
-            }
-
-            start = idx;
-        }
-
-        return buf.toString();
-    }
-
-    private static void usage(String command, Option[] options) {
-        StringBuilder text = new StringBuilder("Usage: ");
-        text.append(command).append('\n');
-        for (Option option : options) {
-            StringBuilder line = new StringBuilder();
-            Option opt = option;
-            line.append("    --").append(opt.getName());
-            switch (opt.getHasArg()) {
-                case LongOpt.NO_ARGUMENT:
-                    break;
-                case LongOpt.OPTIONAL_ARGUMENT:
-                    line.append("[=").append(opt.eg).append(']');
-                    break;
-                case LongOpt.REQUIRED_ARGUMENT:
-                    line.append('=').append(opt.eg);
-                    break;
-            }
-            if (Character.isLetterOrDigit(opt.getVal()))
-                line.append(" (-").append((char) opt.getVal()).append(")");
-            if (line.length() < 30) {
-                while (line.length() < 30)
-                    line.append(' ');
-            } else {
-                line.append('\n');
-                for (int j = 0; j < 30; j++)
-                    line.append(' ');
-            }
-            /* This should use wrap. */
-            line.append(opt.help);
-            line.append('\n');
-            text.append(line);
-        }
-
-        System.out.println(text);
-    }
-
 }

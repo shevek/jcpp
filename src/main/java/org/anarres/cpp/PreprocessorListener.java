@@ -16,6 +16,8 @@
  */
 package org.anarres.cpp;
 
+import javax.annotation.Nonnull;
+
 /**
  * A handler for preprocessor events, primarily errors and warnings.
  *
@@ -32,8 +34,8 @@ public interface PreprocessorListener {
      * implementation. It may simply record the error message, or
      * it may throw an exception.
      */
-    public void handleWarning(Source source, int line, int column,
-            String msg)
+    public void handleWarning(@Nonnull Source source, int line, int column,
+            @Nonnull String msg)
             throws LexerException;
 
     /**
@@ -43,10 +45,10 @@ public interface PreprocessorListener {
      * implementation. It may simply record the error message, or
      * it may throw an exception.
      */
-    public void handleError(Source source, int line, int column,
-            String msg)
+    public void handleError(@Nonnull Source source, int line, int column,
+            @Nonnull String msg)
             throws LexerException;
 
-    public void handleSourceChange(Source source, String event);
+    public void handleSourceChange(@Nonnull Source source, @Nonnull String event);
 
 }

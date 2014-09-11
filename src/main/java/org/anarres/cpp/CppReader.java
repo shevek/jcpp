@@ -19,6 +19,7 @@ package org.anarres.cpp;
 import java.io.Closeable;
 import java.io.IOException;
 import java.io.Reader;
+import javax.annotation.Nonnull;
 import static org.anarres.cpp.Token.CCOMMENT;
 import static org.anarres.cpp.Token.CPPCOMMENT;
 import static org.anarres.cpp.Token.EOF;
@@ -34,11 +35,11 @@ import static org.anarres.cpp.Token.EOF;
  */
 public class CppReader extends Reader implements Closeable {
 
-    private Preprocessor cpp;
+    private final Preprocessor cpp;
     private String token;
     private int idx;
 
-    public CppReader(final Reader r) {
+    public CppReader(@Nonnull final Reader r) {
         cpp = new Preprocessor(new LexerSource(r, true) {
             @Override
             public String getName() {
@@ -50,7 +51,7 @@ public class CppReader extends Reader implements Closeable {
         idx = 0;
     }
 
-    public CppReader(Preprocessor p) {
+    public CppReader(@Nonnull Preprocessor p) {
         cpp = p;
         token = "";
         idx = 0;
@@ -59,6 +60,7 @@ public class CppReader extends Reader implements Closeable {
     /**
      * Returns the Preprocessor used by this CppReader.
      */
+    @Nonnull
     public Preprocessor getPreprocessor() {
         return cpp;
     }
@@ -68,7 +70,7 @@ public class CppReader extends Reader implements Closeable {
      *
      * This is a convnience method.
      */
-    public void addMacro(String name)
+    public void addMacro(@Nonnull String name)
             throws LexerException {
         cpp.addMacro(name);
     }
@@ -78,7 +80,7 @@ public class CppReader extends Reader implements Closeable {
      *
      * This is a convnience method.
      */
-    public void addMacro(String name, String value)
+    public void addMacro(@Nonnull String name, @Nonnull String value)
             throws LexerException {
         cpp.addMacro(name, value);
     }
@@ -138,10 +140,7 @@ public class CppReader extends Reader implements Closeable {
     @Override
     public void close()
             throws IOException {
-        if (cpp != null) {
-            cpp.close();
-            cpp = null;
-        }
+        cpp.close();
         token = null;
     }
 

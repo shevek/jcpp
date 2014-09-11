@@ -17,6 +17,9 @@ package org.anarres.cpp;
  * permissions and limitations under the License.
  */
 import javax.annotation.Nonnegative;
+import javax.annotation.Nonnull;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * A handler for preprocessor events, primarily errors and warnings.
@@ -26,6 +29,8 @@ import javax.annotation.Nonnegative;
  * listener allows more intelligent handling of these events.
  */
 public class DefaultPreprocessorListener implements PreprocessorListener {
+
+    private static final Logger LOG = LoggerFactory.getLogger(DefaultPreprocessorListener.class);
 
     private int errors;
     private int warnings;
@@ -49,8 +54,8 @@ public class DefaultPreprocessorListener implements PreprocessorListener {
         return warnings;
     }
 
-    protected void print(String msg) {
-        System.err.println(msg);
+    protected void print(@Nonnull String msg) {
+        LOG.info(msg);
     }
 
     /**
@@ -60,6 +65,7 @@ public class DefaultPreprocessorListener implements PreprocessorListener {
      * implementation. It may simply record the error message, or
      * it may throw an exception.
      */
+    @Override
     public void handleWarning(Source source, int line, int column,
             String msg)
             throws LexerException {
@@ -75,6 +81,7 @@ public class DefaultPreprocessorListener implements PreprocessorListener {
      * implementation. It may simply record the error message, or
      * it may throw an exception.
      */
+    @Override
     public void handleError(Source source, int line, int column,
             String msg)
             throws LexerException {
@@ -83,6 +90,7 @@ public class DefaultPreprocessorListener implements PreprocessorListener {
                 + ": error: " + msg);
     }
 
+    @Override
     public void handleSourceChange(Source source, String event) {
     }
 

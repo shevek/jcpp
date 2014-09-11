@@ -28,5 +28,5 @@ public enum Warning {
     UNUSED_MACROS,
     ENDIF_LABELS,
     ERROR,
-	// SYSTEM_HEADERS
+    // SYSTEM_HEADERS
 }
