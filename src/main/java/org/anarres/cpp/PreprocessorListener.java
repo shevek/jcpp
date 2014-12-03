@@ -49,6 +49,11 @@ public interface PreprocessorListener {
             @Nonnull String msg)
             throws LexerException;
 
-    public void handleSourceChange(@Nonnull Source source, @Nonnull String event);
+    public enum SourceChangeEvent {
+
+        SUSPEND, PUSH, POP, RESUME;
+    }
+
+    public void handleSourceChange(@Nonnull Source source, @Nonnull SourceChangeEvent event);
 
 }

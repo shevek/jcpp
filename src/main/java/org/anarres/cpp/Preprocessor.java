@@ -36,6 +36,7 @@ import javax.annotation.Nonnull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import static org.anarres.cpp.PreprocessorCommand.*;
+import org.anarres.cpp.PreprocessorListener.SourceChangeEvent;
 import static org.anarres.cpp.Token.*;
 
 /**
@@ -526,10 +527,10 @@ public class Preprocessor implements Closeable {
         source.setParent(this.source, autopop);
         // source.setListener(listener);
         if (listener != null)
-            listener.handleSourceChange(this.source, "suspend");
+            listener.handleSourceChange(this.source, SourceChangeEvent.SUSPEND);
         this.source = source;
         if (listener != null)
-            listener.handleSourceChange(this.source, "push");
+            listener.handleSourceChange(this.source, SourceChangeEvent.PUSH);
     }
 
     /**
@@ -542,13 +543,13 @@ public class Preprocessor implements Closeable {
     protected Token pop_source(boolean linemarker)
             throws IOException {
         if (listener != null)
-            listener.handleSourceChange(this.source, "pop");
+            listener.handleSourceChange(this.source, SourceChangeEvent.POP);
         Source s = this.source;
         this.source = s.getParent();
         /* Always a noop unless called externally. */
         s.close();
         if (listener != null && this.source != null)
-            listener.handleSourceChange(this.source, "resume");
+            listener.handleSourceChange(this.source, SourceChangeEvent.RESUME);
 
         Source t = getSource();
         if (getFeature(Feature.LINEMARKERS)

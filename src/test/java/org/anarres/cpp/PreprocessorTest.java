@@ -4,16 +4,16 @@ import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.junit.Before;
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import static org.anarres.cpp.Token.*;
 import static org.junit.Assert.*;
 
 public class PreprocessorTest {
 
-    private static final Log LOG = LogFactory.getLog(PreprocessorTest.class);
+    private static final Logger LOG = LoggerFactory.getLogger(PreprocessorTest.class);
 
     private OutputStreamWriter writer;
     private Preprocessor p;
@@ -193,7 +193,7 @@ public class PreprocessorTest {
         writer.flush();
         for (Object v : out) {
             Token t = p.token();
-            LOG.info(t);
+            LOG.info(String.valueOf(t));
             if (v instanceof String) {
                 if (t.getType() != STRING)
                     fail("Expected STRING, but got " + t);

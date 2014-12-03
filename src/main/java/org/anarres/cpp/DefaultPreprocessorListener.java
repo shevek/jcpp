@@ -91,7 +91,7 @@ public class DefaultPreprocessorListener implements PreprocessorListener {
     }
 
     @Override
-    public void handleSourceChange(Source source, String event) {
+    public void handleSourceChange(Source source, SourceChangeEvent event) {
     }
 
 }

@@ -1,16 +1,16 @@
 package org.anarres.cpp;
 
 import java.util.Arrays;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import static org.anarres.cpp.PreprocessorTest.assertType;
 import static org.anarres.cpp.Token.*;
 import static org.junit.Assert.*;
 
 public class LexerSourceTest {
 
-    private static final Log LOG = LogFactory.getLog(LexerSourceTest.class);
+    private static final Logger LOG = LoggerFactory.getLogger(LexerSourceTest.class);
 
     public static void testLexerSource(String in, boolean textmatch, int... out)
             throws Exception {

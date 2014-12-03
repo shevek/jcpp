@@ -3,45 +3,26 @@ ext.githubProjectName = rootProject.name // Change if github project name is not
 group = "org.anarres"
 
 buildscript {
-    repositories {
-        // mavenLocal()
-        mavenCentral() // maven { url 'http://jcenter.bintray.com' }
-    }
     apply from: file('gradle/buildscript.gradle'), to: buildscript 
 }
 
-allprojects {
-    repositories { 
-        // mavenLocal()
-        mavenCentral() // maven { url: 'http://jcenter.bintray.com' }
-    }
-}
-
-apply plugin: 'idea'
-
 apply from: file('gradle/convention.gradle')
-apply from: file('gradle/maven.gradle')
+apply from: file('gradle/github.gradle')
+apply from: file('gradle/nexus.gradle')
 apply from: file('gradle/check.gradle')
 apply from: file('gradle/license.gradle')
-// apply from: file('gradle/release.gradle')
 
 apply plugin: 'application'
 apply plugin: 'velocity'
 
 dependencies {
-	def slf4jVersion = '1.7.7'
-
-    compile 'com.google.code.findbugs:jsr305:2.0.2'
 	// compile 'gnu.getopt:java-getopt:1.0.13'
-	compile "org.slf4j:slf4j-api:$slf4jVersion"
 	compile 'net.sf.jopt-simple:jopt-simple:4.7'
 	compile 'org.apache.ant:ant:1.7.0'
 
-	runtime "org.slf4j:slf4j-jcl:$slf4jVersion"
+	runtime 'org.slf4j:slf4j-simple:1.7.7'
 
-	testCompile 'junit:junit:4.11'
 	// testCompile 'com.google.guava:guava:18.0'
-	testCompile 'commons-logging:commons-logging:1.2'
 }
 
 velocity {
@@ -53,25 +34,3 @@ velocity {
 }
 
 mainClassName = "org.anarres.cpp.Main"
-
-test {
-	systemProperty 'org.apache.commons.logging.Log', 'org.apache.commons.logging.impl.SimpleLog'
-	systemProperty 'org.apache.commons.logging.simplelog.defaultlog', 'debug'
-
-	testLogging {
-		if (System.properties['test.single']) {
-			// events "passed", "skipped", "failed"
-			events "started", "passed", "skipped", "failed"
-			showExceptions true
-			exceptionFormat "full"
-			showStandardStreams true
-		} else {
-			events "failed"
-		}       
-
-		debug { 
-			events "started", "passed", "skipped", "failed", "standard_out", "standard_error"
-			exceptionFormat "full"
-		}       
-	}       
-}
