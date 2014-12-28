@@ -102,6 +102,8 @@ public class PreprocessorTest {
         testInput("#define _CONCAT3(x, y, z) x ## y ## z\n", NL);
         testInput("_CONCAT3(a, b, c)\n", NL, I("abc"));
         testInput("_CONCAT3(A, B, C)\n", NL, I("ABC"));
+        testInput("_CONCAT(test_, inline)\n", NL, I("test_inline"));
+        testInput("_CONCAT(test_, \nnewline)\n", NL, I("test_newline"));
 
         /* Redefinitions, undefinitions. */
         testInput("#define two three\n", NL);
