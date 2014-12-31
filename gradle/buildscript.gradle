@@ -10,12 +10,12 @@ dependencies {
 	// classpath 'com.mapvine:gradle-cobertura-plugin:0.1'
 	classpath "net.saliman:gradle-cobertura-plugin:2.2.5"
 	// classpath 'gradle-release:gradle-release:1.1.5'
-	classpath 'org.ajoberstar:gradle-git:0.11.2'
+	classpath 'org.ajoberstar:gradle-git:0.12.0'
 	classpath 'net.ltgt.gradle:gradle-errorprone-plugin:0.0.5'
 	classpath('com.netflix.nebula:gradle-info-plugin:1.12.5') {
 		exclude group: 'com.perforce'
 	}
-	classpath 'com.bmuschko:gradle-nexus-plugin:2.1.1'
+	classpath 'com.bmuschko:gradle-nexus-plugin:2.2'
 
 	classpath 'org.anarres.gradle:gradle-velocity-plugin:1.0.0'
 }
