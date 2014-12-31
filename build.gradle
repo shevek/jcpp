@@ -22,7 +22,7 @@ dependencies {
 
 	runtime 'org.slf4j:slf4j-simple:1.7.7'
 
-	// testCompile 'com.google.guava:guava:18.0'
+	testCompile 'com.google.guava:guava:18.0'
 }
 
 velocity {
