@@ -784,15 +784,27 @@ public class Preprocessor implements Closeable {
                  * is stripped from arguments. */
 
                 if (args.size() != m.getArgs()) {
-                    error(tok,
-                            "macro " + m.getName()
-                            + " has " + m.getArgs() + " parameters "
-                            + "but given " + args.size() + " args");
-                    /* We could replay the arg tokens, but I
-                     * note that GNU cpp does exactly what we do,
-                     * i.e. output the macro name and chew the args.
-                     */
-                    return false;
+                    if (m.isVariadic()) {
+                        if (args.size() == m.getArgs() - 1) {
+                            args.add(new Argument());
+                        } else {
+                            error(tok,
+                                    "variadic macro " + m.getName()
+                                    + " has at least " + (m.getArgs() - 1) + " parameters "
+                                    + "but given " + args.size() + " args");
+                            return false;
+                        }
+                    } else {
+                        error(tok,
+                                "macro " + m.getName()
+                                + " has " + m.getArgs() + " parameters "
+                                + "but given " + args.size() + " args");
+                        /* We could replay the arg tokens, but I 
+                         * note that GNU cpp does exactly what we do,
+                         * i.e. output the macro name and chew the args.
+                         */
+                        return false;
+                    }
                 }
 
                 for (Argument a : args) {

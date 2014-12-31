@@ -132,6 +132,14 @@ public class PreprocessorTest {
                 I("__VA_ARGS__"), WHITESPACE, // __VA_ARGS__ is not expanded in this case.
                 I("b")
         );
+        /* Missing arguments are fine. */
+        testInput("var()\n", NL,
+                I("a"), WHITESPACE,
+                /* No expansion for 'x'. */ WHITESPACE,
+                I("__VA_ARGS__"), WHITESPACE,
+                I("b")
+        );
+
         /* Variadic macros with anonymous args. */
         testInput("#define var2(x, ...) a x __VA_ARGS__ e\n", NL);
         testInput("var2(b, c, d)\n", NL,
@@ -141,11 +149,24 @@ public class PreprocessorTest {
                 I("d"), WHITESPACE,
                 I("e")
         );
+        /* Missing arguments are fine. */
+        testInput("var2(b)\n", NL,
+                I("a"), WHITESPACE,
+                I("b"), WHITESPACE,
+                /* No expansion for '__VA_ARGS__'. */ WHITESPACE,
+                I("e")
+        );
+
         testInput("#define var3(...) a __VA_ARGS__ d\n", NL);
         testInput("var3(b, c)\n", NL,
                 I("a"), WHITESPACE,
                 I("b"), ',', WHITESPACE,
                 I("c"), WHITESPACE,
+                I("d")
+        );
+        testInput("var3()\n", NL,
+                I("a"), WHITESPACE,
+                /* No expansion for '__VA_ARGS__'. */ WHITESPACE,
                 I("d")
         );
 
