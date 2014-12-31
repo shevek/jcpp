@@ -178,7 +178,7 @@ public abstract class Source implements Iterable<Token>, Closeable {
      *
      * This is used to prevent macro recursion.
      */
-    /* pp */ boolean isExpanding(Macro m) {
+    /* pp */ boolean isExpanding(@Nonnull Macro m) {
         Source parent = getParent();
         if (parent != null)
             return parent.isExpanding(m);

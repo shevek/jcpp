@@ -33,7 +33,7 @@ import static org.anarres.cpp.Token.*;
 
     private Iterator<Token> arg;	/* "current expansion" */
 
-    /* pp */ MacroTokenSource(Macro m, List<Argument> args) {
+    /* pp */ MacroTokenSource(@Nonnull Macro m, @Nonnull List<Argument> args) {
         this.macro = m;
         this.tokens = m.getTokens().iterator();
         this.args = args;
@@ -41,7 +41,7 @@ import static org.anarres.cpp.Token.*;
     }
 
     @Override
-    /* pp */ boolean isExpanding(Macro m) {
+    /* pp */ boolean isExpanding(@Nonnull Macro m) {
         /* When we are expanding an arg, 'this' macro is not
          * being expanded, and thus we may re-expand it. */
         if (/* XXX this.arg == null && */this.macro == m)
@@ -76,15 +76,14 @@ import static org.anarres.cpp.Token.*;
         }
     }
 
-    private void concat(StringBuilder buf, Argument arg) {
-        Iterator<Token> it = arg.iterator();
-        while (it.hasNext()) {
-            Token tok = it.next();
+    private void concat(@Nonnull StringBuilder buf, @Nonnull Argument arg) {
+        for (Token tok : arg) {
             buf.append(tok.getText());
         }
     }
 
-    private Token stringify(Token pos, Argument arg) {
+    @Nonnull
+    private Token stringify(@Nonnull Token pos, @Nonnull Argument arg) {
         StringBuilder buf = new StringBuilder();
         concat(buf, arg);
         // System.out.println("Concat: " + arg + " -> " + buf);
@@ -100,11 +99,11 @@ import static org.anarres.cpp.Token.*;
 
     /* At this point, we have consumed the first M_PASTE.
      * @see Macro#addPaste(Token) */
-    private void paste(Token ptok)
+    private void paste(@Nonnull Token ptok)
             throws IOException,
             LexerException {
         StringBuilder buf = new StringBuilder();
-        Token err = null;
+        // Token err = null;
         /* We know here that arg is null or expired,
          * since we cannot paste an expanded arg. */
 
@@ -152,6 +151,7 @@ import static org.anarres.cpp.Token.*;
         arg = new SourceIterator(sl);
     }
 
+    @Override
     public Token token()
             throws IOException,
             LexerException {

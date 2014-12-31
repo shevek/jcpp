@@ -1455,7 +1455,7 @@ public class Preprocessor implements Closeable {
                     la = source_token_nonwhite();
                     if (la.getType() != ')') {
                         expr_untoken(la);
-                        error(la, "Missing ) in defined()");
+                        error(la, "Missing ) in defined(). Got " + la.getText());
                     }
                 }
             }
