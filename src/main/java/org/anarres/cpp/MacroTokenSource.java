@@ -78,13 +78,9 @@ import static org.anarres.cpp.Token.*;
 
     private void concat(StringBuilder buf, Argument arg) {
         Iterator<Token> it = arg.iterator();
-        boolean newline = false;
         while (it.hasNext()) {
             Token tok = it.next();
-            String text = tok.getText();
-            if (text.contains("\n")) newline = true;
-            if (newline) text = text.trim();
-            buf.append(text);
+            buf.append(tok.getText());
         }
     }
 

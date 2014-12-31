@@ -763,6 +763,7 @@ public class Preprocessor implements Closeable {
                         case WHITESPACE:
                         case CCOMMENT:
                         case CPPCOMMENT:
+                        case NL:
                             /* Avoid duplicating spaces. */
                             space = true;
                             break;
