@@ -1150,6 +1150,16 @@ public class Preprocessor implements Closeable {
             @Nonnull String name, boolean quoted, boolean next)
             throws IOException,
             LexerException {
+        if (name.startsWith("/")) {
+            VirtualFile file = filesystem.getFile(name);
+            if (include(file))
+                return;
+            StringBuilder buf = new StringBuilder();
+            buf.append("File not found: ").append(name);
+            error(line, 0, buf.toString());
+            return;
+        }
+
         VirtualFile pdir = null;
         if (quoted) {
             if (parent != null) {
