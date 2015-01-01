@@ -103,8 +103,9 @@ public class NumericValue extends Number {
             // XXX Wrong for anything but base 10.
             scale += t_fraction.length();
         }
-        if (getExponent() != null)
-            scale -= Integer.parseInt(getExponent());
+        String t_exponent = getExponent();
+        if (t_exponent != null)
+            scale -= Integer.parseInt(t_exponent);
         BigInteger unscaled = new BigInteger(text, getBase());
         return new BigDecimal(unscaled, scale);
     }

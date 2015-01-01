@@ -59,6 +59,6 @@ public class InputLexerSource extends LexerSource {
 
     @Override
     public String toString() {
-        return getPath();
+        return String.valueOf(getPath());
     }
 }

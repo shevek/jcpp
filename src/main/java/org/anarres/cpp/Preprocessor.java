@@ -511,7 +511,7 @@ public class Preprocessor implements Closeable {
      * @see #push_source(Source,boolean)
      * @see #pop_source()
      */
-    @CheckForNull
+    // @CheckForNull
     protected Source getSource() {
         return source;
     }
@@ -522,7 +522,7 @@ public class Preprocessor implements Closeable {
      * @see #getSource()
      * @see #pop_source()
      */
-    protected void push_source(Source source, boolean autopop) {
+    protected void push_source(@Nonnull Source source, boolean autopop) {
         source.init(this);
         source.setParent(this.source, autopop);
         // source.setListener(listener);
