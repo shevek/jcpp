@@ -20,6 +20,7 @@ public class IncludeAbsoluteTest {
     public void testAbsoluteInclude() throws Exception {
         Preprocessor pp = new Preprocessor();
         pp.getSystemIncludePath().add("/usr/include");
+        pp.getSystemIncludePath().add("/usr/include/x86_64-linux-gnu");
         pp.addInput(new StringLexerSource(
                 "#include </usr/include/features.h>\n"
                 + "", true));
