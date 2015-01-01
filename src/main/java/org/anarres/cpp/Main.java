@@ -25,7 +25,6 @@ import javax.annotation.Nonnull;
 import joptsimple.OptionParser;
 import joptsimple.OptionSet;
 import joptsimple.OptionSpec;
-import joptsimple.ValueConverter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -59,7 +58,7 @@ public class Main {
                 "Displays command-line help.")
                 .forHelp();
         OptionSpec<?> versionOption = parser.acceptsAll(Arrays.asList("version"),
-                "Displays the product version (" + Version.getVersion() + ") and exits.")
+                "Displays the product version (" + BuildMetadata.getInstance().getVersion() + ") and exits.")
                 .forHelp();
 
         OptionSpec<?> debugOption = parser.acceptsAll(Arrays.asList("debug"),
@@ -187,7 +186,8 @@ public class Main {
     }
 
     private static void version(@Nonnull PrintStream out) {
-        out.println("Anarres Java C Preprocessor version " + Version.getVersion());
+        BuildMetadata metadata = BuildMetadata.getInstance();
+        out.println("Anarres Java C Preprocessor version " + metadata.getVersion() + " change-id " + metadata.getChangeId());
         out.println("Copyright (C) 2008-2014 Shevek (http://www.anarres.org/).");
         out.println("This is free software; see the source for copying conditions.  There is NO");
         out.println("warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.");

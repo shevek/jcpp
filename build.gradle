@@ -12,25 +12,27 @@ apply from: file('gradle/nexus.gradle')
 apply from: file('gradle/check.gradle')
 apply from: file('gradle/license.gradle')
 
-apply plugin: 'application'
-apply plugin: 'velocity'
-
 dependencies {
 	// compile 'gnu.getopt:java-getopt:1.0.13'
 	compile 'net.sf.jopt-simple:jopt-simple:4.7'
 	compile 'org.apache.ant:ant:1.7.0'
+	compile 'com.github.zafarkhaja:java-semver:0.8.0'
 
 	runtime 'org.slf4j:slf4j-simple:1.7.7'
 
 	testCompile 'com.google.guava:guava:18.0'
 }
 
-velocity {
-	def p = project
-	Map m = [
-		version: project.version
-	]
-	context m
+// This ensures that the info-plugin's properties file is in the
+// same location for the test suite as in the JAR.
+task('processTestVersionResources', type: Copy, dependsOn: processTestResources) {
+	into project.sourceSets.test.output.resourcesDir
+	from(writeManifestProperties) {
+		into "META-INF"
+	}
 }
+testClasses.dependsOn(processTestVersionResources)
+
+apply plugin: 'application'
 
 mainClassName = "org.anarres.cpp.Main"

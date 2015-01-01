@@ -17,6 +17,7 @@
 
 package org.anarres.cpp;
 
+import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 
 /**
@@ -35,12 +36,14 @@ public class Version {
 	private static final int major;
 	private static final int minor;
 	private static final int patch;
+	private static final String modifier;
 
 	static {
 		String[] tmp = VERSION.split("[\\.-]");
 		major = Integer.parseInt(tmp[0]);
 		minor = Integer.parseInt(tmp[1]);
 		patch = Integer.parseInt(tmp[2]);
+		modifier = (tmp.length > 3) ? tmp[3] : null;
 	}
 
 	@Nonnull
@@ -58,6 +61,15 @@ public class Version {
 
 	public static int getPatch() {
 		return patch;
+	}
+
+	@CheckForNull
+	public static String getModifier() {
+		return modifier;
+	}
+
+	public static boolean isSnapshot() {
+		return "SNAPSHOT".equalsIgnoreCase(getModifier());
 	}
 
 	public static void main(String[] args) {

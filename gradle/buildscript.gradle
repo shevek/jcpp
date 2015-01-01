@@ -16,6 +16,4 @@ dependencies {
 		exclude group: 'com.perforce'
 	}
 	classpath 'com.bmuschko:gradle-nexus-plugin:2.2'
-
-	classpath 'org.anarres.gradle:gradle-velocity-plugin:1.0.0'
 }
