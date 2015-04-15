@@ -135,7 +135,8 @@ public class NumericValue extends Number {
 
     @Override
     public int intValue() {
-        int v = integer.isEmpty() ? 0 : Integer.parseInt(integer, base);
+        // String.isEmpty() is since 1.6
+        int v = integer.length() == 0 ? 0 : Integer.parseInt(integer, base);
         if (expbase == 2)
             v = v << exponentValue();
         else if (expbase != 0)
@@ -145,7 +146,8 @@ public class NumericValue extends Number {
 
     @Override
     public long longValue() {
-        long v = integer.isEmpty() ? 0 : Long.parseLong(integer, base);
+        // String.isEmpty() is since 1.6
+        long v = integer.length() == 0 ? 0 : Long.parseLong(integer, base);
         if (expbase == 2)
             v = v << exponentValue();
         else if (expbase != 0)

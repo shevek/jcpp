@@ -111,7 +111,10 @@ public class CppReader extends Reader implements Closeable {
             }
             return true;
         } catch (LexerException e) {
-            throw new IOException(String.valueOf(e), e);
+            // new IOException(String, Throwable) is since 1.6
+            IOException _e = new IOException(String.valueOf(e));
+            _e.initCause(e);
+            throw _e;
         }
     }
 
