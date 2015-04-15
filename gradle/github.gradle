@@ -8,9 +8,14 @@ def docTasks = [:]
 		def docTask = task "aggregate${shortName.capitalize()}"(type: docClass, description: "Aggregate subproject ${shortName}s") {
 			source = allSources
 			destinationDir = file("${project.buildDir}/docs/${shortName}")
-			options.links "http://docs.oracle.com/javase/7/docs/api/",
-				"http://docs.oracle.com/javaee/7/api/",
-				"http://docs.guava-libraries.googlecode.com/git/javadoc/"
+			if (delegate.hasProperty('options')) {	// Groovydoc has no options
+				options.links "http://docs.oracle.com/javase/7/docs/api/",
+					"http://docs.oracle.com/javaee/7/api/",
+					"http://docs.guava-libraries.googlecode.com/git/javadoc/"
+				options.linkSource true
+				if (JavaVersion.current().isJava8Compatible())
+					options.addStringOption('Xdoclint:none', '-quiet')
+			}
 			doFirst {
 				def classpaths = allprojects.findAll { it.plugins.hasPlugin(JavaPlugin) }.collect { it.sourceSets.main.compileClasspath }
 				classpath = files(classpaths)

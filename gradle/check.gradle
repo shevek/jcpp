@@ -27,3 +27,10 @@
 			}
 		}
 	}
+
+	apply plugin: "be.insaneprogramming.gradle.animalsniffer"
+	animalsniffer {
+		signature = "org.codehaus.mojo.signature:java15:+@signature"
+		// ignores = ["my.package.name"]
+		// annotations = [] // supported annotations to signal Animal Sniffer to ignore annotated elements
+	}

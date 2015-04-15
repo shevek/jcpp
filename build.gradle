@@ -18,8 +18,6 @@ dependencies {
 	compile 'org.apache.ant:ant:1.7.0'
 	compile 'com.github.zafarkhaja:java-semver:0.8.0'
 
-	runtime 'org.slf4j:slf4j-simple:1.7.7'
-
 	testCompile 'com.google.guava:guava:18.0'
 }
 
