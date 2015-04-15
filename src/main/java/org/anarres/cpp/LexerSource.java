@@ -68,11 +68,25 @@ public class LexerSource extends Source {
         this.reader.init(pp, this);
     }
 
+    /**
+     * Returns the line number of the last read character in this source.
+     *
+     * Lines are numbered from 1.
+     *
+     * @return the line number of the last read character in this source.
+     */
     @Override
     public int getLine() {
         return line;
     }
 
+    /**
+     * Returns the column number of the last read character in this source.
+     *
+     * Columns are numbered from 0.
+     *
+     * @return the column number of the last read character in this source.
+     */
     @Override
     public int getColumn() {
         return column;
@@ -513,8 +527,7 @@ public class LexerSource extends Source {
                 flags |= NumericValue.F_DOUBLE;
                 text.append((char) d);
                 d = read();
-            }
-            else if (Character.isUnicodeIdentifierPart(d)) {
+            } else if (Character.isUnicodeIdentifierPart(d)) {
                 String reason = "Invalid suffix \"" + (char) d + "\" on numeric constant";
                 // We've encountered something initially identified as a number.
                 // Read in the rest of this token as an identifer but return it as an invalid.
@@ -628,9 +641,9 @@ public class LexerSource extends Source {
 
     /**
      * Section 6.4.4.1 of C99
-     * 
+     *
      * (Not pasted here, but says that the initial negation is a separate token.)
-     * 
+     *
      * Section 6.4.4.2 of C99
      *
      * A floating constant has a significand part that may be followed

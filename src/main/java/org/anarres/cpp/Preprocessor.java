@@ -351,6 +351,8 @@ public class Preprocessor implements Closeable {
      *
      * The given {@link Macro} object encapsulates both the name
      * and the expansion.
+     *
+     * @throws LexerException if the definition fails or is otherwise illegal.
      */
     public void addMacro(@Nonnull Macro m) throws LexerException {
         // System.out.println("Macro " + m);
@@ -366,6 +368,8 @@ public class Preprocessor implements Closeable {
      *
      * The String value is lexed into a token stream, which is
      * used as the macro expansion.
+     *
+     * @throws LexerException if the definition fails or is otherwise illegal.
      */
     public void addMacro(@Nonnull String name, @Nonnull String value)
             throws LexerException {
@@ -389,6 +393,8 @@ public class Preprocessor implements Closeable {
      *
      * This is a convnience method, and is equivalent to
      * <code>addMacro(name, "1")</code>.
+     *
+     * @throws LexerException if the definition fails or is otherwise illegal.
      */
     public void addMacro(@Nonnull String name)
             throws LexerException {
@@ -453,6 +459,8 @@ public class Preprocessor implements Closeable {
     /**
      * Returns the Map of Macros parsed during the run of this
      * Preprocessor.
+     *
+     * @return The {@link Map} of macros currently defined.
      */
     @Nonnull
     public Map<String, Macro> getMacros() {
@@ -464,9 +472,11 @@ public class Preprocessor implements Closeable {
      *
      * While you can modify the returned object, unexpected things
      * might happen if you do.
+     *
+     * @return the Macro object, or null if not found.
      */
     @CheckForNull
-    public Macro getMacro(String name) {
+    public Macro getMacro(@Nonnull String name) {
         return macros.get(name);
     }
 
@@ -510,6 +520,8 @@ public class Preprocessor implements Closeable {
      * @see Source
      * @see #push_source(Source,boolean)
      * @see #pop_source()
+     *
+     * @return the top Source on the input stack.
      */
     // @CheckForNull
     protected Source getSource() {
@@ -519,6 +531,8 @@ public class Preprocessor implements Closeable {
     /**
      * Pushes a Source onto the input stack.
      *
+     * @param source the new Source to push onto the top of the input stack.
+     * @param autopop if true, the Source is automatically removed from the input stack at EOF.
      * @see #getSource()
      * @see #pop_source()
      */
@@ -538,6 +552,9 @@ public class Preprocessor implements Closeable {
      *
      * @see #getSource()
      * @see #push_source(Source,boolean)
+     *
+     * @param linemarker TODO: currently ignored, might be a bug?
+     * @throws IOException if an I/O error occurs.
      */
     @CheckForNull
     protected Token pop_source(boolean linemarker)
@@ -1114,10 +1131,13 @@ public class Preprocessor implements Closeable {
      *
      * User code may override this method to implement a virtual
      * file system.
+     *
+     * @param file The VirtualFile to attempt to include.
+     * @return true if the file was successfully included, false otherwise.
+     * @throws IOException if an I/O error occurs.
      */
     protected boolean include(@Nonnull VirtualFile file)
-            throws IOException,
-            LexerException {
+            throws IOException {
         // System.out.println("Try to include " + ((File)file).getAbsolutePath());
         if (!file.isFile())
             return false;
@@ -1129,11 +1149,15 @@ public class Preprocessor implements Closeable {
     }
 
     /**
-     * Includes a file from an include path, by name.
+     * Attempts to include a file from an include path, by name.
+     *
+     * @param path The list of virtual directories to search for the given name.
+     * @param name The name of the file to attempt to include.
+     * @return true if the file was successfully included, false otherwise.
+     * @throws IOException if an I/O error occurs.
      */
     protected boolean include(@Nonnull Iterable<String> path, @Nonnull String name)
-            throws IOException,
-            LexerException {
+            throws IOException {
         for (String dir : path) {
             VirtualFile file = getFileSystem().getFile(dir, name);
             if (include(file))
@@ -1144,6 +1168,9 @@ public class Preprocessor implements Closeable {
 
     /**
      * Handles an include directive.
+     *
+     * @throws IOException if an I/O error occurs.
+     * @throws LexerException if the include fails, and the error handler is fatal.
      */
     private void include(
             @CheckForNull String parent, int line,
@@ -2093,6 +2120,8 @@ public class Preprocessor implements Closeable {
      * Returns the next preprocessor token.
      *
      * @see Token
+     * @return The next fully preprocessed token.
+     * @throws IOException if an I/O error occurs.
      * @throws LexerException if a preprocessing error occurs.
      * @throws InternalException if an unexpected error condition arises.
      */
