@@ -29,6 +29,7 @@ public class StringLexerSource extends LexerSource {
     /**
      * Creates a new Source for lexing the given String.
      *
+     * @param string The input string to lex.
      * @param ppvalid true if preprocessor directives are to be
      *	honoured within the string.
      */
@@ -39,8 +40,12 @@ public class StringLexerSource extends LexerSource {
     /**
      * Creates a new Source for lexing the given String.
      *
+     * Equivalent to calling <code>new StringLexerSource(string, false)</code>.
+     *
      * By default, preprocessor directives are not honoured within
      * the string.
+     *
+     * @param string The input string to lex.
      */
     public StringLexerSource(String string) {
         this(string, false);
