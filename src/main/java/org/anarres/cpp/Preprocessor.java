@@ -1322,7 +1322,7 @@ public class Preprocessor implements Closeable {
 
         NAME:
         for (;;) {
-            Token tok = token();
+            Token tok = source_token();
             switch (tok.getType()) {
                 case EOF:
                     /* There ought to be a newline before EOF.
@@ -1344,6 +1344,8 @@ public class Preprocessor implements Closeable {
                     name = tok;
                     break NAME;
                 default:
+                    warning(tok,
+                            "Illegal #" + "pragma " + tok.getText());
                     return source_skipline(false);
             }
         }
@@ -1352,7 +1354,7 @@ public class Preprocessor implements Closeable {
         List<Token> value = new ArrayList<Token>();
         VALUE:
         for (;;) {
-            tok = token();
+            tok = source_token();
             switch (tok.getType()) {
                 case EOF:
                     /* There ought to be a newline before EOF.
