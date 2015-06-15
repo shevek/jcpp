@@ -41,7 +41,7 @@ public class NumericValue extends Number {
     private String exponent;
     private int flags;
 
-    public NumericValue(int base, String integer) {
+    public NumericValue(@Nonnegative int base, @Nonnull String integer) {
         this.base = base;
         this.integer = integer;
     }
@@ -61,7 +61,7 @@ public class NumericValue extends Number {
         return fraction;
     }
 
-    /* pp */ void setFractionalPart(String fraction) {
+    /* pp */ void setFractionalPart(@Nonnull String fraction) {
         this.fraction = fraction;
     }
 
@@ -75,7 +75,7 @@ public class NumericValue extends Number {
         return exponent;
     }
 
-    /* pp */ void setExponent(int expbase, String exponent) {
+    /* pp */ void setExponent(@Nonnegative int expbase, @Nonnull String exponent) {
         this.expbase = expbase;
         this.exponent = exponent;
     }
@@ -125,8 +125,12 @@ public class NumericValue extends Number {
             return doubleValue();	// .1 is a double in Java.
         else if (getExponent() != null)
             return doubleValue();
-        else
-            return intValue();
+        else {
+            long value = longValue();
+            if (value <= Integer.MAX_VALUE && value >= Integer.MIN_VALUE)
+                return (int) value;
+            return value;
+        }
     }
 
     private int exponentValue() {
