@@ -1,6 +1,6 @@
 /*
  * Anarres C Preprocessor
- * Copyright (c) 2007-2008, Shevek
+ * Copyright (c) 2007-2015, Shevek
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -188,7 +188,7 @@ public class Main {
     private static void version(@Nonnull PrintStream out) {
         BuildMetadata metadata = BuildMetadata.getInstance();
         out.println("Anarres Java C Preprocessor version " + metadata.getVersion() + " change-id " + metadata.getChangeId());
-        out.println("Copyright (C) 2008-2014 Shevek (http://www.anarres.org/).");
+        out.println("Copyright (C) 2007-2015 Shevek (http://www.anarres.org/).");
         out.println("This is free software; see the source for copying conditions.  There is NO");
         out.println("warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.");
     }
