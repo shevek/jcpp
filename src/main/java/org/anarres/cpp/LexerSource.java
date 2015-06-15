@@ -305,6 +305,13 @@ public class LexerSource extends Source {
         return new Token(CPPCOMMENT, text.toString());
     }
 
+    /**
+     * Lexes an escaped character, appends the lexed escape sequence to 'text' and returns the parsed character value.
+     * @param text The buffer to which the literal escape sequence is appended.
+     * @return The new parsed character value.
+     * @throws IOException if it goes badly wrong.
+     * @throws LexerException  if it goes wrong.
+     */
     private int escape(StringBuilder text)
             throws IOException,
             LexerException {
