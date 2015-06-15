@@ -4,6 +4,7 @@ buildscript {
 
 apply plugin: 'org.anarres.stdproject'
 stdproject {
+	javadocLinkSource = true;
 }
 
 	group = "org.anarres"
@@ -21,7 +22,7 @@ stdproject {
 	}
 
 dependencies {
-	compile 'com.google.code.findbugs:jsr305:2.0.2'
+	compile 'com.google.code.findbugs:annotations:2.0.3'
 	compile 'org.slf4j:slf4j-api:1.7.12'
 
 	compile 'net.sf.jopt-simple:jopt-simple:4.7'
