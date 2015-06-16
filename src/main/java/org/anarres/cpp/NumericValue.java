@@ -110,6 +110,10 @@ public class NumericValue extends Number {
         return new BigDecimal(unscaled, scale);
     }
 
+    // We could construct a heuristic for when an 'int' is large enough.
+    // private static final int S_MAXLEN_LONG = String.valueOf(Long.MAX_VALUE).length();
+    // private static final int S_MAXLEN_INT = String.valueOf(Integer.MAX_VALUE).length();
+
     @Nonnull
     public Number toJavaLangNumber() {
         int flags = getFlags();
@@ -126,6 +130,9 @@ public class NumericValue extends Number {
         else if (getExponent() != null)
             return doubleValue();
         else {
+            // This is an attempt to avoid overflowing on over-long integers.
+            // However, now we just overflow on over-long longs.
+            // We should really use BigInteger.
             long value = longValue();
             if (value <= Integer.MAX_VALUE && value >= Integer.MIN_VALUE)
                 return (int) value;
