@@ -23,7 +23,7 @@ import java.nio.charset.Charset;
 import javax.annotation.Nonnull;
 
 /**
- * A {@link Source} which lexes a file.
+ * A {@link Source} which lexes an {@link InputStream}.
  *
  * The input is buffered.
  *

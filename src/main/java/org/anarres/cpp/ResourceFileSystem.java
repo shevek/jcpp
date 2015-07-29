@@ -5,10 +5,9 @@
  */
 package org.anarres.cpp;
 
-import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
+import java.nio.charset.Charset;
 import javax.annotation.Nonnull;
 
 /**
@@ -18,9 +17,11 @@ import javax.annotation.Nonnull;
 public class ResourceFileSystem implements VirtualFileSystem {
 
     private final ClassLoader loader;
+    private final Charset charset;
 
-    public ResourceFileSystem(@Nonnull ClassLoader loader) {
+    public ResourceFileSystem(@Nonnull ClassLoader loader, @Nonnull Charset charset) {
         this.loader = loader;
+        this.charset = charset;
     }
 
     @Override
@@ -74,8 +75,7 @@ public class ResourceFileSystem implements VirtualFileSystem {
         @Override
         public Source getSource() throws IOException {
             InputStream stream = loader.getResourceAsStream(path);
-            BufferedReader reader = new BufferedReader(new InputStreamReader(stream));
-            return new LexerSource(reader, true);
+            return new InputLexerSource(stream, charset);
         }
     }
 }
