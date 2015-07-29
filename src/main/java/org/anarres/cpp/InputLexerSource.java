@@ -16,10 +16,11 @@
  */
 package org.anarres.cpp;
 
-import java.io.BufferedReader;
-import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.Reader;
+import java.nio.charset.Charset;
+import javax.annotation.Nonnull;
 
 /**
  * A {@link Source} which lexes a file.
@@ -30,21 +31,22 @@ import java.io.InputStreamReader;
  */
 public class InputLexerSource extends LexerSource {
 
+    @Deprecated
+    public InputLexerSource(@Nonnull InputStream input) {
+        this(input, Charset.defaultCharset());
+    }
+
     /**
      * Creates a new Source for lexing the given Reader.
      *
      * Preprocessor directives are honoured within the file.
      */
-    public InputLexerSource(InputStream input)
-            throws IOException {
-        super(
-                new BufferedReader(
-                        new InputStreamReader(
-                                input
-                        )
-                ),
-                true
-        );
+    public InputLexerSource(@Nonnull InputStream input, Charset charset) {
+        this(new InputStreamReader(input, charset));
+    }
+
+    public InputLexerSource(@Nonnull Reader input) {
+        super(toBufferedReader(input), true);
     }
 
     @Override

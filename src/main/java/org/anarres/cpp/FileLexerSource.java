@@ -18,8 +18,10 @@ package org.anarres.cpp;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileReader;
 import java.io.IOException;
+import java.nio.charset.Charset;
 import javax.annotation.Nonnull;
 
 /**
@@ -29,7 +31,7 @@ import javax.annotation.Nonnull;
  *
  * @see Source
  */
-public class FileLexerSource extends LexerSource {
+public class FileLexerSource extends InputLexerSource {
 
     private final String path;
     private final File file;
@@ -39,29 +41,38 @@ public class FileLexerSource extends LexerSource {
      *
      * Preprocessor directives are honoured within the file.
      */
-    public FileLexerSource(@Nonnull File file, String path)
+    public FileLexerSource(@Nonnull File file, @Nonnull Charset charset, @Nonnull String path)
             throws IOException {
-        super(
-                new BufferedReader(
-                        new FileReader(
-                                file
-                        )
-                ),
-                true
-        );
-
+        super(new FileInputStream(file), charset);
         this.file = file;
         this.path = path;
     }
 
-    public FileLexerSource(@Nonnull File file)
+    public FileLexerSource(@Nonnull File file, @Nonnull String path)
             throws IOException {
-        this(file, file.getPath());
+        this(file, Charset.defaultCharset(), path);
     }
 
+    public FileLexerSource(@Nonnull File file, @Nonnull Charset charset)
+            throws IOException {
+        this(file, charset, file.getPath());
+    }
+
+    @Deprecated
+    public FileLexerSource(@Nonnull File file)
+            throws IOException {
+        this(file, Charset.defaultCharset());
+    }
+
+    public FileLexerSource(@Nonnull String path, @Nonnull Charset charset)
+            throws IOException {
+        this(new File(path), charset, path);
+    }
+
+    @Deprecated
     public FileLexerSource(@Nonnull String path)
             throws IOException {
-        this(new File(path), path);
+        this(path, Charset.defaultCharset());
     }
 
     @Nonnull

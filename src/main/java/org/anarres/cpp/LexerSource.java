@@ -16,6 +16,7 @@
  */
 package org.anarres.cpp;
 
+import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.Reader;
 import javax.annotation.Nonnull;
@@ -23,6 +24,13 @@ import static org.anarres.cpp.Token.*;
 
 /** Does not handle digraphs. */
 public class LexerSource extends Source {
+
+    @Nonnull
+    protected static BufferedReader toBufferedReader(@Nonnull Reader r) {
+        if (r instanceof BufferedReader)
+            return (BufferedReader) r;
+        return new BufferedReader(r);
+    }
 
     private static final boolean DEBUG = false;
 
