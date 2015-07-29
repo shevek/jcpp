@@ -122,7 +122,7 @@ public final class Token {
      * @return the semantic value of this token, or null.
      * @see #getText()
      */
-    @CheckForNull
+    // @CheckForNull    // Not useful to annotate, as we have usually checked the type before calling this.
     public Object getValue() {
         return value;
     }
