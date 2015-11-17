@@ -19,13 +19,17 @@ package org.anarres.cpp;
 import java.io.IOException;
 import java.util.Iterator;
 import java.util.List;
+import javax.annotation.Nonnegative;
 import javax.annotation.Nonnull;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import static org.anarres.cpp.Token.*;
 
 /* This source should always be active, since we don't expand macros
  * in any inactive context. */
 /* pp */ class MacroTokenSource extends Source {
 
+    private static final Logger LOG = LoggerFactory.getLogger(MacroTokenSource.class);
     private final Macro macro;
     private final Iterator<Token> tokens;	/* Pointer into the macro.  */
 
@@ -96,18 +100,34 @@ import static org.anarres.cpp.Token.*;
                 str.toString(), buf.toString());
     }
 
+    /**
+     * Returns true if the given argumentIndex is the last argument of a variadic macro.
+     *
+     * @param argumentIndex The index of the argument to inspect.
+     * @return true if the given argumentIndex is the last argument of a variadic macro.
+     */
+    private boolean isVariadicArgument(@Nonnegative int argumentIndex) {
+        if (!macro.isVariadic())
+            return false;
+        return argumentIndex == args.size() - 1;
+    }
 
     /* At this point, we have consumed the first M_PASTE.
      * @see Macro#addPaste(Token) */
     private void paste(@Nonnull Token ptok)
             throws IOException,
             LexerException {
+        // List<Token> out = new ArrayList<Token>();
         StringBuilder buf = new StringBuilder();
         // Token err = null;
         /* We know here that arg is null or expired,
          * since we cannot paste an expanded arg. */
 
         int count = 2;
+        // While I hate auxiliary booleans, this does actually seem to be the simplest solution,
+        // as it avoids duplicating all the logic around hasNext() in case COMMA.
+        boolean comma = false;
+        TOKEN:
         for (int i = 0; i < count; i++) {
             if (!tokens.hasNext()) {
                 /* XXX This one really should throw. */
@@ -127,16 +147,29 @@ import static org.anarres.cpp.Token.*;
                     break;
                 case M_ARG:
                     int idx = ((Integer) tok.getValue()).intValue();
-                    concat(buf, args.get(idx));
+                    Argument arg = args.get(idx);
+                    if (comma && isVariadicArgument(idx) && arg.isEmpty()) {
+                        // Ugly way to strip the comma.
+                        buf.setLength(buf.length() - 1);
+                    } else {
+                        concat(buf, arg);
+                    }
                     break;
                 /* XXX Test this. */
                 case CCOMMENT:
                 case CPPCOMMENT:
+                    // TODO: In cpp, -CC keeps these comments too,
+                    // but turns all C++ comments into C comments.
                     break;
+                case ',':
+                    comma = true;
+                    buf.append(tok.getText());
+                    continue TOKEN;
                 default:
                     buf.append(tok.getText());
                     break;
             }
+            comma = false;
         }
 
         /* Push and re-lex. */

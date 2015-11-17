@@ -19,6 +19,7 @@ package org.anarres.cpp;
 import java.io.IOException;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
+import javax.annotation.Nonnull;
 import static org.anarres.cpp.Token.EOF;
 
 /**
@@ -30,7 +31,7 @@ public class SourceIterator implements Iterator<Token> {
     private final Source source;
     private Token tok;
 
-    public SourceIterator(Source s) {
+    public SourceIterator(@Nonnull Source s) {
         this.source = s;
         this.tok = null;
     }
@@ -56,6 +57,7 @@ public class SourceIterator implements Iterator<Token> {
      * @throws IllegalStateException if the Source
      *		throws a LexerException or IOException
      */
+    @Override
     public boolean hasNext() {
         advance();
         return tok.getType() != EOF;
@@ -68,6 +70,7 @@ public class SourceIterator implements Iterator<Token> {
      * @throws IllegalStateException if the Source
      *		throws a LexerException or IOException
      */
+    @Override
     public Token next() {
         if (!hasNext())
             throw new NoSuchElementException();
@@ -81,6 +84,7 @@ public class SourceIterator implements Iterator<Token> {
      *
      * @throws UnsupportedOperationException unconditionally.
      */
+    @Override
     public void remove() {
         throw new UnsupportedOperationException();
     }

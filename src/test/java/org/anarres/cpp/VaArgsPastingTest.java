@@ -58,6 +58,6 @@ public class VaArgsPastingTest {
                 + "foo(a,b) // PASTE_ELLIPSIS 2\n"
                 + "foo(a) // PASTE_ELLIPSIS 1\n"
                 + "foo(a,b) // PASTE_VAARGS 2\n"
-                + "foo(a) // PASTE_VAARGS 1\n", output);
+                + "foo(a) // PASTE_VAARGS 1", output);
     }
 }
