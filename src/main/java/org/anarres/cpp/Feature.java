@@ -29,7 +29,7 @@ public enum Feature {
     LINEMARKERS,
     /** Reports tokens of type INVALID as errors. */
     CSYNTAX,
-    /** Preserves comments in the lexed output. */
+    /** Preserves comments in the lexed output. Like cpp -C */
     KEEPCOMMENTS,
     /** Preserves comments in the lexed output, even when inactive. */
     KEEPALLCOMMENTS,
