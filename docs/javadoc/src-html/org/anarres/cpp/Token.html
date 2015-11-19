@@ -130,7 +130,7 @@
 <span class="sourceLineNo">122</span>     * @return the semantic value of this token, or null.<a name="line.122"></a>
 <span class="sourceLineNo">123</span>     * @see #getText()<a name="line.123"></a>
 <span class="sourceLineNo">124</span>     */<a name="line.124"></a>
-<span class="sourceLineNo">125</span>    @CheckForNull<a name="line.125"></a>
+<span class="sourceLineNo">125</span>    // @CheckForNull    // Not useful to annotate, as we have usually checked the type before calling this.<a name="line.125"></a>
 <span class="sourceLineNo">126</span>    public Object getValue() {<a name="line.126"></a>
 <span class="sourceLineNo">127</span>        return value;<a name="line.127"></a>
 <span class="sourceLineNo">128</span>    }<a name="line.128"></a>
