@@ -1559,6 +1559,16 @@ public class Preprocessor implements Closeable {
         }
     }
 
+    private int expr_char(Token token) {
+        Object value = token.getValue();
+        if (value instanceof Character)
+            return ((Character) value).charValue();
+        String text = String.valueOf(value);
+        if (text.length() == 0)
+            return 0;
+        return text.charAt(0);
+    }
+
     private long expr(int priority)
             throws IOException,
             LexerException {
@@ -1595,7 +1605,7 @@ public class Preprocessor implements Closeable {
                 lhs = value.longValue();
                 break;
             case CHARACTER:
-                lhs = ((Character) tok.getValue()).charValue();
+                lhs = expr_char(tok);
                 break;
             case IDENTIFIER:
                 if (warnings.contains(Warning.UNDEF))

@@ -1,0 +1,4 @@
+#define EXAMPLE_X 'a'
+
+#if EXAMPLE == EXAMPLE_X
+#endif
