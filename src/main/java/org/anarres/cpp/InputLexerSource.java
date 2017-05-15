@@ -45,8 +45,12 @@ public class InputLexerSource extends LexerSource {
         this(new InputStreamReader(input, charset));
     }
 
+    public InputLexerSource(@Nonnull Reader input, boolean ppvalid) {
+        super(input, true);
+    }
+
     public InputLexerSource(@Nonnull Reader input) {
-        super(toBufferedReader(input), true);
+        this(input, true);
     }
 
     @Override
