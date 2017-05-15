@@ -126,6 +126,7 @@ public class CppReader extends Reader implements Closeable {
         return token.charAt(idx++);
     }
 
+    @Override
     /* XXX Very slow and inefficient. */
     public int read(char cbuf[], int off, int len)
             throws IOException {
