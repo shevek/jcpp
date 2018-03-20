@@ -142,7 +142,7 @@ public class Preprocessor implements Closeable {
         this.features = EnumSet.noneOf(Feature.class);
         this.warnings = EnumSet.noneOf(Warning.class);
         this.filesystem = new JavaFileSystem();
-        this.listener = null;
+        this.listener = new DefaultPreprocessorListener();
     }
 
     public Preprocessor(@Nonnull Source initial) {
@@ -188,6 +188,12 @@ public class Preprocessor implements Closeable {
             s.init(this);
             s = s.getParent();
         }
+
+        // Make sure that any input sources know about this feature
+        for (Source source: inputs) {
+            source.init(this);
+        }
+
     }
 
     /**
@@ -214,6 +220,11 @@ public class Preprocessor implements Closeable {
      */
     public void addFeature(@Nonnull Feature f) {
         features.add(f);
+
+        // Make sure that any input sources know about this feature
+        for (Source source: inputs) {
+            source.init(this);
+        }
     }
 
     /**
@@ -376,6 +387,10 @@ public class Preprocessor implements Closeable {
         try {
             Macro m = new Macro(name);
             StringLexerSource s = new StringLexerSource(value);
+
+            // In order to make sure that the source honors all the features of this preprocessor, we have to init it
+            s.init(this);
+
             for (;;) {
                 Token tok = s.token();
                 if (tok.getType() == EOF)
@@ -701,9 +716,9 @@ public class Preprocessor implements Closeable {
             throws IOException,
             LexerException {
         Token tok;
-        List<Argument> args;
+        List<Argument> args = new ArrayList<Argument>();
 
-        // System.out.println("pp: expanding " + m);
+        //System.out.println("pp: expanding " + m);
         if (m.isFunctionLike()) {
             OPEN:
             for (;;) {
@@ -732,7 +747,6 @@ public class Preprocessor implements Closeable {
              * This deals elegantly with the case that we have
              * one empty arg. */
             if (tok.getType() != ')' || m.getArgs() > 0) {
-                args = new ArrayList<Argument>();
 
                 Argument arg = new Argument();
                 int depth = 0;
@@ -832,12 +846,10 @@ public class Preprocessor implements Closeable {
                 // System.out.println("Macro " + m + " args " + args);
             } else {
                 /* nargs == 0 and we (correctly) got () */
-                args = null;
             }
 
         } else {
             /* Macro without args. */
-            args = null;
         }
 
         if (m == __LINE__) {
@@ -1265,9 +1277,32 @@ public class Preprocessor implements Closeable {
                 name = (String) tok.getValue();
                 quoted = false;
                 tok = source_skipline(true);
+            } else if ((tok.getType() == '"') || (tok.getType() == '<')) {
+                // Handle the case where the actual include target was a macro that expanded into
+                // a string. We should have a stream of tokens than terminates in a quote
+                // Figure out the closing token
+                int closer = tok.getType() == '<' ? '>' : '"';
+                StringBuilder buf = new StringBuilder();
+                MACRO:
+                for (;;) {
+                    tok = token_nonwhite();
+                    switch (tok.getType()) {
+                        case NL:
+                        case EOF:
+                            break MACRO;
+                        default:
+                            if (tok.getType() == closer) {
+                                break MACRO;
+                            } else {
+                                buf.append(tok.getText());
+                            }
+                    }
+                }
+                name = buf.toString();
+                quoted = closer == '"';
             } else {
                 error(tok,
-                        "Expected string or header, not " + tok.getText());
+                        "Expected string or header, not " + tok.getText() + " of type " + tok.getType() + " at " + tok.getLine() + "," + tok.getColumn());
                 switch (tok.getType()) {
                     case NL:
                     case EOF:
@@ -2165,7 +2200,6 @@ public class Preprocessor implements Closeable {
         return buf.toString();
     }
 
-    @Override
     public void close()
             throws IOException {
         {
