@@ -1165,13 +1165,22 @@ public class Preprocessor implements Closeable {
      *
      * @param path The list of virtual directories to search for the given name.
      * @param name The name of the file to attempt to include.
+     * @param next
      * @return true if the file was successfully included, false otherwise.
      * @throws IOException if an I/O error occurs.
      */
-    protected boolean include(@Nonnull Iterable<String> path, @Nonnull String name)
+    protected boolean include(@Nonnull Iterable<String> path, @Nonnull String name, boolean next)
             throws IOException {
         for (String dir : path) {
             VirtualFile file = getFileSystem().getFile(dir, name);
+
+            // Implement the next functionality here. This is actually
+            // not exactly right because it should be based on the include
+            // we are currently parsing, but it works _almost_ the same given
+            // how limited the usage of #include_next is.
+            if (includes.contains(file) && next) {
+                continue;
+            }
             if (include(file))
                 return true;
         }
@@ -1210,7 +1219,7 @@ public class Preprocessor implements Closeable {
                 if (include(ifile))
                     return;
             }
-            if (include(quoteincludepath, name))
+            if (include(quoteincludepath, name, next))
                 return;
         } else {
             int idx = name.indexOf('/');
@@ -1218,12 +1227,12 @@ public class Preprocessor implements Closeable {
                 String frameworkName = name.substring(0, idx);
                 String headerName = name.substring(idx + 1);
                 String headerPath = frameworkName + ".framework/Headers/" + headerName;
-                if (include(frameworkspath, headerPath))
+                if (include(frameworkspath, headerPath, next))
                     return;
             }
         }
 
-        if (include(sysincludepath, name))
+        if (include(sysincludepath, name, next))
             return;
 
         StringBuilder buf = new StringBuilder();
@@ -1292,6 +1301,7 @@ public class Preprocessor implements Closeable {
                             break MACRO;
                         default:
                             if (tok.getType() == closer) {
+                                tok = token_nonwhite();
                                 break MACRO;
                             } else {
                                 buf.append(tok.getText());
