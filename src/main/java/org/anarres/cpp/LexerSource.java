@@ -315,10 +315,11 @@ public class LexerSource extends Source {
 
     /**
      * Lexes an escaped character, appends the lexed escape sequence to 'text' and returns the parsed character value.
+     *
      * @param text The buffer to which the literal escape sequence is appended.
      * @return The new parsed character value.
      * @throws IOException if it goes badly wrong.
-     * @throws LexerException  if it goes wrong.
+     * @throws LexerException if it goes wrong.
      */
     private int escape(StringBuilder text)
             throws IOException,
@@ -425,7 +426,7 @@ public class LexerSource extends Source {
         int e = read();
         if (e != '\'') {
             // error("Illegal character constant");
-			/* We consume up to the next ' or the rest of the line. */
+            /* We consume up to the next ' or the rest of the line. */
             for (;;) {
                 if (isLineSeparator(e)) {
                     unread(e);
@@ -741,8 +742,7 @@ public class LexerSource extends Source {
         text.append((char) c);
         for (;;) {
             d = read();
-            if (ppvalid && isLineSeparator(d))	/* XXX Ugly. */
-
+            if (ppvalid && isLineSeparator(d)) /* XXX Ugly. */
                 break;
             if (Character.isWhitespace(d))
                 text.append((char) d);
@@ -978,7 +978,14 @@ public class LexerSource extends Source {
             } else if (Character.isJavaIdentifierStart(c)) {
                 tok = identifier(c);
             } else {
-                tok = new Token(c);
+                String text = TokenType.getTokenText(c);
+                if (text == null) {
+                    if ((c >>> 16) == 0)    // Character.isBmpCodePoint() is new in 1.7
+                        text = Character.toString((char) c);
+                    else
+                        text = new String(Character.toChars(c));
+                }
+                tok = new Token(c, text);
             }
         }
 
