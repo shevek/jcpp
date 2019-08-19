@@ -75,6 +75,7 @@ public class NumericValueTest {
         testNumericValue("1e1", 1e1);
         // testNumericValue("-1e1", -1e1);
         testNumericValue("1e-1", 1e-1);
+        testNumericValue("1e+1", 1e+1);
 
         // Hex numbers with decimal exponents
         testNumericValue("0x12e3", 0x12e3);

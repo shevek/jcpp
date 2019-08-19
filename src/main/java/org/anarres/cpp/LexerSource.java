@@ -569,7 +569,7 @@ public class LexerSource extends Source {
             LexerException {
         StringBuilder part = new StringBuilder();
         int d = read();
-        if (sign && d == '-') {
+        if (sign && (d == '+' || d == '-')) {
             text.append((char) d);
             part.append((char) d);
             d = read();
