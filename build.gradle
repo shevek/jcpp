@@ -51,3 +51,9 @@ testClasses.dependsOn(processTestVersionResources)
 apply plugin: 'application'
 
 mainClassName = "org.anarres.cpp.Main"
+
+jar {
+  manifest {
+    attributes 'Automatic-Module-Name': 'org.anarres.jcpp'
+  }
+}
