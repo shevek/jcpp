@@ -31,8 +31,13 @@ public class NumericValue extends Number {
     public static final int F_LONGLONG = 8;
     public static final int F_FLOAT = 16;
     public static final int F_DOUBLE = 32;
+    public static final int F_GCC_DEC64 = 64; // these are out of order, but I like
+    public static final int F_GCC_DEC128 = 128; // having GCC_DEC128 = 128...
+    public static final int F_GCC_DEC32 = 256;
+    public static final int F_GCC_ULONGLONG = 512;
 
     public static final int FF_SIZE = F_INT | F_LONG | F_LONGLONG | F_FLOAT | F_DOUBLE;
+    public static final int FF_GCC_EXTENDED_SIZES = F_GCC_DEC32 | F_GCC_DEC64 | F_GCC_DEC128 | F_GCC_ULONGLONG;
 
     private final int base;
     private final String integer;

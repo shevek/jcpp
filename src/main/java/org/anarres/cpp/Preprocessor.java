@@ -142,7 +142,7 @@ public class Preprocessor implements Closeable {
         this.features = EnumSet.noneOf(Feature.class);
         this.warnings = EnumSet.noneOf(Warning.class);
         this.filesystem = new JavaFileSystem();
-        this.listener = null;
+        this.listener = new DefaultPreprocessorListener();
     }
 
     public Preprocessor(@Nonnull Source initial) {
@@ -188,6 +188,12 @@ public class Preprocessor implements Closeable {
             s.init(this);
             s = s.getParent();
         }
+
+        // Make sure that any input sources know about this feature
+        for (Source source: inputs) {
+            source.init(this);
+        }
+
     }
 
     /**
@@ -214,6 +220,11 @@ public class Preprocessor implements Closeable {
      */
     public void addFeature(@Nonnull Feature f) {
         features.add(f);
+
+        // Make sure that any input sources know about this feature
+        for (Source source: inputs) {
+            source.init(this);
+        }
     }
 
     /**
@@ -376,6 +387,10 @@ public class Preprocessor implements Closeable {
         try {
             Macro m = new Macro(name);
             StringLexerSource s = new StringLexerSource(value);
+
+            // In order to make sure that the source honors all the features of this preprocessor, we have to init it
+            s.init(this);
+
             for (;;) {
                 Token tok = s.token();
                 if (tok.getType() == EOF)
@@ -701,9 +716,9 @@ public class Preprocessor implements Closeable {
             throws IOException,
             LexerException {
         Token tok;
-        List<Argument> args;
+        List<Argument> args = new ArrayList<Argument>();
 
-        // System.out.println("pp: expanding " + m);
+        //System.out.println("pp: expanding " + m);
         if (m.isFunctionLike()) {
             OPEN:
             for (;;) {
@@ -732,7 +747,6 @@ public class Preprocessor implements Closeable {
              * This deals elegantly with the case that we have
              * one empty arg. */
             if (tok.getType() != ')' || m.getArgs() > 0) {
-                args = new ArrayList<Argument>();
 
                 Argument arg = new Argument();
                 int depth = 0;
@@ -832,12 +846,10 @@ public class Preprocessor implements Closeable {
                 // System.out.println("Macro " + m + " args " + args);
             } else {
                 /* nargs == 0 and we (correctly) got () */
-                args = null;
             }
 
         } else {
             /* Macro without args. */
-            args = null;
         }
 
         if (m == __LINE__) {
@@ -1153,13 +1165,22 @@ public class Preprocessor implements Closeable {
      *
      * @param path The list of virtual directories to search for the given name.
      * @param name The name of the file to attempt to include.
+     * @param next
      * @return true if the file was successfully included, false otherwise.
      * @throws IOException if an I/O error occurs.
      */
-    protected boolean include(@Nonnull Iterable<String> path, @Nonnull String name)
+    protected boolean include(@Nonnull Iterable<String> path, @Nonnull String name, boolean next)
             throws IOException {
         for (String dir : path) {
             VirtualFile file = getFileSystem().getFile(dir, name);
+
+            // Implement the next functionality here. This is actually
+            // not exactly right because it should be based on the include
+            // we are currently parsing, but it works _almost_ the same given
+            // how limited the usage of #include_next is.
+            if (includes.contains(file) && next) {
+                continue;
+            }
             if (include(file))
                 return true;
         }
@@ -1198,7 +1219,7 @@ public class Preprocessor implements Closeable {
                 if (include(ifile))
                     return;
             }
-            if (include(quoteincludepath, name))
+            if (include(quoteincludepath, name, next))
                 return;
         } else {
             int idx = name.indexOf('/');
@@ -1206,12 +1227,12 @@ public class Preprocessor implements Closeable {
                 String frameworkName = name.substring(0, idx);
                 String headerName = name.substring(idx + 1);
                 String headerPath = frameworkName + ".framework/Headers/" + headerName;
-                if (include(frameworkspath, headerPath))
+                if (include(frameworkspath, headerPath, next))
                     return;
             }
         }
 
-        if (include(sysincludepath, name))
+        if (include(sysincludepath, name, next))
             return;
 
         StringBuilder buf = new StringBuilder();
@@ -1265,9 +1286,33 @@ public class Preprocessor implements Closeable {
                 name = (String) tok.getValue();
                 quoted = false;
                 tok = source_skipline(true);
+            } else if ((tok.getType() == '"') || (tok.getType() == '<')) {
+                // Handle the case where the actual include target was a macro that expanded into
+                // a string. We should have a stream of tokens than terminates in a quote
+                // Figure out the closing token
+                int closer = tok.getType() == '<' ? '>' : '"';
+                StringBuilder buf = new StringBuilder();
+                MACRO:
+                for (;;) {
+                    tok = token_nonwhite();
+                    switch (tok.getType()) {
+                        case NL:
+                        case EOF:
+                            break MACRO;
+                        default:
+                            if (tok.getType() == closer) {
+                                tok = token_nonwhite();
+                                break MACRO;
+                            } else {
+                                buf.append(tok.getText());
+                            }
+                    }
+                }
+                name = buf.toString();
+                quoted = closer == '"';
             } else {
                 error(tok,
-                        "Expected string or header, not " + tok.getText());
+                        "Expected string or header, not " + tok.getText() + " of type " + tok.getType() + " at " + tok.getLine() + "," + tok.getColumn());
                 switch (tok.getType()) {
                     case NL:
                     case EOF:
@@ -2165,7 +2210,6 @@ public class Preprocessor implements Closeable {
         return buf.toString();
     }
 
-    @Override
     public void close()
             throws IOException {
         {

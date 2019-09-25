@@ -40,6 +40,7 @@ public class LexerSource extends Source {
     private boolean include;
 
     private boolean digraphs;
+    private boolean gccSuffixes;
 
     /* Unread. */
     private int u0, u1;
@@ -60,6 +61,7 @@ public class LexerSource extends Source {
         this.include = false;
 
         this.digraphs = true;
+        this.gccSuffixes = false;
 
         this.ucount = 0;
 
@@ -73,6 +75,7 @@ public class LexerSource extends Source {
     /* pp */ void init(Preprocessor pp) {
         super.init(pp);
         this.digraphs = pp.getFeature(Feature.DIGRAPHS);
+        this.gccSuffixes = pp.getFeature(Feature.GCC_SUFFIXES);
         this.reader.init(pp, this);
     }
 
@@ -513,8 +516,20 @@ public class LexerSource extends Source {
                 text.append((char) d);
                 d = read();
             } else if (d == 'L' || d == 'l') {
-                if ((flags & NumericValue.FF_SIZE) != 0)
-                    warning("Multiple length suffixes after " + text);
+                if ((flags & NumericValue.FF_SIZE) != 0) {
+                    // Added special code for GCC extended numeric types
+                    if (gccSuffixes) {
+                        if ((flags & NumericValue.F_UNSIGNED) != 0) {
+                            flags |= NumericValue.F_GCC_ULONGLONG;   // UL gcc type
+                        } else if ((flags & NumericValue.F_DOUBLE) != 0) {
+                            flags |= NumericValue.F_GCC_DEC128;      // DL gcc type
+                        } else {
+                            warning("Multiple length suffixes after " + text);
+                        }
+                    } else {
+                        warning("Multiple length suffixes after " + text);
+                    }
+                }
                 text.append((char) d);
                 int e = read();
                 if (e == d) {	// Case must match. Ll is Welsh.
@@ -532,14 +547,24 @@ public class LexerSource extends Source {
                 text.append((char) d);
                 d = read();
             } else if (d == 'F' || d == 'f') {
-                if ((flags & NumericValue.FF_SIZE) != 0)
-                    warning("Multiple length suffixes after " + text);
+                if ((flags & NumericValue.FF_SIZE) != 0) {
+                    if (gccSuffixes && ((flags & NumericValue.F_DOUBLE) != 0)) {
+                        flags |= NumericValue.F_GCC_DEC32; // GCC DF suffic
+                    } else {
+                        warning("Multiple length suffixes after " + text);
+                    }
+                }
                 flags |= NumericValue.F_FLOAT;
                 text.append((char) d);
                 d = read();
             } else if (d == 'D' || d == 'd') {
-                if ((flags & NumericValue.FF_SIZE) != 0)
-                    warning("Multiple length suffixes after " + text);
+                if ((flags & NumericValue.FF_SIZE) != 0) {
+                    if (gccSuffixes && ((flags & NumericValue.F_DOUBLE) != 0)) {
+                        flags |= NumericValue.F_GCC_DEC64; // GCC DD suffic
+                    } else {
+                        warning("Multiple length suffixes after " + text);
+                    }
+                }
                 flags |= NumericValue.F_DOUBLE;
                 text.append((char) d);
                 d = read();
