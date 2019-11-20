@@ -1916,8 +1916,9 @@ public class Preprocessor implements Closeable {
                     return tok;
 
                 default:
-                    throw new InternalException("Bad token " + tok);
-                // break;
+                    if (getFeature(Feature.CSYNTAX))
+                        error(tok, String.valueOf(tok.getValue()));
+                    return tok;
 
                 case HASH:
                     tok = source_token_nonwhite();
