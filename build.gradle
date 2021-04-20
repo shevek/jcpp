@@ -25,7 +25,7 @@ stdproject {
 		license 'Apache-2.0'
 	}
 
-	sourceCompatibility = 1.5
+	sourceCompatibility = 1.6
 
 dependencies {
 	compile 'com.google.code.findbugs:annotations:3.0.1'
